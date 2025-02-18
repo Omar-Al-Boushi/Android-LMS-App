@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout
-    xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/clMain"
@@ -16,9 +15,9 @@
         android:layout_width="match_parent"
         android:layout_height="240dp"
         android:background="@color/Custom_MainColorBlue"
-        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent">
+        app:layout_constraintTop_toTopOf="parent">
 
         <!-- زر الرجوع -->
         <com.google.android.material.button.MaterialButton
@@ -37,10 +36,10 @@
         <androidx.constraintlayout.widget.ConstraintLayout
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            app:layout_constraintTop_toTopOf="parent"
             app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
             app:layout_constraintVertical_bias="0.38">
 
             <!-- صورة الملف الشخصي -->
@@ -49,10 +48,10 @@
                 android:layout_width="120dp"
                 android:layout_height="120dp"
                 android:padding="2dp"
-                app:layout_constraintTop_toTopOf="parent"
                 app:layout_constraintBottom_toBottomOf="parent"
-                app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent"
                 app:shapeAppearance="@style/ShapeAppearance.Material3.Corner.Full"
                 app:srcCompat="@drawable/omar_photo"
                 app:strokeColor="@color/white"
@@ -66,9 +65,9 @@
                 android:layout_marginTop="-24dp"
                 android:backgroundTint="@color/Custom_Grey"
                 android:elevation="6dp"
-                app:layout_constraintTop_toBottomOf="@+id/ivProfile"
-                app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@+id/ivProfile"
                 app:shapeAppearance="@style/ShapeAppearance.Material3.Corner.Full"
                 app:strokeWidth="0dp">
 
@@ -80,10 +79,10 @@
                         android:id="@+id/ivEditIcon"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        app:layout_constraintTop_toTopOf="parent"
                         app:layout_constraintBottom_toBottomOf="parent"
-                        app:layout_constraintStart_toStartOf="parent"
                         app:layout_constraintEnd_toEndOf="parent"
+                        app:layout_constraintStart_toStartOf="parent"
+                        app:layout_constraintTop_toTopOf="parent"
                         app:shapeAppearance="@style/ShapeAppearance.Material3.Corner.Full"
                         app:srcCompat="@drawable/camera" />
                 </androidx.constraintlayout.widget.ConstraintLayout>
@@ -100,10 +99,10 @@
         android:backgroundTint="@color/Custom_BackgroundColor"
         app:cardCornerRadius="30dp"
         app:cardElevation="0dp"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
         app:strokeWidth="0dp">
 
         <androidx.core.widget.NestedScrollView
@@ -117,8 +116,8 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="8dp"
-                android:orientation="vertical"
                 android:layoutDirection="ltr"
+                android:orientation="vertical"
                 android:paddingBottom="60dp">
 
                 <!-- قسم Contact -->
@@ -141,17 +140,17 @@
                     android:layout_height="wrap_content"
                     android:layout_marginHorizontal="16dp"
                     android:layout_marginTop="16dp"
-                    app:boxCornerRadiusTopStart="16dp"
-                    app:boxCornerRadiusTopEnd="16dp"
-                    app:boxCornerRadiusBottomStart="16dp"
                     app:boxCornerRadiusBottomEnd="16dp"
+                    app:boxCornerRadiusBottomStart="16dp"
+                    app:boxCornerRadiusTopEnd="16dp"
+                    app:boxCornerRadiusTopStart="16dp"
                     app:boxStrokeColor="@color/Custom_MainColorBlue"
                     app:boxStrokeWidthFocused="2dp"
-                    app:prefixText="+963"
-                    app:prefixTextColor="@color/Custom_MainColorBlue"
-                    app:prefixTextAppearance="@style/PrefixTextStyle"
-                    app:startIconDrawable="@drawable/phone_edit"
                     app:hintEnabled="false"
+                    app:prefixText="+963"
+                    app:prefixTextAppearance="@style/PrefixTextStyle"
+                    app:prefixTextColor="@color/Custom_MainColorBlue"
+                    app:startIconDrawable="@drawable/phone_edit"
                     app:startIconTint="@null">
 
                     <com.google.android.material.textfield.TextInputEditText
@@ -159,8 +158,8 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:hint="Phone Number"
-                        android:textSize="14dp"
-                        android:inputType="phone" />
+                        android:inputType="phone"
+                        android:textSize="14dp" />
                 </com.google.android.material.textfield.TextInputLayout>
 
                 <!-- حقل WhatsApp -->
@@ -171,17 +170,17 @@
                     android:layout_height="wrap_content"
                     android:layout_marginHorizontal="16dp"
                     android:layout_marginTop="8dp"
-                    app:boxCornerRadiusTopStart="12dp"
-                    app:boxCornerRadiusTopEnd="12dp"
-                    app:boxCornerRadiusBottomStart="12dp"
                     app:boxCornerRadiusBottomEnd="12dp"
+                    app:boxCornerRadiusBottomStart="12dp"
+                    app:boxCornerRadiusTopEnd="12dp"
+                    app:boxCornerRadiusTopStart="12dp"
                     app:boxStrokeColor="@color/Custom_MainColorBlue"
                     app:boxStrokeWidthFocused="2dp"
-                    app:prefixText="https://wa.me/"
-                    app:prefixTextColor="@color/Custom_MainColorBlue"
-                    app:prefixTextAppearance="@style/PrefixTextStyle"
-                    app:startIconDrawable="@drawable/whatsapp2"
                     app:hintEnabled="false"
+                    app:prefixText="https://wa.me/"
+                    app:prefixTextAppearance="@style/PrefixTextStyle"
+                    app:prefixTextColor="@color/Custom_MainColorBlue"
+                    app:startIconDrawable="@drawable/whatsapp2"
                     app:startIconTint="@null">
 
                     <com.google.android.material.textfield.TextInputEditText
@@ -189,8 +188,8 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:hint="WhatsApp Link"
-                        android:textSize="14dp"
-                        android:inputType="textUri" />
+                        android:inputType="textUri"
+                        android:textSize="14dp" />
                 </com.google.android.material.textfield.TextInputLayout>
 
                 <!-- حقل Facebook -->
@@ -201,17 +200,17 @@
                     android:layout_height="wrap_content"
                     android:layout_marginHorizontal="16dp"
                     android:layout_marginTop="8dp"
-                    app:boxCornerRadiusTopStart="12dp"
-                    app:boxCornerRadiusTopEnd="12dp"
-                    app:boxCornerRadiusBottomStart="12dp"
                     app:boxCornerRadiusBottomEnd="12dp"
+                    app:boxCornerRadiusBottomStart="12dp"
+                    app:boxCornerRadiusTopEnd="12dp"
+                    app:boxCornerRadiusTopStart="12dp"
                     app:boxStrokeColor="@color/Custom_MainColorBlue"
                     app:boxStrokeWidthFocused="2dp"
-                    app:prefixText="https://fb.com/"
-                    app:prefixTextColor="@color/Custom_MainColorBlue"
-                    app:prefixTextAppearance="@style/PrefixTextStyle"
-                    app:startIconDrawable="@drawable/facebook2"
                     app:hintEnabled="false"
+                    app:prefixText="https://fb.com/"
+                    app:prefixTextAppearance="@style/PrefixTextStyle"
+                    app:prefixTextColor="@color/Custom_MainColorBlue"
+                    app:startIconDrawable="@drawable/facebook2"
                     app:startIconTint="@null">
 
                     <com.google.android.material.textfield.TextInputEditText
@@ -219,8 +218,8 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:hint="Facebook Link"
-                        android:textSize="14dp"
-                        android:inputType="textUri" />
+                        android:inputType="textUri"
+                        android:textSize="14dp" />
                 </com.google.android.material.textfield.TextInputLayout>
 
                 <!-- حقل Telegram -->
@@ -231,17 +230,17 @@
                     android:layout_height="wrap_content"
                     android:layout_marginHorizontal="16dp"
                     android:layout_marginTop="8dp"
-                    app:boxCornerRadiusTopStart="12dp"
-                    app:boxCornerRadiusTopEnd="12dp"
-                    app:boxCornerRadiusBottomStart="12dp"
                     app:boxCornerRadiusBottomEnd="12dp"
+                    app:boxCornerRadiusBottomStart="12dp"
+                    app:boxCornerRadiusTopEnd="12dp"
+                    app:boxCornerRadiusTopStart="12dp"
                     app:boxStrokeColor="@color/Custom_MainColorBlue"
                     app:boxStrokeWidthFocused="2dp"
-                    app:prefixText="https://t.me/"
-                    app:prefixTextColor="@color/Custom_MainColorBlue"
-                    app:prefixTextAppearance="@style/PrefixTextStyle"
-                    app:startIconDrawable="@drawable/telegram2"
                     app:hintEnabled="false"
+                    app:prefixText="https://t.me/"
+                    app:prefixTextAppearance="@style/PrefixTextStyle"
+                    app:prefixTextColor="@color/Custom_MainColorBlue"
+                    app:startIconDrawable="@drawable/telegram2"
                     app:startIconTint="@null">
 
                     <com.google.android.material.textfield.TextInputEditText
@@ -249,8 +248,8 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:hint="Telegram Link"
-                        android:textSize="14dp"
-                        android:inputType="textUri" />
+                        android:inputType="textUri"
+                        android:textSize="14dp" />
                 </com.google.android.material.textfield.TextInputLayout>
 
                 <!-- حقل Email (بدون prefix) -->
@@ -261,15 +260,15 @@
                     android:layout_height="wrap_content"
                     android:layout_marginHorizontal="16dp"
                     android:layout_marginTop="8dp"
-                    app:boxCornerRadiusTopStart="12dp"
-                    app:boxCornerRadiusTopEnd="12dp"
-                    app:boxCornerRadiusBottomStart="12dp"
                     app:boxCornerRadiusBottomEnd="12dp"
+                    app:boxCornerRadiusBottomStart="12dp"
+                    app:boxCornerRadiusTopEnd="12dp"
+                    app:boxCornerRadiusTopStart="12dp"
                     app:boxStrokeColor="@color/Custom_MainColorBlue"
                     app:boxStrokeWidthFocused="2dp"
                     app:hintEnabled="false"
-                    app:startIconDrawable="@drawable/email2"
                     app:prefixTextAppearance="@style/PrefixTextStyle"
+                    app:startIconDrawable="@drawable/email2"
                     app:startIconTint="@null">
 
                     <com.google.android.material.textfield.TextInputEditText
@@ -277,8 +276,8 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:hint="example@example.com"
-                        android:textSize="14dp"
-                        android:inputType="textEmailAddress" />
+                        android:inputType="textEmailAddress"
+                        android:textSize="14dp" />
                 </com.google.android.material.textfield.TextInputLayout>
 
                 <!-- قسم Bio -->
@@ -294,28 +293,53 @@
                     android:textSize="20sp" />
 
                 <com.google.android.material.textfield.TextInputLayout
-                    android:id="@+id/tilBio"
+                    android:id="@+id/tilBioAr"
                     style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.Dense"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginHorizontal="16dp"
                     android:layout_marginTop="4dp"
-                    app:boxCornerRadiusTopStart="12dp"
-                    app:boxCornerRadiusTopEnd="12dp"
-                    app:boxCornerRadiusBottomStart="12dp"
                     app:boxCornerRadiusBottomEnd="12dp"
+                    app:boxCornerRadiusBottomStart="12dp"
+                    app:boxCornerRadiusTopEnd="12dp"
+                    app:boxCornerRadiusTopStart="12dp"
                     app:boxStrokeColor="@color/Custom_MainColorBlue"
                     app:boxStrokeWidthFocused="2dp">
 
                     <com.google.android.material.textfield.TextInputEditText
-                        android:id="@+id/etBio"
+                        android:id="@+id/etBioAr"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:gravity="top"
-                        android:hint="@string/your_bio"
-                        android:textSize="14dp"
+                        android:hint="@string/your_bio_en"
                         android:inputType="textMultiLine"
-                        android:minLines="4" />
+                        android:minLines="4"
+                        android:textSize="14dp" />
+                </com.google.android.material.textfield.TextInputLayout>
+
+                <com.google.android.material.textfield.TextInputLayout
+                    android:id="@+id/tilBioEn"
+                    style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.Dense"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginHorizontal="16dp"
+                    android:layout_marginTop="4dp"
+                    app:boxCornerRadiusBottomEnd="12dp"
+                    app:boxCornerRadiusBottomStart="12dp"
+                    app:boxCornerRadiusTopEnd="12dp"
+                    app:boxCornerRadiusTopStart="12dp"
+                    app:boxStrokeColor="@color/Custom_MainColorBlue"
+                    app:boxStrokeWidthFocused="2dp">
+
+                    <com.google.android.material.textfield.TextInputEditText
+                        android:id="@+id/etBioEn"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:gravity="top"
+                        android:hint="@string/your_bio_ar"
+                        android:inputType="textMultiLine"
+                        android:minLines="4"
+                        android:textSize="14dp" />
                 </com.google.android.material.textfield.TextInputLayout>
 
                 <!-- أزرار الحفظ والإلغاء -->
@@ -334,8 +358,8 @@
                         android:id="@+id/btnSave"
                         android:layout_width="wrap_content"
                         android:layout_height="80dp"
-                        android:layout_weight="3"
                         android:layout_marginEnd="16dp"
+                        android:layout_weight="3"
                         android:fontFamily="@font/cairo_bold"
                         android:text="@string/save_changes"
                         android:textColor="@color/white"
@@ -345,13 +369,15 @@
                     <com.google.android.material.button.MaterialButton
                         android:id="@+id/btnCancel"
                         android:layout_width="wrap_content"
-                        android:layout_weight="2"
                         android:layout_height="80dp"
+                        android:layout_weight="2"
                         android:fontFamily="@font/cairo_bold"
                         android:text="@string/cancel"
                         android:textColor="@color/white"
                         app:backgroundTint="#B3261E"
                         app:cornerRadius="12dp" />
+
+
                 </LinearLayout>
 
             </LinearLayout>

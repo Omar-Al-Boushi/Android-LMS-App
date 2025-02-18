@@ -1,14 +1,20 @@
 package org.svuonline.lms.ui.data;
 
 public class ButtonData {
+    private long toolId; // معرف الزر، يتطابق مع tool_id في قاعدة البيانات
     private String label;
-    private int buttonColor; // قيمة اللون الفعلية
-    private String buttonId;
+    private int buttonColor;
+    private String actionType;
 
-    public ButtonData(String label, int buttonColor, String buttonId) {
+    public ButtonData(long toolId, String label, int buttonColor, String actionType) {
+        this.toolId = toolId;
         this.label = label;
         this.buttonColor = buttonColor;
-        this.buttonId = buttonId;
+        this.actionType = actionType;
+    }
+
+    public long getToolId() {
+        return toolId;
     }
 
     public String getLabel() {
@@ -19,7 +25,7 @@ public class ButtonData {
         return buttonColor;
     }
 
-    public String getButtonId() {
-        return buttonId;
+    public String getActionType() {
+        return actionType;
     }
 }

@@ -1,49 +1,40 @@
 package org.svuonline.lms.ui.data;
 
-import androidx.annotation.StringRes;
-
 public class ParticipantData {
-    private @StringRes int nameResourceId;
-    private @StringRes int roleResourceId;
-    private @StringRes int descriptionResourceId;
-    private int imageResource;
+    private long userId;
+    private String username; // مشتق من البريد الإلكتروني
+    private String nameEn;
+    private String nameAr;
+    private String role; // الدور (مثل student، doctor، إلخ)
+    private String bioEn; // وصف المستخدم (bio)
+    private String bioAr;
+    private String profilePicture; // اسم مورد الصورة (مثل "mazen_photo")
+    private boolean isFavorite; // حالة المفضلة
 
-    public ParticipantData(@StringRes int nameResourceId, @StringRes int roleResourceId, @StringRes int descriptionResourceId, int imageResource) {
-        this.nameResourceId = nameResourceId;
-        this.roleResourceId = roleResourceId;
-        this.descriptionResourceId = descriptionResourceId;
-        this.imageResource = imageResource;
+    public ParticipantData(long userId, String username, String nameEn, String nameAr, String role,
+                           String bioEn, String bioAr, String profilePicture, boolean isFavorite) {
+        this.userId = userId;
+        this.username = username;
+        this.nameEn = nameEn;
+        this.nameAr = nameAr;
+        this.role = role;
+        this.bioEn = bioEn;
+        this.bioAr = bioAr;
+        this.profilePicture = profilePicture;
+        this.isFavorite = isFavorite;
     }
 
-    public int getNameResourceId() {
-        return nameResourceId;
-    }
+    // Getters
+    public long getUserId() { return userId; }
+    public String getUsername() { return username; }
+    public String getNameEn() { return nameEn; }
+    public String getNameAr() { return nameAr; }
+    public String getRole() { return role; }
+    public String getBioEn() { return bioEn; }
+    public String getBioAr() { return bioAr; }
+    public String getProfilePicture() { return profilePicture; }
+    public boolean isFavorite() { return isFavorite; }
 
-    public void setNameResourceId(int nameResourceId) {
-        this.nameResourceId = nameResourceId;
-    }
-
-    public int getRoleResourceId() {
-        return roleResourceId;
-    }
-
-    public void setRoleResourceId(int roleResourceId) {
-        this.roleResourceId = roleResourceId;
-    }
-
-    public int getDescriptionResourceId() {
-        return descriptionResourceId;
-    }
-
-    public void setDescriptionResourceId(int descriptionResourceId) {
-        this.descriptionResourceId = descriptionResourceId;
-    }
-
-    public int getImageResource() {
-        return imageResource;
-    }
-
-    public void setImageResource(int imageResource) {
-        this.imageResource = imageResource;
-    }
+    // Setter for favorite
+    public void setFavorite(boolean favorite) { isFavorite = favorite; }
 }

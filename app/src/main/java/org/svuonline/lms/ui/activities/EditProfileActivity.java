@@ -12,14 +12,17 @@ import android.view.View;
 import android.widget.EditText;
 import android.widget.Toast;
 
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.Nullable;
 
 import com.google.android.material.button.MaterialButton;
-import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.imageview.ShapeableImageView;
 import com.google.android.material.textfield.TextInputLayout;
 
 import org.svuonline.lms.R;
+import org.svuonline.lms.data.model.User;
+import org.svuonline.lms.data.repository.UserRepository;
 import org.svuonline.lms.utils.BaseActivity;
 import org.svuonline.lms.utils.Utils;
 
@@ -27,31 +30,35 @@ import java.io.IOException;
 
 public class EditProfileActivity extends BaseActivity {
 
-    private static final int PICK_IMAGE_REQUEST = 1;
-
-    // تعريف العناصر باستخدام مسميات معبرة
-    private MaterialButton btnBack;
-    private FloatingActionButton fabBackToTop; // إن كانت مستخدمة في التخطيط
-    private MaterialButton btnSave, btnCancel;
-    private TextInputLayout tilPhone, tilWhatsapp, tilFacebook, tilTelegram, tilEmail, tilBio;
-    private EditText etPhone, etWhatsapp, etFacebook, etTelegram, etEmail, etBio;
+    // Views
+    private MaterialButton btnBack, btnSave, btnCancel;
+    private TextInputLayout tilPhone, tilWhatsapp, tilFacebook, tilTelegram, tilEmail, tilBioEn, tilBioAr;
+    private EditText etPhone, etWhatsapp, etFacebook, etTelegram, etEmail, etBioEn, etBioAr;
     private ShapeableImageView ivProfile;
 
-    // بيانات مؤقتة لتخزين الحالة الأولية للصورة
-    private Uri selectedImageUri = null;
-    private Bitmap originalProfileBitmap = null; // تخزين الصورة الأصلية
+    // State
+    private Uri selectedImageUri;
+    private Bitmap originalProfileBitmap;
+    private UserRepository userRepo;
+    private long currentUserId;
+    private User currentUser;
+    private boolean isArabic;
+
+    private ActivityResultLauncher<Intent> imagePickerLauncher;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_edit_profile);
-        // يمكنك ضبط لون الشريط هنا إن رغبت أو تركه بدون تغيير
-        Utils.setSystemBarColorWithColorInt(this,getResources().getColor(R.color.Custom_MainColorBlue),
-                getResources().getColor(R.color.Custom_BackgroundColor), 0);
+        Utils.setSystemBarColorWithColorInt(this, getResources().getColor(R.color.Custom_MainColorBlue), getResources().getColor(R.color.Custom_BackgroundColor), 0);
 
-        // تهيئة العناصر
+        isArabic = "ar".equals(
+                getSharedPreferences("AppPreferences", MODE_PRIVATE)
+                        .getString("selected_language", "en")
+        );
+
+        // Bind views
         btnBack = findViewById(R.id.btnBack);
-        ivProfile = findViewById(R.id.ivProfile);
         btnSave = findViewById(R.id.btnSave);
         btnCancel = findViewById(R.id.btnCancel);
 
@@ -60,167 +67,176 @@ public class EditProfileActivity extends BaseActivity {
         tilFacebook = findViewById(R.id.tilFacebook);
         tilTelegram = findViewById(R.id.tilTelegram);
         tilEmail = findViewById(R.id.tilEmail);
-        tilBio = findViewById(R.id.tilBio);
+        tilBioEn = findViewById(R.id.tilBioEn);
+        tilBioAr = findViewById(R.id.tilBioAr);
 
         etPhone = findViewById(R.id.etPhone);
         etWhatsapp = findViewById(R.id.etWhatsapp);
         etFacebook = findViewById(R.id.etFacebook);
         etTelegram = findViewById(R.id.etTelegram);
         etEmail = findViewById(R.id.etEmail);
-        etBio = findViewById(R.id.etBio);
+        etBioEn = findViewById(R.id.etBioEn);
+        etBioAr = findViewById(R.id.etBioAr);
 
-        // تحميل بيانات تجريبية
-        loadTestData();
+        ivProfile = findViewById(R.id.ivProfile);
 
-        // الضغط على زر الرجوع => اغلاق النشاط
-        btnBack.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                finish();
-            }
-        });
-
-        // عند النقر على الصورة يتم فتح مستعرض الصور لاختيار صورة جديدة
-        ivProfile.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                openImagePicker();
-            }
-        });
-
-        // زر حفظ التغييرات
-        btnSave.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                saveProfileChanges();
-            }
-        });
-
-        // زر الغاء التغييرات
-        btnCancel.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                cancelChanges();
-            }
-        });
-    }
-
-    /**
-     * تحميل بيانات تجريبية لحقول الإدخال
-     */
-    private void loadTestData() {
-        etPhone.setText("956200828");
-        etWhatsapp.setText("+963956200828");
-        etFacebook.setText("Omar.Al.Boushi1");
-        etTelegram.setText("OmarAlBoushi");
-        etEmail.setText("test@example.com");
-        etBio.setText("This is a sample bio.");
-        // ضبط صورة الملف الشخصي الافتراضية
-        ivProfile.setImageResource(R.drawable.omar_photo);
-    }
-
-    /**
-     * فتح مستعرض الصور لاختيار صورة من معرض الجهاز
-     */
-    private void openImagePicker() {
-        Intent intent = new Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
-        intent.setType("image/*");
-        if (intent.resolveActivity(getPackageManager()) != null) {
-            startActivityForResult(intent, PICK_IMAGE_REQUEST);
-        } else {
-            Toast.makeText(this, "No app found to pick an image", Toast.LENGTH_SHORT).show();
+        // Repo and user
+        userRepo = new UserRepository(this);
+        currentUserId = getSharedPreferences("user_prefs", MODE_PRIVATE)
+                .getLong("user_id", -1);
+        currentUser = userRepo.getUserById(currentUserId);
+        if (currentUser == null) {
+            Toast.makeText(this, "User not found", Toast.LENGTH_SHORT).show();
+            finish();
+            return;
         }
-    }
 
-    @Override
-    protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
-        super.onActivityResult(requestCode, resultCode, data);
-        if(requestCode == PICK_IMAGE_REQUEST && resultCode == RESULT_OK && data != null) {
-            selectedImageUri = data.getData();
-            if (selectedImageUri != null) {
-                try {
-                    // حفظ الصورة الحالية كأصلية إذا لم تكن محفوظة سابقاً
-                    if (originalProfileBitmap == null) {
-                        originalProfileBitmap = getBitmapFromImageView(ivProfile);
+        // حفظ الصورة الأصلية
+        originalProfileBitmap = getBitmapFromImageView(ivProfile);
+
+        // تحميل الحقول
+        etPhone.setText(stripPrefix(tilPhone, currentUser.getPhone()));
+        etWhatsapp.setText(stripPrefix(tilWhatsapp, currentUser.getWhatsappNumber()));
+        etFacebook.setText(stripPrefix(tilFacebook, currentUser.getFacebookUrl()));
+        etTelegram.setText(stripPrefix(tilTelegram, currentUser.getTelegramHandle()));
+        etEmail.setText(stripPrefix(tilEmail, currentUser.getEmail()));
+
+        etBioEn.setText(isArabic ? currentUser.getBioAr() : currentUser.getBioEn());
+        etBioAr.setText(isArabic ? currentUser.getBioEn() : currentUser.getBioAr());
+
+        // تحميل صورة البروفايل
+        String pic = currentUser.getProfilePicture();
+        if (pic != null && pic.startsWith("content://")) {
+            ivProfile.setImageURI(Uri.parse(pic));
+        } else if (pic != null && pic.startsWith("@drawable/")) {
+            String name = pic.substring("@drawable/".length());
+            int resId = getResources().getIdentifier(name, "drawable", getPackageName());
+            ivProfile.setImageResource(resId != 0 ? resId : R.drawable.avatar);
+        } else {
+            ivProfile.setImageResource(R.drawable.avatar);
+        }
+
+        // إعداد اللانشر لاختيار الصورة
+        imagePickerLauncher = registerForActivityResult(
+                new ActivityResultContracts.StartActivityForResult(),
+                result -> {
+                    if (result.getResultCode() == RESULT_OK && result.getData() != null) {
+                        selectedImageUri = result.getData().getData();
+                        if (selectedImageUri != null) {
+                            // منح صلاحية دائمة للوصول للصورة
+                            try {
+                                getContentResolver().takePersistableUriPermission(
+                                        selectedImageUri,
+                                        Intent.FLAG_GRANT_READ_URI_PERMISSION
+                                );
+                            } catch (SecurityException e) {
+                                e.printStackTrace();
+                            }
+
+                            try {
+                                ivProfile.setImageBitmap(
+                                        MediaStore.Images.Media.getBitmap(getContentResolver(), selectedImageUri)
+                                );
+                            } catch (IOException e) {
+                                Toast.makeText(this, "فشل تحميل الصورة", Toast.LENGTH_SHORT).show();
+                            }
+                        }
                     }
-                    Bitmap bitmap = MediaStore.Images.Media.getBitmap(getContentResolver(), selectedImageUri);
-                    ivProfile.setImageBitmap(bitmap);
-                } catch (IOException e) {
-                    e.printStackTrace();
-                    Toast.makeText(this, "Failed to load image", Toast.LENGTH_SHORT).show();
                 }
+        );
+
+        // Listeners
+        btnBack.setOnClickListener(v -> finish());
+        ivProfile.setOnClickListener(v -> openImagePicker());
+        btnCancel.setOnClickListener(v -> {
+            Toast.makeText(this, "تم إلغاء التعديلات", Toast.LENGTH_SHORT).show();
+            finish();
+        });
+        btnSave.setOnClickListener(v -> saveProfileChanges());
+    }
+
+    private String stripPrefix(TextInputLayout til, String full) {
+        if (full == null || full.isEmpty()) {
+            return "";
+        }
+
+        // الحصول على البادئة من الحقل
+        CharSequence prefix = til.getPrefixText();
+        String prefixStr = prefix != null ? prefix.toString() : "";
+
+        // قائمة البادئات المحتملة المخزنة في قاعدة البيانات
+        String[] possiblePrefixes = new String[] {
+                "https://wa.me/", "wa.me/", // لـ WhatsApp
+                "https://fb.com/", "facebook.com/", // لـ Facebook
+                "https://t.me/", "t.me/", // لـ Telegram
+                "+963" // للهاتف
+        };
+
+        // إزالة أي بادئة مطابقة من النص
+        for (String possiblePrefix : possiblePrefixes) {
+            if (full.startsWith(possiblePrefix)) {
+                return full.substring(possiblePrefix.length());
             }
         }
+
+        // إذا لم يتم العثور على بادئة، إرجاع النص كما هو
+        return full;
     }
 
-    /**
-     * دالة لتحويل الصورة المعروضة في ImageView إلى Bitmap
-     */
-    private Bitmap getBitmapFromImageView(ShapeableImageView imageView) {
-        Drawable drawable = imageView.getDrawable();
-        if (drawable instanceof BitmapDrawable) {
-            return ((BitmapDrawable) drawable).getBitmap();
-        } else {
-            Bitmap bitmap = Bitmap.createBitmap(imageView.getWidth(), imageView.getHeight(), Bitmap.Config.ARGB_8888);
-            Canvas canvas = new Canvas(bitmap);
-            drawable.setBounds(0, 0, canvas.getWidth(), canvas.getHeight());
-            drawable.draw(canvas);
-            return bitmap;
+    private void openImagePicker() {
+        Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
+        intent.setType("image/*");
+        intent.addCategory(Intent.CATEGORY_OPENABLE);
+        intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION | Intent.FLAG_GRANT_PERSISTABLE_URI_PERMISSION);
+        imagePickerLauncher.launch(intent);
+    }
+
+    private Bitmap getBitmapFromImageView(ShapeableImageView iv) {
+        Drawable d = iv.getDrawable();
+        if (d instanceof BitmapDrawable) {
+            return ((BitmapDrawable) d).getBitmap();
         }
+        Bitmap bmp = Bitmap.createBitmap(iv.getWidth(), iv.getHeight(), Bitmap.Config.ARGB_8888);
+        Canvas c = new Canvas(bmp);
+        d.setBounds(0, 0, c.getWidth(), c.getHeight());
+        d.draw(c);
+        return bmp;
     }
 
-    /**
-     * حفظ التغييرات وتطبيقها على ProfileActivity
-     */
     private void saveProfileChanges() {
-        // جمع بيانات الحقول
+        // جلب النصوص من الحقول
         String phone = etPhone.getText().toString().trim();
         String whatsapp = etWhatsapp.getText().toString().trim();
         String facebook = etFacebook.getText().toString().trim();
         String telegram = etTelegram.getText().toString().trim();
         String email = etEmail.getText().toString().trim();
-        String bio = etBio.getText().toString().trim();
+        String bioAr = etBioAr.getText().toString().trim();
+        String bioEn = etBioEn.getText().toString().trim();
 
-        // يمكنك عمل التحقق من صحة البيانات هنا
+        // إضافة البادئات فقط إذا لم تكن موجودة
+        String phoneToSave = phone.startsWith("+963") ? phone : "+963" + phone;
+        String whatsappToSave = whatsapp.startsWith("wa.me/") ? whatsapp : "wa.me/" + whatsapp;
+        String facebookToSave = facebook.startsWith("facebook.com/") ? facebook : "facebook.com/" + facebook;
+        String telegramToSave = telegram.startsWith("t.me/") ? telegram : "t.me/" + telegram;
 
-        // إنشاء Intent لنقل البيانات إلى ProfileActivity
-        Intent profileIntent = new Intent(EditProfileActivity.this, ProfileActivity.class);
+        // صورة الملف الشخصي
+        String picUri = selectedImageUri != null
+                ? selectedImageUri.toString()
+                : currentUser.getProfilePicture();
 
-        // تمرير البيانات للتعديل في نشاط البروفايل
-        // إذا تم اختيار صورة جديدة، يتم تمرير URI الصورة كنص
-        if (selectedImageUri != null) {
-            profileIntent.putExtra("profile_image_uri", selectedImageUri.toString());
+        // تحديث البيانات
+        boolean ok = userRepo.updateUser(
+                currentUserId,
+                phoneToSave, whatsappToSave, facebookToSave, telegramToSave, email,
+                isArabic ? bioAr : bioEn, isArabic ? bioEn : bioAr, picUri
+        );
+
+        if (ok) {
+            Toast.makeText(this, "تم تحديث الملف الشخصي", Toast.LENGTH_SHORT).show();
+            setResult(RESULT_OK);
+            finish();
         } else {
-            // يمكن تمرير قيمة فارغة أو قيمة افتراضية
-            profileIntent.putExtra("profile_image_uri", "");
+            Toast.makeText(this, "فشل التحديث", Toast.LENGTH_SHORT).show();
         }
-        // تمرير البيانات الأخرى
-        profileIntent.putExtra("contact_phone", phone);
-        profileIntent.putExtra("contact_whatsapp", whatsapp);
-        profileIntent.putExtra("contact_facebook", facebook);
-        profileIntent.putExtra("contact_telegram", telegram);
-        profileIntent.putExtra("contact_email", email);
-        profileIntent.putExtra("profile_bio", bio);
-        // إذا كان لديك بيانات أخرى مثل اسم البروفايل أو الألوان، يمكنك تمريرها
-        profileIntent.putExtra("profile_name", "Omar Al boushi"); // مثال للاسم
-        profileIntent.putExtra("header_color", getResources().getColor(R.color.Custom_MainColorBlue));
-        profileIntent.putExtra("text_color", getResources().getColor(R.color.md_theme_primary));
-        profileIntent.putExtra("is_current_user", true);
-
-        Toast.makeText(this, "Profile changes saved", Toast.LENGTH_SHORT).show();
-
-        startActivity(profileIntent);
-        finish();
-    }
-
-    /**
-     * في حالة الضغط على زر الغاء التغييرات يعاد استعادة الصورة الأصلية وباقي البيانات
-     */
-    private void cancelChanges() {
-        if (originalProfileBitmap != null) {
-            ivProfile.setImageBitmap(originalProfileBitmap);
-        }
-        Toast.makeText(this, "Changes canceled", Toast.LENGTH_SHORT).show();
-        finish();
     }
 }

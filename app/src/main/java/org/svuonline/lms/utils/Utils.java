@@ -1,5 +1,7 @@
 package org.svuonline.lms.utils;
 
+import static android.content.ContentValues.TAG;
+
 import android.animation.ArgbEvaluator;
 import android.animation.ObjectAnimator;
 import android.app.Activity;
@@ -7,10 +9,15 @@ import android.content.Context;
 import android.content.SharedPreferences;
 import android.content.res.Configuration;
 import android.content.res.Resources;
+import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
 import androidx.appcompat.app.AppCompatDelegate;
 import androidx.core.view.WindowInsetsControllerCompat;
+
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.util.Locale;
 import androidx.annotation.ColorInt;
 import androidx.annotation.ColorRes;
@@ -148,6 +155,31 @@ public class Utils {
                 + 0.587 * ((color >> 8) & 0xFF)
                 + 0.114 * (color & 0xFF)) / 255;
         return darkness < 0.4;
+    }
+    /**
+     * تحويل النص إلى هاش SHA-256
+     * @param input النص الأصلي
+     * @return الهاش الناتج
+     */
+    public static String hashPassword(String input) {
+        try {
+            Log.d(TAG, "Hashing password: " + input);
+            MessageDigest digest = MessageDigest.getInstance("SHA-256");
+            byte[] hash = digest.digest(input.getBytes(StandardCharsets.UTF_8));
+            StringBuilder hexString = new StringBuilder();
+            for (byte b : hash) {
+                String hex = Integer.toHexString(0xff & b);
+                if (hex.length() == 1) hexString.append('0');
+                hexString.append(hex);
+            }
+            String result = hexString.toString();
+            Log.d(TAG, "Generated hash: " + result);
+            return result;
+        } catch (NoSuchAlgorithmException e) {
+            Log.e(TAG, "Hashing failed: " + e.getMessage());
+            e.printStackTrace();
+            return null;
+        }
     }
 }
 

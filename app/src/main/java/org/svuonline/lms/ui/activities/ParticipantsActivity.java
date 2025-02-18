@@ -1,9 +1,10 @@
 package org.svuonline.lms.ui.activities;
 
-import static androidx.core.content.ContextCompat.getSystemService;
-
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
+import android.content.res.ColorStateList;
+import android.graphics.Color;
 import android.graphics.Rect;
 import android.os.Bundle;
 import android.os.Handler;
@@ -13,7 +14,6 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.view.inputmethod.EditorInfo;
 import android.view.inputmethod.InputMethodManager;
-import android.widget.EditText;
 import android.widget.TextView;
 
 import androidx.appcompat.content.res.AppCompatResources;
@@ -22,55 +22,55 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.google.android.material.button.MaterialButton;
+import com.google.android.material.snackbar.Snackbar;
 import com.google.android.material.textfield.TextInputEditText;
 import com.google.android.material.textfield.TextInputLayout;
-import com.google.android.material.textview.MaterialTextView;
 
 import org.svuonline.lms.R;
+import org.svuonline.lms.data.repository.CourseRepository;
+import org.svuonline.lms.data.repository.EnrollmentRepository;
 import org.svuonline.lms.ui.adapters.ParticipantsAdapter;
 import org.svuonline.lms.ui.data.ParticipantData;
 import org.svuonline.lms.utils.BaseActivity;
 import org.svuonline.lms.utils.Utils;
 
-import java.util.ArrayList;
 import java.util.List;
 
 public class ParticipantsActivity extends BaseActivity {
-    private MaterialTextView courseCodeTextView;
-    private MaterialTextView courseTitleTextView;
+    private TextView courseCodeTextView;
+    private TextView courseTitleTextView;
     private ConstraintLayout courseHeaderLayout;
     private TextView sectionTitle;
     private MaterialButton backButton;
+    private MaterialButton favoriteButton;
     private RecyclerView recyclerView;
-    private int courseColor;
     private TextInputEditText searchBar;
-    TextInputLayout textInputLayout;
+    private TextInputLayout textInputLayout;
+    private ParticipantsAdapter adapter;
+    private EnrollmentRepository enrollmentRepository;
+    private CourseRepository courseRepository;
+    private String courseCode;
+    private boolean isArabic;
+    private int courseColor;
+    private long userId;
+    private boolean isFavorite;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_participants);
 
-        RecyclerView recyclerView = findViewById(R.id.filesRecyclerView);
-        recyclerView.setLayoutManager(new LinearLayoutManager(this));
+        // تهيئة المستودعات
+        enrollmentRepository = new EnrollmentRepository(this);
+        courseRepository = new CourseRepository(this);
 
-        searchBar = findViewById(R.id.search_bar);
-        textInputLayout = findViewById(R.id.outlinedTextField);
+        // جلب userId من SharedPreferences
+        SharedPreferences userPrefs = getSharedPreferences("user_prefs", MODE_PRIVATE);
+        userId = userPrefs.getLong("user_id", -1);
 
-        // استقبال البيانات من الـ Intent
-        Intent intent = getIntent();
-        String buttonId = intent.getStringExtra("button_id");
-        String courseCode = intent.getStringExtra("course_code");
-        String courseTitle = intent.getStringExtra("course_title");
-        int courseColorValue = intent.getIntExtra("course_color_value", -1);
-        String buttonLabel = intent.getStringExtra("button_label");
-
-        // طباعة البيانات للتأكد
-        Log.d("FilesActivity", "buttonId: " + buttonId);
-        Log.d("FilesActivity", "courseCode: " + courseCode);
-        Log.d("FilesActivity", "courseTitle: " + courseTitle);
-        Log.d("FilesActivity", "courseColorValue: " + courseColorValue);
-        Log.d("FilesActivity", "buttonLabel: " + buttonLabel);
+        // جلب اللغة من SharedPreferences
+        SharedPreferences prefs = getSharedPreferences("AppPreferences", MODE_PRIVATE);
+        isArabic = "ar".equals(prefs.getString("selected_language", "en"));
 
         // ربط العناصر من الـ layout
         courseCodeTextView = findViewById(R.id.courseCodeTextView);
@@ -78,43 +78,55 @@ public class ParticipantsActivity extends BaseActivity {
         courseHeaderLayout = findViewById(R.id.courseHeaderLayout);
         sectionTitle = findViewById(R.id.sectionTitle);
         backButton = findViewById(R.id.backButton);
+        favoriteButton = findViewById(R.id.favoriteButton);
+        recyclerView = findViewById(R.id.filesRecyclerView);
+        searchBar = findViewById(R.id.search_bar);
+        textInputLayout = findViewById(R.id.outlinedTextField);
 
-        // تحديث العنوان واللون
-        if (courseCode != null) {
-            courseCodeTextView.setText(courseCode);
-        }
-        if (courseTitle != null) {
-            courseTitleTextView.setText(courseTitle);
-        }
-        if (courseColorValue != -1) {
-            courseColor = courseColorValue; // قيمة اللون الفعلية
-            courseHeaderLayout.setBackgroundColor(courseColor);
-        } else {
-            // استخدام لون افتراضي
-            courseColor = 0xFF005A82;
-            courseHeaderLayout.setBackgroundColor(courseColor);
-        }
-        if (buttonLabel != null) {
-            sectionTitle.setText(buttonLabel);
+        // تهيئة RecyclerView
+        recyclerView.setLayoutManager(new LinearLayoutManager(this));
+
+        // استقبال البيانات من الـ Intent
+        Intent intent = getIntent();
+        String buttonId = intent.getStringExtra("button_id");
+        courseCode = intent.getStringExtra("course_code");
+        String courseTitle = intent.getStringExtra("course_title");
+        int courseColorValue = intent.getIntExtra("course_color_value", -1);
+        String buttonLabel = intent.getStringExtra("button_label");
+
+        // التحقق من وجود courseCode
+        if (courseCode == null) {
+            Log.e("ParticipantsActivity", "لم يتم تمرير courseCode");
+            Snackbar.make(findViewById(android.R.id.content), R.string.course_not_found, Snackbar.LENGTH_LONG).show();
+            finish();
+            return;
         }
 
-        Utils.setSystemBarColorWithColorInt(this, courseColor, getResources().getColor(R.color.Custom_BackgroundColor), 0);
+        // إعداد الواجهة
+        setupUI(courseTitle, courseColorValue, buttonLabel);
+
+        // التحقق من حالة المفضلة
+        isFavorite = courseRepository.isCourseFavorite(userId, courseCode);
+        updateFavoriteButton();
 
         // إعداد زر الرجوع
         backButton.setOnClickListener(v -> finish());
 
-        List<ParticipantData> participants = new ArrayList<>();
-        participants.add(new ParticipantData(R.string.mazen_Al_boushi, R.string.student_role, R.string.john_description, R.drawable.mazen_photo));
-        participants.add(new ParticipantData(R.string.raouf_hamdan, R.string.doctor_role, R.string.jane_description, R.drawable.raouf_photo));
-        participants.add(new ParticipantData(R.string.radwan_kastantin, R.string.coordinator_role, R.string.alice_description, R.drawable.radwan_photo));
-        participants.add(new ParticipantData(R.string.lana_kaddourah, R.string.student_role, R.string.john_description, R.drawable.lana_photo));
-        participants.add(new ParticipantData(R.string.abeer_kharfan, R.string.student_role, R.string.john_description, R.drawable.abeer_photo));
+        // إعداد زر المفضلة
+        favoriteButton.setOnClickListener(v -> {
+            isFavorite = !isFavorite;
+            courseRepository.setCourseFavorite(userId, courseCode, isFavorite);
+            updateFavoriteButton();
+            String message = isFavorite ? getString(R.string.added_to_favorites) :
+                    getString(R.string.removed_from_favorites);
+            Snackbar.make(v, message, Snackbar.LENGTH_SHORT).show();
+        });
 
-        ParticipantsAdapter adapter = new ParticipantsAdapter(participants);
-        recyclerView.setAdapter(adapter);
+        // جلب المشاركين من قاعدة البيانات
+        setupParticipants();
 
+        // إعداد شريط البحث
         searchBar.setImeOptions(EditorInfo.IME_ACTION_SEARCH);
-
         searchBar.setOnFocusChangeListener((v, hasFocus) -> {
             if (hasFocus) {
                 textInputLayout.setStartIconTintList(AppCompatResources.getColorStateList(this, R.color.md_theme_primary));
@@ -135,13 +147,29 @@ public class ParticipantsActivity extends BaseActivity {
             }
             return false;
         });
+
+        // إعداد مستمع لأيقونة مسح النص
+        textInputLayout.setEndIconOnClickListener(v -> {
+            searchBar.setText("");
+            performSearch("");
+            hideKeyboard();
+            searchBar.clearFocus();
+        });
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        // إعادة التحقق من حالة المفضلة عند استئناف النشاط
+        isFavorite = courseRepository.isCourseFavorite(userId, courseCode);
+        updateFavoriteButton();
     }
 
     @Override
     public boolean dispatchTouchEvent(MotionEvent event) {
         if (event.getAction() == MotionEvent.ACTION_DOWN) {
             View v = getCurrentFocus();
-            if (v instanceof EditText) {
+            if (v instanceof TextInputEditText) {
                 Rect outRect = new Rect();
                 v.getGlobalVisibleRect(outRect);
                 if (!outRect.contains((int) event.getRawX(), (int) event.getRawY())) {
@@ -153,8 +181,49 @@ public class ParticipantsActivity extends BaseActivity {
         return super.dispatchTouchEvent(event);
     }
 
+    private void setupUI(String courseTitle, int courseColorValue, String buttonLabel) {
+        courseCodeTextView.setText(courseCode);
+        if (courseTitle != null) {
+            courseTitleTextView.setText(courseTitle);
+        }
+        if (courseColorValue != -1) {
+            courseColor = courseColorValue;
+            courseHeaderLayout.setBackgroundColor(courseColor);
+        } else {
+            courseColor = 0xFF005A82; // اللون الافتراضي
+            courseHeaderLayout.setBackgroundColor(courseColor);
+        }
+        if (buttonLabel != null) {
+            sectionTitle.setText(buttonLabel);
+        }
+
+        // تعيين لون شريط النظام
+        Utils.setSystemBarColorWithColorInt(this, courseColor, getResources().getColor(R.color.Custom_BackgroundColor), 0);
+    }
+
+    private void setupParticipants() {
+        int courseId = courseRepository.getCourseIdByCode(courseCode);
+        if (courseId == -1) {
+            Log.e("ParticipantsActivity", "لم يتم العثور على المقرر: " + courseCode);
+            Snackbar.make(findViewById(android.R.id.content), R.string.course_not_found, Snackbar.LENGTH_LONG).show();
+            finish();
+            return;
+        }
+        List<ParticipantData> participants = enrollmentRepository.getParticipantsByCourseId(courseId, null, isArabic);
+        adapter = new ParticipantsAdapter(this, participants, courseCode);
+        recyclerView.setAdapter(adapter);
+    }
+
     private void performSearch(String query) {
-        // تنفيذ البحث هنا
+        int courseId = courseRepository.getCourseIdByCode(courseCode);
+        List<ParticipantData> filteredParticipants = enrollmentRepository.getParticipantsByCourseId(courseId, query, isArabic);
+        adapter.updateParticipants(filteredParticipants);
+        Log.d("ParticipantsActivity", "تم البحث باستعلام: " + query + ", عدد النتائج: " + filteredParticipants.size());
+    }
+
+    private void updateFavoriteButton() {
+        favoriteButton.setIconResource(isFavorite ? R.drawable.star_selected : R.drawable.star);
+        favoriteButton.setIconTint(ColorStateList.valueOf(Color.WHITE));
     }
 
     private void hideKeyboard() {

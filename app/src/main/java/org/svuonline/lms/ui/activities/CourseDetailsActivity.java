@@ -1,33 +1,30 @@
 package org.svuonline.lms.ui.activities;
 
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.res.ColorStateList;
 import android.graphics.Color;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.View;
 
 import androidx.recyclerview.widget.LinearLayoutManager;
 
-import com.google.android.material.button.MaterialButton;
 import com.google.android.material.snackbar.Snackbar;
 
 import org.svuonline.lms.R;
+import org.svuonline.lms.data.repository.CourseRepository;
 import org.svuonline.lms.databinding.ActivityCourseDetailsBinding;
 import org.svuonline.lms.ui.adapters.SectionsAdapter;
 import org.svuonline.lms.utils.BaseActivity;
 import org.svuonline.lms.utils.Utils;
-import org.svuonline.lms.ui.data.ButtonData;
 import org.svuonline.lms.ui.data.CourseData;
-import org.svuonline.lms.ui.data.SectionData;
-
-import java.util.ArrayList;
-import java.util.List;
 
 public class CourseDetailsActivity extends BaseActivity {
     private ActivityCourseDetailsBinding binding;
-    MaterialButton favoriteButton;
-    final boolean[] isFavorite = {false};
+    private CourseRepository courseRepository;
+    private long userId;
+    private boolean isFavorite;
+    private String courseCode; // إضافة متغير لتخزين courseCode
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -35,97 +32,61 @@ public class CourseDetailsActivity extends BaseActivity {
         binding = ActivityCourseDetailsBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
 
+        // تهيئة المستودع
+        courseRepository = new CourseRepository(this);
+
+        // جلب userId من SharedPreferences
+        SharedPreferences userPrefs = getSharedPreferences("user_prefs", MODE_PRIVATE);
+        userId = userPrefs.getLong("user_id", -1);
 
         // استقبال البيانات من الـ Intent
         Intent intent = getIntent();
-        String courseCode = intent.getStringExtra("course_code");
-        String courseName = intent.getStringExtra("course_name");
-        int courseColorRes = intent.getIntExtra("course_color", -1);
-        favoriteButton = findViewById(R.id.favoriteButton);
+        courseCode = intent.getStringExtra("course_code");
 
-
-
-        // الحصول على قيمة اللون الفعلية
-        int courseColor;
-        if (courseColorRes != -1) {
-            courseColor = courseColorRes; // قيمة اللون الفعلية
-        } else {
-            // لون افتراضي
-            courseColor = 0xFF005A82; // يمكنك تغيير هذا اللون إذا رغبت
+        // جلب بيانات المقرر من قاعدة البيانات
+        boolean isArabic = isArabicLocale();
+        CourseData courseData = courseRepository.getCourseData(courseCode, isArabic);
+        if (courseData == null) {
+            Snackbar.make(binding.getRoot(), R.string.course_not_found, Snackbar.LENGTH_LONG).show();
+            finish();
+            return;
         }
-        Utils.setSystemBarColorWithColorInt(this, courseColor, getResources().getColor(R.color.Custom_BackgroundColor),0);
 
+        // التحقق من حالة المفضلة
+        isFavorite = courseRepository.isCourseFavorite(userId, courseCode);
+        updateFavoriteButton();
 
-        Log.d("CourseDetailsActivity", "Received courseCode: " + courseCode);
-        Log.d("CourseDetailsActivity", "Received courseName: " + courseName);
-        Log.d("CourseDetailsActivity", "Received courseColor: " + courseColor);
-
-        // إنشاء بيانات الكورس بناءً على البيانات المستلمة
-        CourseData courseData = createCourseData(courseCode, courseName, courseColor);
+        // تعيين اللون في شريط النظام
+        Utils.setSystemBarColorWithColorInt(this, courseData.getHeaderColor(),
+                getResources().getColor(R.color.Custom_BackgroundColor), 0);
 
         // تعيين البيانات في الواجهة
         setupUI(courseData);
 
         // إعداد زر الرجوع
         binding.backButton.setOnClickListener(v -> finish());
-        favoriteButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                isFavorite[0] = !isFavorite[0];
-                if (isFavorite[0]) {
-                    // إضافة الكورس للمفضلة
-                    favoriteButton.setIconResource(R.drawable.star_selected);
-                    favoriteButton.setIconTint(ColorStateList.valueOf(Color.WHITE));
-                    // يمكن إضافة رسالة للمستخدم باستخدام Snackbar أو Toast
-                    Snackbar.make(findViewById(android.R.id.content),
-                            getString(R.string.added_to_favorites),
-                            Snackbar.LENGTH_SHORT).show();
-                } else {
-                    // إزالة الكورس من المفضلة
-                    favoriteButton.setIconResource(R.drawable.star);
-                    favoriteButton.setIconTint(ColorStateList.valueOf(Color.WHITE));
-                    Snackbar.make(findViewById(android.R.id.content),
-                            getString(R.string.removed_from_favorites),
-                            Snackbar.LENGTH_SHORT).show();
-                }
-            }
+
+        // إعداد زر المفضلة
+        binding.favoriteButton.setOnClickListener(v -> {
+            isFavorite = !isFavorite;
+            courseRepository.setCourseFavorite(userId, courseCode, isFavorite);
+            updateFavoriteButton();
+            String message = isFavorite ? getString(R.string.added_to_favorites) :
+                    getString(R.string.removed_from_favorites);
+            Snackbar.make(binding.getRoot(), message, Snackbar.LENGTH_SHORT).show();
         });
-
     }
 
-    private CourseData createCourseData(String courseCode, String courseName, int courseColor) {
-        List<SectionData> sections = new ArrayList<>();
-
-        // القسم الأول: "Course materials"
-        String section1Title = getString(R.string.section_course_materials);
-
-        List<ButtonData> section1Buttons = new ArrayList<>();
-        section1Buttons.add(new ButtonData(getString(R.string.btn_course_identification), courseColor, "course_identification"));
-        section1Buttons.add(new ButtonData(getString(R.string.btn_book_pdf), courseColor, "book_pdf"));
-        section1Buttons.add(new ButtonData(getString(R.string.btn_training_exam), courseColor, "training_exam"));
-        section1Buttons.add(new ButtonData(getString(R.string.btn_participants), courseColor, "participants_button"));
-        section1Buttons.add(new ButtonData(getString(R.string.btn_recorded_sessions), courseColor, "recorded_sessions"));
-        section1Buttons.add(new ButtonData(getString(R.string.btn_references), courseColor, "references"));
-
-        sections.add(new SectionData(section1Title, section1Buttons));
-
-        // القسم الثاني: "S24 Semester"
-        String section2Title = getString(R.string.section_s24_semester);
-
-        List<ButtonData> section2Buttons = new ArrayList<>();
-        section2Buttons.add(new ButtonData(getString(R.string.btn_semester_plan), courseColor, "semester_plan"));
-        section2Buttons.add(new ButtonData(getString(R.string.btn_slides_powerpoint), courseColor, "slides_powerpoint"));
-        section2Buttons.add(new ButtonData(getString(R.string.btn_assignments), courseColor, "assignments"));
-        section2Buttons.add(new ButtonData(getString(R.string.btn_tools), courseColor, "tools"));
-
-        sections.add(new SectionData(section2Title, section2Buttons));
-
-        return new CourseData(courseCode, courseName, courseColor, sections);
+    @Override
+    protected void onResume() {
+        super.onResume();
+        // إعادة التحقق من حالة المفضلة عند استئناف النشاط
+        isFavorite = courseRepository.isCourseFavorite(userId, courseCode);
+        updateFavoriteButton();
     }
-
 
     private void setupUI(CourseData courseData) {
-        // تعيين بيانات الكورس في العناصر
+        // تعيين بيانات المقرر في العناصر
         binding.courseCodeTextView.setText(courseData.getCourseCode());
         binding.courseTitleTextView.setText(courseData.getCourseTitle());
         binding.courseHeaderLayout.setBackgroundColor(courseData.getHeaderColor());
@@ -140,5 +101,16 @@ public class CourseDetailsActivity extends BaseActivity {
         );
         binding.sectionRecyclerView.setLayoutManager(new LinearLayoutManager(this));
         binding.sectionRecyclerView.setAdapter(sectionsAdapter);
+    }
+
+    private void updateFavoriteButton() {
+        binding.favoriteButton.setIconResource(isFavorite ? R.drawable.star_selected : R.drawable.star);
+        binding.favoriteButton.setIconTint(ColorStateList.valueOf(Color.WHITE));
+    }
+
+    private boolean isArabicLocale() {
+        SharedPreferences preferences = getSharedPreferences("AppPreferences", MODE_PRIVATE);
+        String selectedLanguage = preferences.getString("selected_language", "en");
+        return "ar".equals(selectedLanguage);
     }
 }

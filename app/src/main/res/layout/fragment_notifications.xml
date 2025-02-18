@@ -19,12 +19,12 @@
 
         <!-- شريط الفلاتر (الكل - غير مقروء - تعليم الكل كمقروء) -->
         <LinearLayout
-            android:layout_marginTop="4sp"
-            android:layout_marginStart="16dp"
-            android:layout_marginEnd="16dp"
             android:id="@+id/filterBar"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:layout_marginStart="16dp"
+            android:layout_marginTop="4sp"
+            android:layout_marginEnd="16dp"
             android:orientation="horizontal"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
@@ -35,11 +35,11 @@
                 style="@style/Widget.Material3.Button.IconButton.Filled.Tonal"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:backgroundTint="@color/md_theme_primary"
+                android:fontFamily="@font/cairo_regular"
                 android:minHeight="16dp"
                 android:paddingTop="4dp"
                 android:paddingBottom="4dp"
-                android:backgroundTint="@color/md_theme_primary"
-                android:fontFamily="@font/cairo_regular"
                 android:text="@string/all"
                 android:textColor="@color/white"
                 android:textSize="8sp" />
@@ -69,10 +69,10 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:backgroundTint="@color/dark_grey"
+                android:fontFamily="@font/cairo_regular"
                 android:minHeight="16dp"
                 android:paddingTop="4dp"
                 android:paddingBottom="4dp"
-                android:fontFamily="@font/cairo_regular"
                 android:text="@string/make_all_as_read"
                 android:textColor="@color/white"
                 android:textSize="8sp" />
@@ -89,6 +89,16 @@
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@id/filterBar" />
+
+        <ProgressBar
+            android:id="@+id/progressBar"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_centerInParent="true"
+            app:layout_constraintTop_toBottomOf="@+id/recyclerViewNotifications"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent" />
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 </androidx.core.widget.NestedScrollView>

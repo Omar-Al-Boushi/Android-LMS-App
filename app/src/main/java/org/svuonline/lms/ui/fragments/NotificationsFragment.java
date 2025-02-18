@@ -1,19 +1,29 @@
 package org.svuonline.lms.ui.fragments;
 
+import android.content.Context;
+import android.content.SharedPreferences;
+import android.content.res.ColorStateList;
+import android.os.Build;
 import android.os.Bundle;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.core.app.NotificationCompat;
+import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import android.app.NotificationChannel;
+import android.app.NotificationManager;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
 import android.widget.ProgressBar;
 
 import org.svuonline.lms.R;
+import org.svuonline.lms.data.repository.NotificationRepository;
 import org.svuonline.lms.ui.adapters.NotificationCardAdapter;
 import org.svuonline.lms.ui.data.NotificationCardData;
 
@@ -22,105 +32,149 @@ import java.util.List;
 
 public class NotificationsFragment extends Fragment {
     private RecyclerView recyclerView;
+    private ProgressBar  progressBar;
+    private Button       btnAll, btnUnread, btnMarkAll;
+
     private NotificationCardAdapter adapter;
     private List<NotificationCardData> notificationList;
+    private List<Integer>              notificationIds;
 
-    private ProgressBar progressBar;
+    private NotificationRepository notificationRepo;
+    private NotificationManager    notificationManager;
 
-    // متغيرات التحكم في التحميل
-    private int currentPage = 1;
+    private int    currentPage     = 1;
     private final int itemsPerPage = 20;
-    private boolean isLoading = false;
-    private final int totalItems = 100;
-
-    // مصفوفات البيانات
-    private String[] dates;
-    private String[] messages;
-    private int[] colors;
-    private String[] courseCodes;
+    private int    userId;
+    private String lang;
+    private boolean unreadOnly     = false;
 
     @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container,
+    public View onCreateView(@NonNull LayoutInflater inflater,
+                             ViewGroup container,
                              Bundle savedInstanceState) {
         return inflater.inflate(R.layout.fragment_notifications, container, false);
     }
 
     @Override
-    public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
+    public void onViewCreated(@NonNull View view,
+                              @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
+
+        // views
         recyclerView = view.findViewById(R.id.recyclerViewNotifications);
+        progressBar  = view.findViewById(R.id.progressBar);
+        btnAll       = view.findViewById(R.id.btnAll);
+        btnUnread    = view.findViewById(R.id.btnUnread);
+        btnMarkAll   = view.findViewById(R.id.btnMarkAllRead);
+
+        // layout manager & lists
         recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
-        recyclerView.setHasFixedSize(true);
+        notificationList  = new ArrayList<>();
+        notificationIds   = new ArrayList<>();
 
-        progressBar = view.findViewById(R.id.progressBar);
+        // repo & manager
+        notificationRepo    = new NotificationRepository(getContext());
+        notificationManager = (NotificationManager)
+                requireContext().getSystemService(Context.NOTIFICATION_SERVICE);
+        createNotificationChannel();
 
-        notificationList = new ArrayList<>();
-        adapter = new NotificationCardAdapter(requireContext(), notificationList);
+        // adapter
+        adapter = new NotificationCardAdapter(
+                requireContext(),
+                notificationList,
+                notificationIds,
+                notificationRepo
+        );
         recyclerView.setAdapter(adapter);
 
+        // load user prefs
+        SharedPreferences up = requireActivity()
+                .getSharedPreferences("user_prefs", Context.MODE_PRIVATE);
+        userId = (int) up.getLong("user_id", -1);
 
-        // تحضير البيانات
-        prepareDataArrays();
-        loadAllNotifications();
+        SharedPreferences lp = requireActivity()
+                .getSharedPreferences("AppPreferences", Context.MODE_PRIVATE);
+        lang = lp.getString("selected_language", "en");
+
+        // button listeners
+        btnAll.setOnClickListener(v -> {
+            unreadOnly = false;
+            setFilterButtonStyles();
+            loadNotificationsFromDb();
+        });
+        btnUnread.setOnClickListener(v -> {
+            unreadOnly = true;
+            setFilterButtonStyles();
+            loadNotificationsFromDb();
+        });
+        btnMarkAll.setOnClickListener(v -> {
+            notificationRepo.markAllReadForUser(userId);
+            unreadOnly = false;
+            setFilterButtonStyles();
+            loadNotificationsFromDb();
+        });
+
+        // initial load
+        setFilterButtonStyles();
+        loadNotificationsFromDb();
     }
 
-    private void prepareDataArrays() {
-        dates = new String[]{
-                getString(R.string.date_28_nov_2024),
-                getString(R.string.date_29_nov_2024_am),
-                getString(R.string.date_30_nov_2025),
-                getString(R.string.date_1_dec_2025),
-                getString(R.string.date_2_dec_2025_pm)
-        };
-
-        messages = new String[]{
-                getString(R.string.notification_content_added, "CCN403"),
-                getString(R.string.notification_assignment_graded, "INT305"),
-                getString(R.string.notification_assignment_added, "CEE205"),
-                getString(R.string.notification_content_added, "BQM304"),
-                getString(R.string.notification_assignment_graded, "GMA205")
-        };
-
-        colors = new int[]{
-                getResources().getColor(R.color.Custom_MainColorDarkPink),
-                getResources().getColor(R.color.Custom_MainColorGolden),
-                getResources().getColor(R.color.Custom_MainColorBlue),
-                getResources().getColor(R.color.Custom_MainColorPurple),
-                getResources().getColor(R.color.Custom_MainColorTeal),
-                getResources().getColor(R.color.Custom_MainColorOrange),
-                getResources().getColor(R.color.Custom_MainColorGreen),
-        };
-
-        courseCodes = new String[]{
-                "CCN403",
-                "INT305",
-                "CEE205",
-                "BQM304",
-                "GMA205",
-                "CCN404",
-                "GMA204"
-        };
+    @Override
+    public void onResume() {
+        super.onResume();
+        loadNotificationsFromDb();
     }
 
-    private void loadAllNotifications() {
-        // تحميل جميع الإشعارات دفعة واحدة
-        for (int i = 0; i < 30; i++) {
-            boolean isRead = (i % 3 == 0);
-            int color = colors[i % colors.length];
-            String courseCode = courseCodes[i % courseCodes.length];
-            String message = messages[i % messages.length];
-            String date = dates[i % dates.length];
+    private void setFilterButtonStyles() {
+        int sel = ContextCompat.getColor(requireContext(), R.color.md_theme_primary);
+        int def = ContextCompat.getColor(requireContext(), R.color.dark_grey);
 
+        btnAll.setBackgroundTintList(ColorStateList.valueOf(unreadOnly ? def : sel));
+        btnUnread.setBackgroundTintList(ColorStateList.valueOf(unreadOnly ? sel : def));
+    }
+
+    private void loadNotificationsFromDb() {
+        progressBar.setVisibility(View.VISIBLE);
+
+        List<NotificationRepository.NotificationEntity> entries =
+                notificationRepo.getNotifications(
+                        currentPage, itemsPerPage, userId, unreadOnly);
+
+        notificationList.clear();
+        notificationIds.clear();
+
+        for (NotificationRepository.NotificationEntity e : entries) {
+            NotificationRepository.CourseInfo info = notificationRepo.getCourseInfo(e);
+            String message = lang.equals("ar") ? e.contentAr : e.contentEn;
+
+            // add data and corresponding ID
             notificationList.add(new NotificationCardData(
                     requireContext(),
-                    isRead,
-                    color,
-                    courseCode,
+                    e.isRead,
+                    info.color,
+                    info.code,
                     message,
-                    date
+                    e.createdAt
             ));
+            notificationIds.add(e.id);
+
         }
 
         adapter.notifyDataSetChanged();
+        progressBar.setVisibility(View.GONE);
+    }
+
+
+
+    private void createNotificationChannel() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            NotificationChannel c = new NotificationChannel(
+                    "lms_channel",
+                    "LMS Alerts",
+                    NotificationManager.IMPORTANCE_DEFAULT
+            );
+            c.setDescription("System notifications for LMS");
+            notificationManager.createNotificationChannel(c);
+        }
     }
 }

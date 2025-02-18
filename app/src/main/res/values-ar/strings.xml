@@ -155,7 +155,8 @@
     <string name="contact">التواصل</string>
     <string name="bio">الوصف</string>
     <string name="save_changes">حفظ التغييرات</string>
-    <string name="your_bio">الوصف الخاص بك</string>
+    <string name="your_bio_en">الوصف الخاص بك باللغة الأنجليزية</string>
+    <string name="your_bio_ar">الوصف الخاص بك باللغة العربية</string>
     <string name="fav_reset_dialog_title">تأكيد العملية</string>
     <string name="fav_reset_dialog_message">هل أنت متأكد من حذف جميع التفضيلات؟</string>
     <string name="fav_reset_dialog_positive">نعم</string>
@@ -184,6 +185,51 @@
     <string name="event_may05_1">مراجعة نهائية لمقرر GMA205</string>
     <string name="exit_confirmation_message">أنت على وشك اغلاق التطبيق. هل أنت متأكد؟</string>
     <string name="confirm_submission_message">هل أنت متأكد من رغبتك في إرسال هذه الملفات؟</string>
+    <string name="error_password_hash_failed">خطأ في معالجة كلمة المرور</string>
+    <string name="error_invalid_credentials">بيانات تسجيل الدخول غير صحيحة</string>
+    <string name="unknown_program">البرنامج غير معروف</string>
+    <string name="no_results_found">لا يوجد نتائج مطابقة</string>
+    <string name="unspecified">غير محدد</string>
+    <string name="unknown_assignment">وظيفة غير معروفة</string>
+    <string name="course_not_found">المقرر غير موجود</string>
+
+    <string name="no_download_url">لا يوجد رابط تحميل متاح</string>
+    <string name="download_failed">فشل التحميل</string>
+    <string name="open_file_failed">فشل في فتح الملف</string>
+    <string name="download_completed">اكتمل التحميل</string>
+
+
+        <string name="check_internet_connection">يرجى التحقق من اتصالك بالإنترنت</string>
+        <string name="storage_permissions_required">أذونات التخزين مطلوبة لتحميل الملفات</string>
+        <string name="file_already_downloading">الملف قيد التحميل بالفعل</string>
+        <string name="invalid_download_url">رابط التحميل غير صالح</string>
+        <string name="download_failed1">فشل بدء التحميل</string>
+        <string name="file_not_found_or_corrupted">الملف غير موجود أو تالف: %1$s</string>
+        <string name="no_app_to_open_file">لا يوجد تطبيق لفتح هذا النوع من الملفات</string>
+        <string name="failed_to_open_file">فشل فتح الملف، قد يكون تالفًا</string>
+        <string name="download_started">بدأ تحميل %1$s</string>
+        <string name="download_completed1">اكتمل تحميل %1$s</string>
+        <string name="download_failed_with_file">فشل تحميل %1$s</string>
+        <string name="open_with">فتح باستخدام</string>
+        <string name="files">ملفات</string>
+        <string name="downloading">جارٍ تحميل %1$s</string>
+        <string name="byte_unit">B</string>
+        <string-array name="file_size_units">
+            <item>KB</item>
+            <item>MB</item>
+            <item>GB</item>
+            <item>TB</item>
+            <item>PB</item>
+            <item>EB</item>
+        </string-array>
+    <string name="assignment_not_found">الملف غير موجود</string>
+    <string name="due_date_passed">انتهى الموعد النهائي</string>
+    <string name="file_download_in_progress">الملف %1$s قيد التحميل</string>
+    <string name="not_enrolled_in_course">أنت غير مسجل في هذا المقرر</string>
+    <string name="invalid_assignment_data">بيانات الوظيفة غير صحيحة</string>
+    <string name="file_save_failed">فشل الحفظ الرجاء المحاولة مرة أخرى</string>
+    <string name="upload_failed">فشل الرفع الرجاء المحاولة مرة أخرى</string>
+    <string name="favorites_empty">المفضلة الخاصة بك فارغة \n🌚</string>
 
 
 </resources>

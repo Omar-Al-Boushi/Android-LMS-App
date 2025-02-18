@@ -3,25 +3,25 @@
 >
         <item
             android:id="@+id/nav_profile"
-            android:checkable="true"
+            android:checkable="false"
             android:icon="@drawable/profile_icon"
             android:title="@string/profile" />
 
         <item
             android:id="@+id/nav_calendar"
-            android:checkable="true"
+            android:checkable="false"
             android:icon="@drawable/calendar_icon"
             android:title="@string/calendar" />
 
         <item
             android:id="@+id/nav_favourites"
-            android:checkable="true"
+            android:checkable="false"
             android:icon="@drawable/favourites_icon"
             android:title="@string/favourites" />
 
         <item
             android:id="@+id/nav_settings"
-            android:checkable="true"
+            android:checkable="false"
             android:icon="@drawable/settings_icon"
             android:title="@string/settings" />
 

@@ -77,6 +77,8 @@
                     android:layout_height="wrap_content"
                     android:fontFamily="@font/cairo_light"
                     android:maxLines="1"
+                    android:textDirection="locale"
+                    app:barrierDirection="start"
                     android:text="Mazen_195450, Hi i am a graphic designer and content wirter "
                     android:textColor="@color/Custom_Black"
                     android:textSize="12dp"

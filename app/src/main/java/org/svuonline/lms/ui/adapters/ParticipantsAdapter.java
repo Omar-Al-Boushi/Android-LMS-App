@@ -1,13 +1,19 @@
+// ParticipantsAdapter.java  (إضافة تمرير profile_user_id)
 package org.svuonline.lms.ui.adapters;
+
+import static android.content.Context.MODE_PRIVATE;
 
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
+import android.net.Uri;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
+import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.google.android.material.imageview.ShapeableImageView;
@@ -19,11 +25,17 @@ import org.svuonline.lms.ui.data.ParticipantData;
 import java.util.List;
 
 public class ParticipantsAdapter extends RecyclerView.Adapter<ParticipantsAdapter.ViewHolder> {
-
     private List<ParticipantData> participants;
+    private final Context context;
+    private final String courseCode;
+    private final boolean isArabic;
 
-    public ParticipantsAdapter(List<ParticipantData> participants) {
+    public ParticipantsAdapter(Context context, List<ParticipantData> participants, String courseCode) {
+        this.context = context;
         this.participants = participants;
+        this.courseCode = courseCode;
+        SharedPreferences prefs = context.getSharedPreferences("AppPreferences", MODE_PRIVATE);
+        this.isArabic = "ar".equals(prefs.getString("selected_language", "en"));
     }
 
     @NonNull
@@ -37,50 +49,68 @@ public class ParticipantsAdapter extends RecyclerView.Adapter<ParticipantsAdapte
     @Override
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
         ParticipantData participant = participants.get(position);
-        holder.profileImage.setImageResource(participant.getImageResource());
 
-        holder.profileName.setText(holder.itemView.getContext().getString(participant.getNameResourceId()));
-        holder.profileRole.setText(holder.itemView.getContext().getString(participant.getRoleResourceId()));
-        holder.profileDescription.setText(holder.itemView.getContext().getString(participant.getDescriptionResourceId()));
-
-        // تغيير لون النص بناءً على الدور
-        int roleColor;
-        int roleColor2;
-
-
-
-        if (participant.getRoleResourceId() == R.string.student_role) {
-            roleColor = holder.itemView.getContext().getResources().getColor(R.color.Custom_MainColorBlue);
-            roleColor2 = holder.itemView.getContext().getResources().getColor(R.color.md_theme_primary);
-        } else if (participant.getRoleResourceId() == R.string.doctor_role) {
-            roleColor = holder.itemView.getContext().getResources().getColor(R.color.Custom_MainColorGolden);
-            roleColor2 = holder.itemView.getContext().getResources().getColor(R.color.md_theme_tertiary);
-        } else if (participant.getRoleResourceId() == R.string.coordinator_role) {
-            roleColor = holder.itemView.getContext().getResources().getColor(R.color.Custom_MainColorDarkPink);
-            roleColor2 = holder.itemView.getContext().getResources().getColor(R.color.colorCustomColor1);
-        } else if (participant.getRoleResourceId() == R.string.program_manager_role) {
-            roleColor = holder.itemView.getContext().getResources().getColor(R.color.Custom_MainColorPurple);
-            roleColor2 = holder.itemView.getContext().getResources().getColor(R.color.colorCustomColor2);
-        } else if (participant.getRoleResourceId() == R.string.system_manager_role) {
-            roleColor = holder.itemView.getContext().getResources().getColor(R.color.Custom_MainColorTeal);
-            roleColor2 = holder.itemView.getContext().getResources().getColor(R.color.colorCustomColor3);
+        String pic = participant.getProfilePicture();
+        if (pic != null && pic.startsWith("@drawable/")) {
+            int id = context.getResources().getIdentifier(pic.substring(10), "drawable", context.getPackageName());
+            holder.profileImage.setImageResource(id != 0 ? id : R.drawable.profile1);
+        } else if (pic != null && !pic.isEmpty()) {
+            try {
+                holder.profileImage.setImageURI(Uri.parse(pic));
+            } catch (Exception e) {
+                holder.profileImage.setImageResource(R.drawable.profile1);
+            }
         } else {
-            roleColor = holder.itemView.getContext().getResources().getColor(R.color.Custom_MainColorOrange);
-            roleColor2 = holder.itemView.getContext().getResources().getColor(R.color.colorCustomColor4);
+            holder.profileImage.setImageResource(R.drawable.avatar);
+        }
+
+        // الاسم، الدور، الوصف
+        String name = isArabic ? participant.getNameAr() : participant.getNameEn();
+        String bio = isArabic ? participant.getBioAr() : participant.getBioEn();
+        String desc = participant.getUsername();
+        if (bio != null && !bio.isEmpty()) desc += ", " + bio;
+
+        // تحديد نص الدور بناءً على اللغة
+        String role = participant.getRole();
+        String displayRole = isArabic ? getArabicRole(role) : role;
+
+        holder.profileName.setText(name);
+        holder.profileRole.setText(displayRole);
+        holder.profileDescription.setText(desc);
+
+        // لون الدور
+        String roleLowerCase = role.toLowerCase();
+        int roleColor;
+        switch (roleLowerCase) {
+            case "student":
+                roleColor = ContextCompat.getColor(context, R.color.Custom_MainColorBlue);
+                break;
+            case "doctor":
+                roleColor = ContextCompat.getColor(context, R.color.Custom_MainColorGolden);
+                break;
+            case "coordinator":
+                roleColor = ContextCompat.getColor(context, R.color.Custom_MainColorDarkPink);
+                break;
+            case "program_manager":
+                roleColor = ContextCompat.getColor(context, R.color.Custom_MainColorPurple);
+                break;
+            case "system_manager":
+                roleColor = ContextCompat.getColor(context, R.color.Custom_MainColorTeal);
+                break;
+            default:
+                roleColor = ContextCompat.getColor(context, R.color.Custom_MainColorOrange);
+                break;
         }
         holder.profileRole.setTextColor(roleColor);
 
-        // مستمع للنقر على العنصر للانتقال إلى صفحة البروفايل مع إرسال البيانات ديناميكياً
-        // مستمع للنقر لإرسال البيانات إلى ProfileActivity
+        // نمرر profile_user_id بالإضافة إلى البيانات الحالية
         holder.itemView.setOnClickListener(v -> {
-            Context context = v.getContext();
             Intent intent = new Intent(context, ProfileActivity.class);
-            intent.putExtra("profile_image_res", participant.getImageResource()); // إرسال الصورة
-            intent.putExtra("profile_name", context.getString(participant.getNameResourceId())); // إرسال الاسم
-            intent.putExtra("profile_bio", context.getString(participant.getDescriptionResourceId())); // إرسال الوصف
-            intent.putExtra("header_color", roleColor); // إرسال لون الدور
-            intent.putExtra("text_color", roleColor2); // إرسال لون الدور
-
+            intent.putExtra("profile_user_id", participant.getUserId());
+            intent.putExtra("profile_name", name);
+            intent.putExtra("profile_bio", bio);
+            intent.putExtra("header_color", roleColor);
+            // نص القسم الثاني يمكن إضافته إذا أردت لون خاص للنص
             context.startActivity(intent);
         });
     }
@@ -90,18 +120,39 @@ public class ParticipantsAdapter extends RecyclerView.Adapter<ParticipantsAdapte
         return participants.size();
     }
 
+    public void updateParticipants(List<ParticipantData> newParticipants) {
+        this.participants = newParticipants;
+        notifyDataSetChanged();
+    }
+
     static class ViewHolder extends RecyclerView.ViewHolder {
         ShapeableImageView profileImage;
-        TextView profileName;
-        TextView profileRole;
-        TextView profileDescription;
+        TextView profileName, profileRole, profileDescription;
 
-        ViewHolder(View itemView) {
-            super(itemView);
-            profileImage = itemView.findViewById(R.id.img_profile);
-            profileName = itemView.findViewById(R.id.profileName);
-            profileRole = itemView.findViewById(R.id.profileRole);
-            profileDescription = itemView.findViewById(R.id.profileDescription);
+        ViewHolder(View v) {
+            super(v);
+            profileImage = v.findViewById(R.id.img_profile);
+            profileName = v.findViewById(R.id.profileName);
+            profileRole = v.findViewById(R.id.profileRole);
+            profileDescription = v.findViewById(R.id.profileDescription);
+        }
+    }
+
+    // دالة مساعدة لتحويل الدور إلى العربية
+    private String getArabicRole(String role) {
+        switch (role.toLowerCase()) {
+            case "student":
+                return "طالب";
+            case "doctor":
+                return "دكتور";
+            case "coordinator":
+                return "منسق";
+            case "program_manager":
+                return "مدير برنامج";
+            case "system_manager":
+                return "مدير نظام";
+            default:
+                return "غير محدد";
         }
     }
 }

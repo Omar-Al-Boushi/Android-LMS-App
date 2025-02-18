@@ -42,6 +42,7 @@
         <com.google.android.material.imageview.ShapeableImageView
             android:layout_width="72dp"
             android:layout_height="72dp"
+            android:id="@+id/nav_header_profile_image"
             android:scaleType="centerCrop"
             android:src="@drawable/omar_photo"
             app:shapeAppearance="@style/ShapeAppearance.Material3.Corner.Full" />

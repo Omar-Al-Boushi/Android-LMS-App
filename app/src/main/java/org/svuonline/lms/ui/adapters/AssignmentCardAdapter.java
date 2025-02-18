@@ -2,6 +2,7 @@ package org.svuonline.lms.ui.adapters;
 
 import android.content.Context;
 import android.content.Intent;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -11,8 +12,10 @@ import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.google.android.material.button.MaterialButton;
+import com.google.android.material.snackbar.Snackbar;
 
 import org.svuonline.lms.R;
+import org.svuonline.lms.data.repository.AssignmentRepository;
 import org.svuonline.lms.ui.activities.AssignmentUploadActivity;
 import org.svuonline.lms.ui.activities.AssignmentsActivity;
 import org.svuonline.lms.ui.data.AssignmentCardData;
@@ -48,13 +51,21 @@ public class AssignmentCardAdapter extends RecyclerView.Adapter<AssignmentCardAd
         boolean isRTL = context.getResources().getConfiguration().getLayoutDirection() == View.LAYOUT_DIRECTION_RTL;
         adjustRotation(holder.parentStatus, isRTL);
 
-        // افترض أن هناك زر Go Details داخل البطاقة (مثلاً TextView أو Button)
         holder.goDetails.setOnClickListener(v -> {
+            AssignmentRepository assignmentRepository = new AssignmentRepository(context);
+            String toolId = assignmentRepository.getToolIdByAssignmentId(assignment.getAssignmentId());
+
+            if (toolId == null) {
+                Log.e("AssignmentCardAdapter", "لم يتم العثور على tool_id لـ assignment_id: " + assignment.getAssignmentId());
+                Snackbar.make(holder.itemView, "خطأ: الأداة غير متوفرة", Snackbar.LENGTH_LONG).show();
+                return;
+            }
+
             Intent intent = new Intent(context, AssignmentsActivity.class);
             intent.putExtra("course_code", assignment.getCourseCode());
-            // افترض أن courseName أو عنوان آخر يمكن استخدامه كـ course_title
             intent.putExtra("course_title", assignment.getCourseName());
             intent.putExtra("course_color_value", assignment.getBackgroundColor());
+            intent.putExtra("button_id", toolId); // تمرير tool_id
             context.startActivity(intent);
         });
     }

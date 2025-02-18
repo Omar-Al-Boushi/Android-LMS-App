@@ -7,14 +7,16 @@ public class AssignmentCardData {
     private final String timeEnd;
     private final String status;
     private final int backgroundColor;
+    private final int assignmentId;
 
-    public AssignmentCardData(String courseName, String courseCode, String timeStart, String timeEnd, String status, int backgroundColor) {
+    public AssignmentCardData(String courseName, String courseCode, String timeStart, String timeEnd, String status, int backgroundColor, int assignmentId) {
         this.courseName = courseName;
         this.courseCode = courseCode;
         this.timeStart = timeStart;
         this.timeEnd = timeEnd;
         this.status = status;
         this.backgroundColor = backgroundColor;
+        this.assignmentId = assignmentId;
     }
 
     public String getCourseName() {
@@ -39,5 +41,22 @@ public class AssignmentCardData {
 
     public int getBackgroundColor() {
         return backgroundColor;
+    }
+
+    public int getAssignmentId() {
+        return assignmentId;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        AssignmentCardData that = (AssignmentCardData) o;
+        return assignmentId == that.assignmentId;
+    }
+
+    @Override
+    public int hashCode() {
+        return Integer.hashCode(assignmentId);
     }
 }

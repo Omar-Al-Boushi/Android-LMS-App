@@ -117,6 +117,7 @@
                 android:background="@color/Custom_Black" />
         </com.google.android.material.bottomnavigation.BottomNavigationView>
 
+
     </androidx.coordinatorlayout.widget.CoordinatorLayout>
 
     <!-- قائمة التنقل الجانبية -->
