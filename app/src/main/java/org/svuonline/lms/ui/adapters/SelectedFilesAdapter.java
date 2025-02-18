@@ -10,6 +10,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
 
+import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.google.android.material.card.MaterialCardView;
@@ -20,9 +21,9 @@ import java.util.List;
 
 public class SelectedFilesAdapter extends RecyclerView.Adapter<SelectedFilesAdapter.ViewHolder> {
 
-    private Context context;
-    private List<Uri> fileList;
-    private int strokeColor; // اللون الذي سيتم تمريره من النشاط
+    private final Context context;
+    private final List<Uri> fileList;
+    private final int strokeColor; // اللون الذي سيتم تمريره من النشاط
     private OnItemClickListener onItemClickListener;
 
     public interface OnItemClickListener {
@@ -40,9 +41,10 @@ public class SelectedFilesAdapter extends RecyclerView.Adapter<SelectedFilesAdap
         this.strokeColor = strokeColor;
     }
 
+    @NonNull
     @Override
-    public ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
-        // inflate للبطاقة المصممة (item_selected_file.xml)
+    public ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
+        // inflate لتصميم البطاقة (item_selected_file.xml)
         View view = LayoutInflater.from(context).inflate(R.layout.item_selected_file, parent, false);
         return new ViewHolder(view, onItemClickListener);
     }
@@ -56,13 +58,9 @@ public class SelectedFilesAdapter extends RecyclerView.Adapter<SelectedFilesAdap
         // تعيين لون الستروك باستخدام اللون الممرر من النشاط
         holder.cardParent.setStrokeColor(strokeColor);
 
-        // مثال لتعيين الأيقونة بناءً على نوع الملف
-        if (fileName != null && fileName.toLowerCase().endsWith(".pdf")) {
-            holder.startIcon.setImageResource(R.drawable.pdf);
-        } else {
-            // أيقونة افتراضية لملفات غير pdf
-            holder.startIcon.setImageResource(R.drawable.lrec);
-        }
+        // تحديد أيقونة الملف بناءً على امتداده
+        int iconRes = getIconForFile(fileName);
+        holder.startIcon.setImageResource(iconRes);
     }
 
     @Override
@@ -125,5 +123,52 @@ public class SelectedFilesAdapter extends RecyclerView.Adapter<SelectedFilesAdap
             Log.d("SelectedFilesAdapter", "Using getLastPathSegment, result: " + result);
         }
         return result;
+    }
+
+    // دالة للحصول على الأيقونة المناسبة بناءً على امتداد الملف
+    private int getIconForFile(String fileName) {
+        String extension = getFileExtension(fileName);
+        switch (extension) {
+            case "pdf":
+                return R.drawable.pdf1;
+            case "docx":
+                return R.drawable.docx;
+            case "doc":
+                return R.drawable.doc;
+            case "mp3":
+                return R.drawable.mp3;
+            case "mp4":
+                return R.drawable.mp4;
+            case "png":
+                return R.drawable.png;
+            case "jpg":
+            case "jpeg":
+                return R.drawable.jpg;
+            case "rar":
+                return R.drawable.rar;
+            case "xsl":
+            case "xlsx":
+            case "xlsm":
+                return R.drawable.xsl;
+            case "ppt":
+            case "pptx":
+                return R.drawable.ppt;
+            case "zip":
+                return R.drawable.zip;
+            case "txt":
+                return R.drawable.txt;
+            default:
+                return R.drawable.file; // الأيقونة الافتراضية
+        }
+    }
+
+    // دالة للحصول على امتداد الملف
+    private String getFileExtension(String fileName) {
+        if (fileName == null) return "";
+        int dotIndex = fileName.lastIndexOf('.');
+        if (dotIndex != -1 && dotIndex < fileName.length() - 1) {
+            return fileName.substring(dotIndex + 1).toLowerCase();
+        }
+        return "";
     }
 }

@@ -10,7 +10,6 @@ import android.view.animation.AccelerateDecelerateInterpolator;
 import android.view.animation.LinearInterpolator;
 import android.widget.TextView;
 
-import androidx.appcompat.app.AppCompatActivity;
 import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.core.widget.NestedScrollView;
 import androidx.recyclerview.widget.GridLayoutManager;
@@ -49,7 +48,7 @@ public class ProfileActivity extends BaseActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_profile); // تأكد من تطابق اسم ملف XML
+        setContentView(R.layout.activity_profile);  // تأكد من تطابق اسم ملف XML
 
         // ربط عناصر الواجهة
         courseHeaderLayout = findViewById(R.id.courseHeaderLayout);
@@ -62,24 +61,34 @@ public class ProfileActivity extends BaseActivity {
         profileName = findViewById(R.id.profileName);
         profileBio = findViewById(R.id.descriptionBio); // عنصر الوصف
 
-        // قراءة البيانات المُرسلة عبر الـ Intent، إذا لم تتوفر يتم استخدام القيم الافتراضية
+        // قراءة البيانات المُرسلة عبر الـ Intent
         Intent intent = getIntent();
         boolean isCurrentUser = intent.getBooleanExtra("is_current_user", false);
 
+        // اسم البروفايل
         String name = intent.getStringExtra("profile_name");
         if (name == null || name.isEmpty()) {
-            name = "Default Name";  // أدخل الاسم الافتراضي هنا
+            name = "Default Name";
         }
 
-        int imageRes = intent.hasExtra("profile_image_res") ?
-                intent.getIntExtra("profile_image_res", R.drawable.ic_launcher_background) :
-                R.drawable.ic_launcher_background;  // صورة افتراضية
+        // تحديث الصورة: التحقق من وجود URI لصورة البروفايل الجديدة
+        String imageUriString = intent.getStringExtra("profile_image_uri");
+        if (imageUriString != null && !imageUriString.isEmpty()) {
+            imgProfile.setImageURI(Uri.parse(imageUriString));
+        } else {
+            int imageRes = intent.hasExtra("profile_image_res") ?
+                    intent.getIntExtra("profile_image_res", R.drawable.ic_launcher_background) :
+                    R.drawable.ic_launcher_background;
+            imgProfile.setImageResource(imageRes);
+        }
 
+        // البايو (الوصف)
         String bio = intent.getStringExtra("profile_bio");
         if (bio == null || bio.isEmpty()) {
             bio = "Default bio text. This is a description about the user.";
         }
 
+        // قراءة بيانات الاتصال
         String contactPhone = intent.getStringExtra("contact_phone");
         if (contactPhone == null) contactPhone = "";
         String contactWhatsapp = intent.getStringExtra("contact_whatsapp");
@@ -91,6 +100,7 @@ public class ProfileActivity extends BaseActivity {
         String contactTelegram = intent.getStringExtra("contact_telegram");
         if (contactTelegram == null) contactTelegram = "";
 
+        // قراءة ألوان الهيدر والنص
         int headerColor = intent.hasExtra("header_color") ?
                 intent.getIntExtra("header_color", getResources().getColor(R.color.Custom_MainColorBlue)) :
                 getResources().getColor(R.color.Custom_MainColorBlue);
@@ -98,11 +108,11 @@ public class ProfileActivity extends BaseActivity {
                 intent.getIntExtra("text_color", getResources().getColor(R.color.md_theme_primary)) :
                 getResources().getColor(R.color.md_theme_primary);
 
-        // إنشاء كائن ProfileData بناءً على البيانات المُجمعة (ديناميكيًا)
+        // إنشاء كائن ProfileData باستخدام البيانات المُجمعة
         ProfileData profileData = new ProfileData(
                 isCurrentUser,
                 name,
-                imageRes,
+                intent.hasExtra("profile_image_res") ? intent.getIntExtra("profile_image_res", R.drawable.ic_launcher_background) : R.drawable.ic_launcher_background,
                 bio,
                 contactPhone,
                 contactWhatsapp,
@@ -118,8 +128,9 @@ public class ProfileActivity extends BaseActivity {
         Utils.setSystemBarColorWithColorInt(this, profileData.getHeaderColor(),
                 getResources().getColor(R.color.Custom_BackgroundColor), 0);
         profileName.setText(profileData.getProfileName());
+        profileBio.setText(profileData.getProfileBio());
 
-        // تغيير لون النصوص المطلوبة
+        // تغيير لون النصوص للأقسام
         TextView sectionContact = findViewById(R.id.sectionContact);
         TextView sectionBio = findViewById(R.id.sectionBio);
         TextView sectionCourses = findViewById(R.id.sectionCourses);
@@ -128,13 +139,12 @@ public class ProfileActivity extends BaseActivity {
         sectionBio.setTextColor(textColor);
         sectionCourses.setTextColor(textColor);
 
-// تغيير لون الخلفية للبطاقات
+        // تغيير لون الخلفية لبطاقات البيانات وزر العودة إلى الأعلى
         MaterialCardView cardPhone = findViewById(R.id.cardPhone);
         MaterialCardView cardWhatsapp = findViewById(R.id.cardWhatsapp);
         MaterialCardView cardFacebook = findViewById(R.id.cardFacebook);
         MaterialCardView cardEmail = findViewById(R.id.cardEmail);
         MaterialCardView cardTelegram = findViewById(R.id.cardTelegram);
-        FloatingActionButton fabBackToTop = findViewById(R.id.fabBackToTop);
 
         cardPhone.setBackgroundTintList(ColorStateList.valueOf(headerColor));
         cardWhatsapp.setBackgroundTintList(ColorStateList.valueOf(headerColor));
@@ -143,23 +153,18 @@ public class ProfileActivity extends BaseActivity {
         cardTelegram.setBackgroundTintList(ColorStateList.valueOf(headerColor));
         fabBackToTop.setBackgroundTintList(ColorStateList.valueOf(headerColor));
 
-
-        profileBio.setText(profileData.getProfileBio());
-        imgProfile.setImageResource(profileData.getProfileImageRes());
-
         // عرض زر التعديل إذا كان بروفايل المستخدم الحالي
         if (profileData.isCurrentUser()) {
             editButton.setVisibility(View.VISIBLE);
             editButton.setOnClickListener(v -> {
-                // بدء نشاط تعديل البروفايل، يمكن تعديله حسب الحاجة
-//                Intent editIntent = new Intent(ProfileActivity.this, EditProfileActivity.class);
-//                startActivity(editIntent);
+                Intent editIntent = new Intent(ProfileActivity.this, EditProfileActivity.class);
+                startActivity(editIntent);
             });
         } else {
             editButton.setVisibility(View.GONE);
         }
 
-        // إعداد روابط التواصل – يتم هنا ربط كل عنصر بنظام الريبل (يُفترض أن يكون تأثير الريبل محدد في ملف XML لكل عنصر)
+        // إعداد روابط وسائل الاتصال
         View parentPhone = findViewById(R.id.parentPhone);
         View parentWhatsapp = findViewById(R.id.parentWhatsapp);
         View parentFacebook = findViewById(R.id.parentFacebook);
@@ -188,7 +193,7 @@ public class ProfileActivity extends BaseActivity {
 
         if (!profileData.getContactFacebook().isEmpty()) {
             parentFacebook.setOnClickListener(v -> {
-                Intent fbIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(profileData.getContactFacebook()));
+                Intent fbIntent = new Intent(Intent.ACTION_VIEW, Uri.parse("fb://facewebmodal/f?href=https://facebook.com/" + profileData.getContactFacebook()));
                 startActivity(fbIntent);
             });
         } else {
@@ -213,10 +218,10 @@ public class ProfileActivity extends BaseActivity {
             parentTelegram.setClickable(false);
         }
 
-        // إعداد RecyclerView للكورسات (يتم إدخال البيانات يدويًا)
+        // إعداد RecyclerView لعرض بيانات الكورسات التجريبية
         setupRecyclerView();
 
-        // إعداد مستمع تمرير للـ NestedScrollView لإظهار/إخفاء زر العودة إلى الأعلى بتأثير fade
+        // مستمع للتمرير لإظهار/إخفاء زر العودة إلى الأعلى
         nestedScrollView.setOnScrollChangeListener(new NestedScrollView.OnScrollChangeListener() {
             @Override
             public void onScrollChange(NestedScrollView v, int scrollX, int scrollY, int oldScrollX, int oldScrollY) {
@@ -243,7 +248,7 @@ public class ProfileActivity extends BaseActivity {
             }
         });
 
-        // عند الضغط على زر العودة إلى الأعلى يتم التمرير إلى أعلى الصفحة بشكل خطي
+        // عند الضغط على زر العودة إلى الأعلى يتم التمرير إلى أعلى الصفحة
         fabBackToTop.setOnClickListener(v -> {
             ObjectAnimator animator = ObjectAnimator.ofInt(nestedScrollView, "scrollY", nestedScrollView.getScrollY(), 0);
             animator.setInterpolator(new LinearInterpolator());
@@ -251,8 +256,13 @@ public class ProfileActivity extends BaseActivity {
             animator.start();
         });
 
-        // إعداد زر الرجوع في الهيدر لإنهاء النشاط عند الضغط
-        backButton.setOnClickListener(v -> finish());
+        // عند الضغط على زر الرجوع في الهيدر، العودة إلى DashboardActivity
+        backButton.setOnClickListener(v -> {
+            Intent homeIntent = new Intent(ProfileActivity.this, DashboardActivity.class);
+            homeIntent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK);
+            startActivity(homeIntent);
+            finish();
+        });
     }
 
     /**
@@ -288,7 +298,7 @@ public class ProfileActivity extends BaseActivity {
     }
 
     /**
-     * حساب عدد الأعمدة بناءً على عرض العمود المحدد (بالـ dp)
+     * حساب عدد الأعمدة بناءً على عرض العمود المحدد (dp)
      */
     private int calculateNoOfColumns(int columnWidthDp) {
         float screenWidthDp = getResources().getDisplayMetrics().widthPixels /

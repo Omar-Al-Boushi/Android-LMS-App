@@ -81,7 +81,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="16dp"
                 android:fontFamily="@font/cairo_bold"
-                android:text="Omar Al Boushi"
+                android:text="@string/omar_al_boushi"
                 android:textColor="@color/white"
                 android:textSize="24sp"
                 app:layout_constraintBottom_toBottomOf="parent"
@@ -129,7 +129,7 @@
                     android:focusable="true"
                     android:focusableInTouchMode="true"
                     android:fontFamily="@font/cairo_bold"
-                    android:text="Contact"
+                    android:text="@string/contact"
                     android:textAlignment="center"
                     android:textColor="@color/md_theme_primary"
                     android:textSize="20sp" />
@@ -398,7 +398,7 @@
                     android:focusable="true"
                     android:focusableInTouchMode="true"
                     android:fontFamily="@font/cairo_bold"
-                    android:text="Bio"
+                    android:text="@string/bio"
                     android:textAlignment="center"
                     android:textColor="@color/md_theme_primary"
                     android:textSize="20sp" />
@@ -424,7 +424,7 @@
                     android:focusable="true"
                     android:focusableInTouchMode="true"
                     android:fontFamily="@font/cairo_bold"
-                    android:text="Courses"
+                    android:text="@string/courses"
                     android:textAlignment="center"
                     android:textColor="@color/md_theme_primary"
                     android:textSize="20sp" />

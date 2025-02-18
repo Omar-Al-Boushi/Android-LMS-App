@@ -3,15 +3,19 @@ package org.svuonline.lms.ui.activities;
 import android.content.Intent;
 import android.content.res.ColorStateList;
 import android.os.Bundle;
+import android.os.Handler;
 import android.util.Log;
+import android.view.View;
 import android.widget.TextView;
 
 import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.core.content.ContextCompat;
+import androidx.core.content.res.ResourcesCompat;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.google.android.material.button.MaterialButton;
+import com.google.android.material.snackbar.Snackbar;
 import com.google.android.material.textview.MaterialTextView;
 
 import org.svuonline.lms.R;
@@ -24,6 +28,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
 import android.graphics.Color;
 
 public class AssignmentsActivity extends BaseActivity implements FilesAdapter.FileDownloadListener {
@@ -37,6 +42,8 @@ public class AssignmentsActivity extends BaseActivity implements FilesAdapter.Fi
     private RecyclerView filesRecyclerView;
     private FilesAdapter adapter;
     private TextView openedDate, dueDate, submissionStatus, gradingStatus, timeRemaining, lastModified, assignmentName;
+    MaterialButton favoriteButton;
+    final boolean[] isFavorite = {false};
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -68,6 +75,7 @@ public class AssignmentsActivity extends BaseActivity implements FilesAdapter.Fi
         timeRemaining = findViewById(R.id.TimeRemainingDate);
         lastModified = findViewById(R.id.LastModifiedDate);
         assignmentName = findViewById(R.id.assignmentName);
+        favoriteButton = findViewById(R.id.favoriteButton);
 
         // إنشاء خريطة لربط الألوان الأصلية بالألوان المقابلة
         Map<Integer, Integer> colorMapping = new HashMap<>();
@@ -134,19 +142,67 @@ public class AssignmentsActivity extends BaseActivity implements FilesAdapter.Fi
         }
 
         // تعيين القيم النصية لبقية العناصر
-        openedDate.setText("25 November 2024");
-        dueDate.setText("2 January 2025");
-        gradingStatus.setText("Not Graded");
-        submissionStatus.setText("No Attempt");
-        timeRemaining.setText("30 Days 9 Hours");
+        openedDate.setText(R.string._19_november_2024_12_00_am);
+        dueDate.setText(R.string._21_december_2024_12_00_am);
+        gradingStatus.setText(R.string.not_graded);
+        submissionStatus.setText(R.string.no_attempt);
+        timeRemaining.setText(R.string._30_days_9_hours);
         lastModified.setText("-");
 
         // تعيين لون خلفية زر الإرسال أو التعديل
         submitOrEdit.setBackgroundTintList(ColorStateList.valueOf(courseColorValue));
+
+        // التحقق مما إذا كانت عملية الرفع تمت
+        if (getIntent().getBooleanExtra("upload_success", false)) {
+            // استرجاع البيانات الممررة من AssignmentUploadActivity
+            String lastModifiedValue = getIntent().getStringExtra("last_modified");
+            String submissionStatusValue = getIntent().getStringExtra("submission_status");
+            String submissionStatusColor = getIntent().getStringExtra("submission_status_color");
+
+            if (lastModifiedValue != null) {
+                lastModified.setText(lastModifiedValue);
+            }
+            if (submissionStatusValue != null) {
+                submissionStatus.setText(submissionStatusValue);
+                submissionStatus.setTypeface(ResourcesCompat.getFont(this, R.font.cairo_bold));
+            }
+            if (submissionStatusColor != null) {
+                submissionStatus.setTextColor(Color.parseColor(submissionStatusColor));
+            }
+        }
+        favoriteButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                isFavorite[0] = !isFavorite[0];
+                if (isFavorite[0]) {
+                    // إضافة الكورس للمفضلة
+                    favoriteButton.setIconResource(R.drawable.star_selected);
+                    favoriteButton.setIconTint(ColorStateList.valueOf(Color.WHITE));
+                    // يمكن إضافة رسالة للمستخدم باستخدام Snackbar أو Toast
+                    Snackbar.make(findViewById(android.R.id.content),
+                            getString(R.string.added_to_favorites),
+                            Snackbar.LENGTH_SHORT).show();
+                } else {
+                    // إزالة الكورس من المفضلة
+                    favoriteButton.setIconResource(R.drawable.star);
+                    favoriteButton.setIconTint(ColorStateList.valueOf(Color.WHITE));
+                    Snackbar.make(findViewById(android.R.id.content),
+                            getString(R.string.removed_from_favorites),
+                            Snackbar.LENGTH_SHORT).show();
+                }
+            }
+        });
     }
 
     @Override
     public void onDownloadRequested(FileData fileData) {
-        // معالجة طلب تنزيل الملف (يمكن تنفيذ العمليات اللازمة هنا)
+        // محاكاة عملية التحميل بتأخير زمني
+        new Handler().postDelayed(() -> {
+            // بعد انتهاء "التحميل"، قم بتحديث حالة الملف
+            fileData.setDownloaded(true);
+            adapter.notifyDataSetChanged();
+        }, 500);
+
+        // إذا كنت ترغب في تنفيذ تحميل فعلي، يمكنك إضافة منطق التحميل هنا
     }
 }

@@ -79,6 +79,10 @@
     <style name="CustomTextFont" parent="Base.TextAppearance.AppCompat.Menu">
         <item name="fontFamily">@font/cairo_regular</item>
         <item name="android:textSize">14sp</item>
-
     </style>
+
+    <style name="PrefixTextStyle" parent="TextAppearance.MaterialComponents.Body2">
+        <item name="android:textSize">14sp</item>
+    </style>
+
 </resources>

@@ -89,10 +89,6 @@
     <string name="program_manager_role">مدير برنامج</string>
     <string name="system_manager_role">مدير نظام</string>
 
-    <string name="john_doe">محمد الأحمد</string>
-    <string name="jane_smith">فاطمة العلي</string>
-    <string name="alice_johnson">خديجة الباشا</string>
-
     <string name="john_description">أنا طالب في السنة الثالثة في قسم العلوم الحاسوبية.</string>
     <string name="jane_description">أنا دكتور متخصص في هندسة البرمجيات.</string>
     <string name="alice_description">أنا منسقة ومسؤولة عن تنظيم الكورسات.</string>
@@ -113,7 +109,7 @@
     <!-- أزرار قسم "فصل S24" -->
     <string name="btn_semester_plan">خطة الفصل</string>
     <string name="btn_slides_powerpoint">الشرائح / PowerPoint</string>
-    <string name="btn_assignments">الواجبات</string>
+    <string name="btn_assignments">الوظائف</string>
     <string name="btn_tools">الأدوات</string>
     <string name="search_by_name_or_id_of_user">ابحث حسب اسم المستخدم او رمزه</string>
     <string name="no_files_available">لا توجد ملفات متاحة حالياً</string>
@@ -131,4 +127,33 @@
     <string name="file_size_exceeds">حجم الملف يتجاوز الحد الأقصى %1$.0f MB</string>
     <string name="uploading_files">جاري رفع الملفات...</string>
     <string name="upload_successful">تم رفع الملفات بنجاح</string>
+    <string name="submitted_for_grading">تم ارسالها للتقييم</string>
+    <string name="_19_november_2024_12_00_am">19 نوفمبر 2024 , 12 مساءاً</string>
+    <string name="due">تستحق:</string>
+    <string name="_21_december_2024_12_00_am">21 ديسمبر 2024, 12:00 مساءاً</string>
+    <string name="submission_status">حالة الارسال:</string>
+    <string name="no_attempt">لا يوجد محاولات</string>
+    <string name="grading_status">حالة التقييم:</string>
+    <string name="not_graded">غير مقييم</string>
+    <string name="time_remaining">الوقت المتبقي:</string>
+    <string name="_30_days_9_hours">30 يوم و 9 ساعات</string>
+    <string name="last_modified">آخر تعديل</string>
+    <string name="submit_or_edit_submission">ارسال أو تعديل الارسال</string>
+    <string name="opened">فتحت:</string>
+    <string name="mobile_application_for_a_goods_selling_company">تطبيق جوال لشركة بيع سلع</string>
+    <string name="assignment_upload">رفع الوظيفة</string>
+    <string name="select_your_file_from_here">حدد ملفك من هنا</string>
+    <string name="max_size_is_200_mb">الحجم الأقصى 200 ميجا بايت</string>
+    <string name="added_to_favorites">تمت إضافة الكورس للمفضلة</string>
+    <string name="removed_from_favorites">تمت إزالة الكورس من المفضلة</string>
+    <string name="logout">تسجيل الخروج</string>
+    <string name="languages">اللغات</string>
+    <string name="account">الحساب</string>
+    <string name="appearance">المظهر</string>
+    <string name="disable">معطّلة</string>
+    <string name="enable">مفعّلة</string>
+    <string name="contact">التواصل</string>
+    <string name="bio">الوصف</string>
+    <string name="save_changes">حفظ التغييرات</string>
+    <string name="your_bio">الوصف الخاص بك</string>
 </resources>

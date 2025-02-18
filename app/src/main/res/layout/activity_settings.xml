@@ -1,0 +1,599 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.coordinatorlayout.widget.CoordinatorLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/coordinator_layout_main"
+    android:layout_width="match_parent"
+    android:background="@color/Custom_BackgroundColor"
+    android:layout_height="match_parent">
+
+    <!-- شريط الأدوات العلوي -->
+    <com.google.android.material.appbar.AppBarLayout
+        android:id="@+id/app_bar_top"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@color/Custom_BackgroundColor"
+        android:fitsSystemWindows="true"
+        android:paddingTop="8dp"
+        android:paddingBottom="0dp"
+        android:theme="@style/ThemeOverlay.MaterialComponents.ActionBar"
+        app:layout_anchorGravity="top"
+        app:liftOnScrollColor="@color/Custom_BackgroundColor">
+
+        <com.google.android.material.appbar.MaterialToolbar
+            android:id="@+id/toolbar_top"
+            android:layout_width="match_parent"
+            android:layout_height="?attr/actionBarSize"
+            android:background="@color/Custom_BackgroundColor"
+            android:fadeScrollbars="true"
+            android:theme="@style/ThemeOverlay.MaterialComponents.Dark.ActionBar"
+            app:layout_scrollFlags="scroll|snap"
+            app:navigationIcon="@drawable/arrow___left"
+            app:navigationIconTint="@color/Custom_Black">
+
+            <TextView
+                android:id="@+id/tv_toolbar_title"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:fontFamily="@font/cairo_bold"
+                android:text="@string/settings"
+                android:textColor="@color/md_theme_onSurface_highContrast"
+                android:textSize="30sp" />
+
+            <!-- أيقونة الحساب يبقى كما هو -->
+            <com.google.android.material.imageview.ShapeableImageView
+                android:id="@+id/iv_profile"
+                android:layout_width="42dp"
+                android:layout_height="42dp"
+                android:layout_gravity="end"
+                android:layout_marginEnd="16dp"
+                android:padding="2dp"
+                android:scaleType="centerCrop"
+                android:src="@drawable/omar_photo"
+                app:shapeAppearanceOverlay="@style/ShapeAppearance.Material3.Corner.Full"
+                app:strokeColor="@color/md_theme_primary"
+                app:strokeWidth="3dp"/>
+
+        </com.google.android.material.appbar.MaterialToolbar>
+    </com.google.android.material.appbar.AppBarLayout>
+
+    <!-- محتوى الصفحة داخل NestedScrollView -->
+    <androidx.core.widget.NestedScrollView
+        android:id="@+id/nested_scroll_view"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_marginTop="4dp"
+        app:layout_behavior="@string/appbar_scrolling_view_behavior">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textDirection="locale"
+            android:background="@color/Custom_BackgroundColor"
+            android:orientation="vertical">
+
+            <!-- قسم اللغة -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical">
+
+                <com.google.android.material.textview.MaterialTextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:background="@color/Custom_MainColorBlue"
+                    android:drawableStart="@drawable/language"
+                    android:drawablePadding="14dp"
+                    android:fontFamily="@font/cairo_bold"
+                    android:paddingStart="24dp"
+                    android:paddingTop="8dp"
+                    android:paddingEnd="24dp"
+                    android:paddingBottom="8dp"
+                    android:text="@string/languages"
+                    android:textColor="@color/white"
+                    android:textSize="16sp"
+                    app:drawableTint="@color/white" />
+
+                <androidx.constraintlayout.widget.ConstraintLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="16dp"
+                    android:layout_marginEnd="16dp">
+
+                    <!-- خيار اللغة الإنجليزية (مختار أو غير مختار حسب الحالة) -->
+                    <com.google.android.material.card.MaterialCardView
+                        android:id="@+id/cv_english"
+                        android:clickable="true"
+                        android:focusable="true"
+                        android:foreground="?attr/selectableItemBackground"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="24dp"
+                        app:layout_constraintEnd_toEndOf="parent"
+                        app:layout_constraintStart_toStartOf="parent"
+                        app:layout_constraintTop_toTopOf="parent">
+
+                        <androidx.constraintlayout.widget.ConstraintLayout
+                            android:id="@+id/layout_btn_english"
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent">
+
+                            <!-- البطاقة النصية -->
+                            <com.google.android.material.card.MaterialCardView
+                                android:id="@+id/card_text_english"
+                                android:layout_width="match_parent"
+                                android:layout_height="50dp"
+                                android:backgroundTint="@color/Custom_MainColorGolden"
+                                app:cardElevation="0dp"
+                                app:layout_constraintStart_toStartOf="@id/iv_english_icon"
+                                app:layout_constraintTop_toTopOf="parent">
+
+                                <TextView
+                                    android:id="@+id/tv_english"
+                                    android:layout_width="match_parent"
+                                    android:layout_height="wrap_content"
+                                    android:layout_gravity="center|center_horizontal"
+                                    android:fontFamily="@font/cairo_bold"
+                                    android:paddingStart="82dp"
+                                    android:paddingEnd="16dp"
+                                    android:text="English"
+                                    android:textColor="@color/white"
+                                    android:textSize="16sp" />
+                            </com.google.android.material.card.MaterialCardView>
+
+                            <!-- أيقونة الإنجليزية -->
+                            <com.google.android.material.imageview.ShapeableImageView
+                                android:id="@+id/iv_english_icon"
+                                android:layout_width="50dp"
+                                android:layout_height="50dp"
+                                android:background="@color/Custom_MainColorBlue"
+                                app:contentPadding="17dp"
+                                app:layout_constraintStart_toStartOf="parent"
+                                app:layout_constraintTop_toTopOf="parent"
+                                app:shapeAppearance="@style/ShapeAppearance.Material3.Corner.Medium"
+                                app:srcCompat="@drawable/en" />
+
+                        </androidx.constraintlayout.widget.ConstraintLayout>
+
+                    </com.google.android.material.card.MaterialCardView>
+
+                    <!-- خيار اللغة العربية -->
+                    <com.google.android.material.card.MaterialCardView
+                        android:id="@+id/cv_arabic"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:clickable="true"
+                        android:focusable="true"
+                        android:foreground="?attr/selectableItemBackground"
+                        android:layout_marginTop="24dp"
+                        app:layout_constraintEnd_toEndOf="parent"
+                        app:layout_constraintStart_toStartOf="parent"
+                        app:layout_constraintTop_toBottomOf="@id/cv_english">
+
+                        <androidx.constraintlayout.widget.ConstraintLayout
+                            android:id="@+id/layout_btn_arabic"
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent">
+
+                            <!-- البطاقة النصية -->
+                            <com.google.android.material.card.MaterialCardView
+                                android:id="@+id/card_text_arabic"
+                                android:layout_width="match_parent"
+                                android:layout_height="50dp"
+                                android:backgroundTint="@color/Custom_BackgroundColor"
+                                app:cardElevation="0dp"
+                                app:layout_constraintStart_toStartOf="@id/iv_arabic_icon"
+                                app:layout_constraintTop_toTopOf="parent">
+
+                                <TextView
+                                    android:id="@+id/tv_arabic"
+                                    android:layout_width="match_parent"
+                                    android:layout_height="wrap_content"
+                                    android:layout_gravity="center|center_horizontal"
+                                    android:fontFamily="@font/cairo_bold"
+                                    android:paddingStart="82dp"
+                                    android:paddingEnd="16dp"
+                                    android:text="العربية"
+                                    android:textColor="@color/Custom_Black"
+                                    android:textSize="16sp" />
+                            </com.google.android.material.card.MaterialCardView>
+
+                            <!-- أيقونة العربية -->
+                            <com.google.android.material.imageview.ShapeableImageView
+                                android:id="@+id/iv_arabic_icon"
+                                android:layout_width="50dp"
+                                android:layout_height="50dp"
+                                android:background="#32A18F5A"
+                                app:contentPadding="17dp"
+                                app:layout_constraintStart_toStartOf="parent"
+                                app:layout_constraintTop_toTopOf="parent"
+                                app:shapeAppearance="@style/ShapeAppearance.Material3.Corner.Medium"
+                                app:srcCompat="@drawable/ar" />
+
+                        </androidx.constraintlayout.widget.ConstraintLayout>
+                    </com.google.android.material.card.MaterialCardView>
+
+                </androidx.constraintlayout.widget.ConstraintLayout>
+            </LinearLayout>
+
+            <!-- قسم النمط (Appearance) -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="32dp"
+                android:orientation="vertical">
+
+                <com.google.android.material.textview.MaterialTextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:background="@color/Custom_MainColorBlue"
+                    android:drawableStart="@drawable/appearance"
+                    android:drawablePadding="14dp"
+                    android:fontFamily="@font/cairo_bold"
+                    android:paddingStart="24dp"
+                    android:paddingTop="8dp"
+                    android:paddingEnd="24dp"
+                    android:paddingBottom="8dp"
+                    android:text="@string/appearance"
+                    android:textColor="@color/white"
+                    android:textSize="16sp"
+                    app:drawableTint="@color/white" />
+
+                <androidx.constraintlayout.widget.ConstraintLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="16dp"
+                    android:layout_marginEnd="16dp">
+
+                    <!-- خيار النمط الفاتح -->
+                    <com.google.android.material.card.MaterialCardView
+                        android:id="@+id/cv_light_mode"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:clickable="true"
+                        android:focusable="true"
+                        android:foreground="?attr/selectableItemBackground"
+                        android:layout_marginTop="24dp"
+                        app:layout_constraintEnd_toEndOf="parent"
+                        app:layout_constraintStart_toStartOf="parent"
+                        app:layout_constraintTop_toTopOf="parent">
+
+                        <androidx.constraintlayout.widget.ConstraintLayout
+                            android:id="@+id/layout_btn_light_mode"
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent">
+
+                            <!-- البطاقة النصية للنمط الفاتح -->
+                            <com.google.android.material.card.MaterialCardView
+                                android:id="@+id/card_text_light_mode"
+                                android:layout_width="match_parent"
+                                android:layout_height="50dp"
+                                android:backgroundTint="@color/Custom_MainColorGolden"
+                                app:cardElevation="0dp"
+                                app:layout_constraintStart_toStartOf="@id/iv_light_mode_icon"
+                                app:layout_constraintTop_toTopOf="parent">
+
+                                <TextView
+                                    android:id="@+id/tv_light_mode"
+                                    android:layout_width="match_parent"
+                                    android:layout_height="wrap_content"
+                                    android:layout_gravity="center|center_horizontal"
+                                    android:fontFamily="@font/cairo_bold"
+                                    android:paddingStart="82dp"
+                                    android:paddingEnd="16dp"
+                                    android:text="@string/light_mode"
+                                    android:textColor="@color/white"
+                                    android:textSize="16sp" />
+                            </com.google.android.material.card.MaterialCardView>
+
+                            <!-- أيقونة النمط الفاتح -->
+                            <com.google.android.material.imageview.ShapeableImageView
+                                android:id="@+id/iv_light_mode_icon"
+                                android:layout_width="50dp"
+                                android:layout_height="50dp"
+                                android:background="@color/Custom_MainColorBlue"
+                                app:contentPadding="14dp"
+                                app:layout_constraintStart_toStartOf="parent"
+                                app:layout_constraintTop_toTopOf="parent"
+                                app:shapeAppearance="@style/ShapeAppearance.Material3.Corner.Medium"
+                                app:srcCompat="@drawable/light_mode" />
+
+                        </androidx.constraintlayout.widget.ConstraintLayout>
+                    </com.google.android.material.card.MaterialCardView>
+
+                    <!-- خيار النمط الداكن -->
+                    <com.google.android.material.card.MaterialCardView
+                        android:id="@+id/cv_dark_mode"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:clickable="true"
+                        android:focusable="true"
+                        android:foreground="?attr/selectableItemBackground"
+                        android:layout_marginTop="24dp"
+                        app:layout_constraintEnd_toEndOf="parent"
+                        app:layout_constraintStart_toStartOf="parent"
+                        app:layout_constraintTop_toBottomOf="@id/cv_light_mode">
+
+                        <androidx.constraintlayout.widget.ConstraintLayout
+                            android:id="@+id/layout_btn_dark_mode"
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent">
+
+                            <!-- البطاقة النصية للنمط الداكن -->
+                            <com.google.android.material.card.MaterialCardView
+                                android:id="@+id/card_text_dark_mode"
+                                android:layout_width="match_parent"
+                                android:layout_height="50dp"
+                                android:backgroundTint="@color/Custom_BackgroundColor"
+                                app:cardElevation="0dp"
+                                app:layout_constraintStart_toStartOf="@id/iv_dark_mode_icon"
+                                app:layout_constraintTop_toTopOf="parent">
+
+                                <TextView
+                                    android:id="@+id/tv_dark_mode"
+                                    android:layout_width="match_parent"
+                                    android:layout_height="wrap_content"
+                                    android:layout_gravity="center|center_horizontal"
+                                    android:fontFamily="@font/cairo_bold"
+                                    android:paddingStart="82dp"
+                                    android:paddingEnd="16dp"
+                                    android:text="@string/dark_mode"
+                                    android:textColor="@color/Custom_Black"
+                                    android:textSize="16sp" />
+                            </com.google.android.material.card.MaterialCardView>
+
+                            <!-- أيقونة النمط الداكن -->
+                            <com.google.android.material.imageview.ShapeableImageView
+                                android:id="@+id/iv_dark_mode_icon"
+                                android:layout_width="50dp"
+                                android:layout_height="50dp"
+                                android:background="#32A18F5A"
+                                app:contentPadding="14dp"
+                                app:layout_constraintStart_toStartOf="parent"
+                                app:layout_constraintTop_toTopOf="parent"
+                                app:shapeAppearance="@style/ShapeAppearance.Material3.Corner.Medium"
+                                app:srcCompat="@drawable/dark_mode" />
+
+                        </androidx.constraintlayout.widget.ConstraintLayout>
+                    </com.google.android.material.card.MaterialCardView>
+
+                </androidx.constraintlayout.widget.ConstraintLayout>
+            </LinearLayout>
+
+            <!-- قسم الإشعارات -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="32dp"
+                android:orientation="vertical">
+
+                <com.google.android.material.textview.MaterialTextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:background="@color/Custom_MainColorBlue"
+                    android:drawableStart="@drawable/notifications2"
+                    android:drawablePadding="14dp"
+                    android:fontFamily="@font/cairo_bold"
+                    android:paddingStart="24dp"
+                    android:paddingTop="8dp"
+                    android:paddingEnd="24dp"
+                    android:paddingBottom="8dp"
+                    android:text="@string/notifications"
+                    android:textColor="@color/white"
+                    android:textSize="16sp"
+                    app:drawableTint="@color/white" />
+
+                <androidx.constraintlayout.widget.ConstraintLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="16dp"
+                    android:layout_marginEnd="16dp">
+
+                    <!-- خيار تفعيل الإشعارات -->
+                    <com.google.android.material.card.MaterialCardView
+                        android:id="@+id/cv_enable_notifications"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:clickable="true"
+                        android:focusable="true"
+                        android:foreground="?attr/selectableItemBackground"
+                        android:layout_marginTop="24dp"
+                        app:layout_constraintEnd_toEndOf="parent"
+                        app:layout_constraintStart_toStartOf="parent"
+                        app:layout_constraintTop_toTopOf="parent">
+
+                        <androidx.constraintlayout.widget.ConstraintLayout
+                            android:id="@+id/layout_btn_enable_notifications"
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent">
+
+                            <!-- البطاقة النصية لتفعيل الإشعارات -->
+                            <com.google.android.material.card.MaterialCardView
+                                android:id="@+id/card_text_enable"
+                                android:layout_width="match_parent"
+                                android:layout_height="50dp"
+                                android:backgroundTint="@color/Custom_MainColorGolden"
+                                app:cardElevation="0dp"
+                                app:layout_constraintStart_toStartOf="@id/iv_enable_icon"
+                                app:layout_constraintTop_toTopOf="parent">
+
+                                <TextView
+                                    android:id="@+id/tv_enable"
+                                    android:layout_width="match_parent"
+                                    android:layout_height="wrap_content"
+                                    android:layout_gravity="center|center_horizontal"
+                                    android:fontFamily="@font/cairo_bold"
+                                    android:paddingStart="82dp"
+                                    android:paddingEnd="16dp"
+                                    android:text="@string/enable"
+                                    android:textColor="@color/white"
+                                    android:textSize="16sp" />
+                            </com.google.android.material.card.MaterialCardView>
+
+                            <!-- أيقونة تفعيل الإشعارات -->
+                            <com.google.android.material.imageview.ShapeableImageView
+                                android:id="@+id/iv_enable_icon"
+                                android:layout_width="50dp"
+                                android:layout_height="50dp"
+                                android:background="@color/Custom_MainColorBlue"
+                                app:contentPadding="14dp"
+                                app:layout_constraintStart_toStartOf="parent"
+                                app:layout_constraintTop_toTopOf="parent"
+                                app:shapeAppearance="@style/ShapeAppearance.Material3.Corner.Medium"
+                                app:srcCompat="@drawable/tick_square" />
+
+                        </androidx.constraintlayout.widget.ConstraintLayout>
+
+                    </com.google.android.material.card.MaterialCardView>
+
+                    <!-- خيار إلغاء تفعيل الإشعارات -->
+                    <com.google.android.material.card.MaterialCardView
+                        android:id="@+id/cv_disable_notifications"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:clickable="true"
+                        android:focusable="true"
+                        android:foreground="?attr/selectableItemBackground"
+                        android:layout_marginTop="24dp"
+                        app:layout_constraintEnd_toEndOf="parent"
+                        app:layout_constraintStart_toStartOf="parent"
+                        app:layout_constraintTop_toBottomOf="@id/cv_enable_notifications">
+
+                        <androidx.constraintlayout.widget.ConstraintLayout
+                            android:id="@+id/layout_btn_disable_notifications"
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent">
+
+                            <!-- البطاقة النصية لإلغاء التفعيل -->
+                            <com.google.android.material.card.MaterialCardView
+                                android:id="@+id/card_text_disable"
+                                android:layout_width="match_parent"
+                                android:layout_height="50dp"
+                                android:backgroundTint="@color/Custom_BackgroundColor"
+                                app:cardElevation="0dp"
+                                app:layout_constraintStart_toStartOf="@id/iv_disable_icon"
+                                app:layout_constraintTop_toTopOf="parent">
+
+                                <TextView
+                                    android:id="@+id/tv_disable"
+                                    android:layout_width="match_parent"
+                                    android:layout_height="wrap_content"
+                                    android:layout_gravity="center|center_horizontal"
+                                    android:fontFamily="@font/cairo_bold"
+                                    android:paddingStart="82dp"
+                                    android:paddingEnd="16dp"
+                                    android:text="@string/disable"
+                                    android:textColor="@color/Custom_Black"
+                                    android:textSize="16sp" />
+                            </com.google.android.material.card.MaterialCardView>
+
+                            <!-- أيقونة إلغاء تفعيل الإشعارات -->
+                            <com.google.android.material.imageview.ShapeableImageView
+                                android:id="@+id/iv_disable_icon"
+                                android:layout_width="50dp"
+                                android:layout_height="50dp"
+                                android:background="#32A18F5A"
+                                app:contentPadding="14dp"
+                                app:layout_constraintStart_toStartOf="parent"
+                                app:layout_constraintTop_toTopOf="parent"
+                                app:shapeAppearance="@style/ShapeAppearance.Material3.Corner.Medium"
+                                app:srcCompat="@drawable/tick_square" />
+
+                        </androidx.constraintlayout.widget.ConstraintLayout>
+                    </com.google.android.material.card.MaterialCardView>
+
+                </androidx.constraintlayout.widget.ConstraintLayout>
+            </LinearLayout>
+
+            <!-- قسم الحساب (زر تسجيل الخروج) -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="32dp"
+                android:orientation="vertical">
+
+                <com.google.android.material.textview.MaterialTextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:background="@color/Custom_MainColorBlue"
+                    android:drawableStart="@drawable/notifications2"
+                    android:drawablePadding="14dp"
+                    android:fontFamily="@font/cairo_bold"
+                    android:paddingStart="24dp"
+                    android:paddingTop="8dp"
+                    android:paddingEnd="24dp"
+                    android:paddingBottom="8dp"
+                    android:text="@string/account"
+                    android:textColor="@color/white"
+                    android:textSize="16sp"
+                    app:drawableTint="@color/white" />
+
+                <androidx.constraintlayout.widget.ConstraintLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="16dp"
+                    android:layout_marginEnd="16dp">
+
+                    <com.google.android.material.card.MaterialCardView
+                        android:id="@+id/cv_logout"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:clickable="true"
+                        android:focusable="true"
+                        android:foreground="?attr/selectableItemBackground"
+                        android:layout_marginTop="24dp"
+                        app:layout_constraintEnd_toEndOf="parent"
+                        app:layout_constraintStart_toStartOf="parent"
+                        app:layout_constraintTop_toTopOf="parent">
+
+                        <androidx.constraintlayout.widget.ConstraintLayout
+                            android:id="@+id/layout_btn_logout"
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent">
+
+                            <com.google.android.material.card.MaterialCardView
+                                android:layout_width="match_parent"
+                                android:layout_height="50dp"
+                                android:backgroundTint="#B3261E"
+                                app:cardElevation="0dp"
+                                app:layout_constraintStart_toStartOf="@id/iv_logout_icon"
+                                app:layout_constraintTop_toTopOf="parent"
+                                app:strokeWidth="0dp">
+
+                                <TextView
+                                    android:id="@+id/tv_logout"
+                                    android:layout_width="match_parent"
+                                    android:layout_height="wrap_content"
+                                    android:layout_gravity="center|center_horizontal"
+                                    android:fontFamily="@font/cairo_bold"
+                                    android:paddingStart="82dp"
+                                    android:paddingEnd="16dp"
+                                    android:text="@string/logout"
+                                    android:textColor="@color/white"
+                                    android:textSize="16sp" />
+                            </com.google.android.material.card.MaterialCardView>
+
+                            <com.google.android.material.imageview.ShapeableImageView
+                                android:id="@+id/iv_logout_icon"
+                                android:layout_width="50dp"
+                                android:layout_height="50dp"
+                                android:background="#B3261E"
+                                app:contentPadding="14dp"
+                                app:layout_constraintStart_toStartOf="parent"
+                                app:layout_constraintTop_toTopOf="parent"
+                                app:srcCompat="@drawable/logout"
+                                app:strokeColor="@color/white"
+                                app:strokeWidth="2dp" />
+
+                        </androidx.constraintlayout.widget.ConstraintLayout>
+
+                    </com.google.android.material.card.MaterialCardView>
+
+                </androidx.constraintlayout.widget.ConstraintLayout>
+            </LinearLayout>
+
+        </LinearLayout>
+    </androidx.core.widget.NestedScrollView>
+
+</androidx.coordinatorlayout.widget.CoordinatorLayout>

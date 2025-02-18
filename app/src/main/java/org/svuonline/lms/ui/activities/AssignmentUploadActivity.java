@@ -26,8 +26,11 @@ import org.svuonline.lms.ui.adapters.SelectedFilesAdapter;
 import org.svuonline.lms.utils.BaseActivity;
 import org.svuonline.lms.utils.Utils;
 
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
+import java.util.Locale;
 
 public class AssignmentUploadActivity extends BaseActivity {
 
@@ -41,6 +44,10 @@ public class AssignmentUploadActivity extends BaseActivity {
     private RecyclerView selectedFilesRecyclerView;
     private SelectedFilesAdapter selectedFilesAdapter;
     private List<Uri> selectedFiles = new ArrayList<>();
+    String courseCode, courseTitle;
+    int courseColorValue;
+    MaterialButton favoriteButton;
+    final boolean[] isFavorite = {false};
 
     // أزرار الإضافة والتعديل والحذف
     private ConstraintLayout addButtonCard, editButtonCard, deleteButtonCard;
@@ -61,9 +68,9 @@ public class AssignmentUploadActivity extends BaseActivity {
 
         // استقبال البيانات من الـ Intent
         Intent intent = getIntent();
-        String courseCode = intent.getStringExtra("course_code");
-        String courseTitle = intent.getStringExtra("course_title");
-        int courseColorValue = intent.getIntExtra("course_color_value", -1);
+        courseCode = intent.getStringExtra("course_code");
+        courseTitle = intent.getStringExtra("course_title");
+        courseColorValue = intent.getIntExtra("course_color_value", -1);
 
         // ربط العناصر من الـ layout
         courseCodeTextView = findViewById(R.id.courseCodeTextView);
@@ -74,6 +81,7 @@ public class AssignmentUploadActivity extends BaseActivity {
         addEditFilesParent = findViewById(R.id.addEditFilesParent);
         selectFilesParent = findViewById(R.id.selectFilesParent);
         selectedFilesRecyclerView = findViewById(R.id.selectedFilesRecyclerView);
+        favoriteButton = findViewById(R.id.favoriteButton);
 
         // ربط أزرار الإضافة والتعديل والحذف
         addButtonCard = findViewById(R.id.addBtn1);
@@ -177,6 +185,29 @@ public class AssignmentUploadActivity extends BaseActivity {
             // إذا كانت أحجام الملفات ضمن الحد المسموح، قم بمحاكاة عملية الرفع
             simulateUpload();
         });
+
+        favoriteButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                isFavorite[0] = !isFavorite[0];
+                if (isFavorite[0]) {
+                    // إضافة الكورس للمفضلة
+                    favoriteButton.setIconResource(R.drawable.star_selected);
+                    favoriteButton.setIconTint(ColorStateList.valueOf(Color.WHITE));
+                    // يمكن إضافة رسالة للمستخدم باستخدام Snackbar أو Toast
+                    Snackbar.make(findViewById(android.R.id.content),
+                            getString(R.string.added_to_favorites),
+                            Snackbar.LENGTH_SHORT).show();
+                } else {
+                    // إزالة الكورس من المفضلة
+                    favoriteButton.setIconResource(R.drawable.star);
+                    favoriteButton.setIconTint(ColorStateList.valueOf(Color.WHITE));
+                    Snackbar.make(findViewById(android.R.id.content),
+                            getString(R.string.removed_from_favorites),
+                            Snackbar.LENGTH_SHORT).show();
+                }
+            }
+        });
     }
 
     // طريقة فتح مستعرض الملفات
@@ -278,15 +309,43 @@ public class AssignmentUploadActivity extends BaseActivity {
                 getString(R.string.uploading_files),
                 Snackbar.LENGTH_INDEFINITE).show();
 
-        // محاكاة تأخير لعملية الرفع (مثلاً 2 ثانية)
-        new Handler().postDelayed(() -> {
-            // انتهاء الرفع بنجاح
-            Snackbar.make(findViewById(android.R.id.content),
-                    getString(R.string.upload_successful),
-                    Snackbar.LENGTH_SHORT).show();
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    // محاكاة تأخير عملية الرفع (مثلاً 2 ثانية)
+                    Thread.sleep(2000);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+                // الحصول على التاريخ الحالي بصيغة مناسبة
+                String currentDate = new SimpleDateFormat("dd MMMM yyyy", Locale.getDefault()).format(new Date());
+                // تحديث الواجهة على الـ UI thread
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        // إظهار رسالة نجاح الرفع
+                        Snackbar.make(findViewById(android.R.id.content),
+                                getString(R.string.upload_successful),
+                                Snackbar.LENGTH_SHORT).show();
 
-            // يمكنك هنا تمرير بيانات إضافية مثل تاريخ الرفع أو تفاصيل الملفات
-            finish();
-        }, 2000);
+                        // إنشاء Intent للانتقال إلى صفحة AssignmentsActivity مع تمرير المعطيات المطلوبة
+                        Intent intent = new Intent(AssignmentUploadActivity.this, AssignmentsActivity.class);
+                        intent.putExtra("upload_success", true);
+                        intent.putExtra("last_modified", currentDate);
+                        intent.putExtra("submission_status", getString(R.string.submitted_for_grading));
+                        intent.putExtra("submission_status_color", "#00822B");
+                        // تمرير معطيات الكورس
+                        intent.putExtra("course_code", courseCode);
+                        intent.putExtra("course_title", courseTitle);
+                        intent.putExtra("course_color_value", courseColorValue);
+
+                        startActivity(intent);
+                        finish();
+                    }
+                });
+            }
+        }).start();
     }
+
 }

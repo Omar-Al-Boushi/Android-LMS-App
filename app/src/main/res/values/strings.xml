@@ -13,10 +13,10 @@
     <string name="dark_mode">Dark Mode</string>
     <string name="light_mode">Light Mode</string>
     <string name="select_mode_message">Please select a mode before proceeding</string>
-    <string name="explore">explore</string>
-    <string name="learn">learn</string>
-    <string name="connect">connect</string>
-    <string name="study">study</string>
+    <string name="explore">Explore</string>
+    <string name="learn">Learn</string>
+    <string name="connect">Connect</string>
+    <string name="study">Study</string>
 
 
     <string name="login_prompt">Please enter your account details ...</string>
@@ -153,4 +153,34 @@
     <string name="file_size_exceeds">File size exceeds the maximum allowed %1$.0f MB</string>
     <string name="uploading_files">Uploading files...</string>
     <string name="upload_successful">Files uploaded successfully</string>
+    <string name="submitted_for_grading">Submitted for grading</string>
+    <string name="opened">Opened:</string>
+    <string name="_19_november_2024_12_00_am">19 November 2024, 12:00 AM</string>
+    <string name="due">Due:</string>
+    <string name="_21_december_2024_12_00_am">21 December 2024, 12:00 AM</string>
+    <string name="submission_status">Submission status:</string>
+    <string name="no_attempt">No attempt</string>
+    <string name="grading_status">Grading status:</string>
+    <string name="not_graded">Not graded</string>
+    <string name="time_remaining">Time remaining:</string>
+    <string name="_30_days_9_hours">30 Days 9 Hours</string>
+    <string name="last_modified">Last modified:</string>
+    <string name="submit_or_edit_submission">Submit or edit submission</string>
+    <string name="mobile_application_for_a_goods_selling_company">Mobile application for a goods selling company</string>
+    <string name="assignment_upload">Assignment Upload</string>
+    <string name="select_your_file_from_here">Select your file from here</string>
+    <string name="max_size_is_200_mb">Max size is 200 MB</string>
+    <string name="added_to_favorites">Added to Favorites</string>
+    <string name="removed_from_favorites">Removed from Favorites</string>
+    <string name="logout">Logout</string>
+    <string name="languages">Languages</string>
+    <string name="account">Account</string>
+    <string name="appearance">Appearance</string>
+    <string name="disable">Disable</string>
+    <string name="enable">Enable</string>
+    <string name="contact">Contact</string>
+    <string name="bio">Bio</string>
+    <string name="save_changes">Save Changes</string>
+    <string name="your_bio">Your bio...</string>
+
 </resources>

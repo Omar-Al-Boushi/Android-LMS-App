@@ -106,6 +106,9 @@ public class DashboardActivity extends BaseActivity {
                     startActivity(intent);
                 }, 100);
                 // إغلاق القائمة الجانبية بعد الاختيار
+            } else if (id == R.id.nav_settings) {
+                Intent intent = new Intent(DashboardActivity.this, SettingsActivity.class);
+                startActivity(intent);
             } else {
                 // التعامل مع باقي عناصر القائمة الجانبية (على سبيل المثال، عناصر أخرى مثل الداشبورد، الكورسات، ... إلخ)
                 menuItem.setChecked(true);

@@ -143,7 +143,7 @@
                     android:layout_marginTop="12dp"
                     android:layout_marginEnd="16dp"
                     android:fontFamily="@font/cairo_bold"
-                    android:text="Mobile application for a goods selling company"
+                    android:text="@string/mobile_application_for_a_goods_selling_company"
                     android:textColor="@color/Custom_MainColorBlue"
                     android:textSize="20sp" />
 
@@ -160,7 +160,7 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:fontFamily="@font/cairo_bold"
-                        android:text="Opened:"
+                        android:text="@string/opened"
                         android:textColor="@color/Custom_Black"
                         android:textSize="16sp" />
 
@@ -170,7 +170,7 @@
                         android:layout_height="wrap_content"
                         android:layout_marginStart="6dp"
                         android:fontFamily="@font/cairo_regular"
-                        android:text="19 November 2024, 12:00 AM"
+                        android:text="@string/_19_november_2024_12_00_am"
                         android:textColor="@color/Custom_Black"
                         android:textSize="16sp" />
                 </LinearLayout>
@@ -189,7 +189,7 @@
                         android:layout_height="wrap_content"
                         android:fontFamily="@font/cairo_bold"
 
-                        android:text="Due:"
+                        android:text="@string/due"
                         android:textColor="@color/Custom_Black"
                         android:textSize="16sp" />
 
@@ -199,7 +199,7 @@
                         android:layout_height="wrap_content"
                         android:layout_marginStart="6dp"
                         android:fontFamily="@font/cairo_regular"
-                        android:text="21 December 2024, 12:00 AM"
+                        android:text="@string/_21_december_2024_12_00_am"
 
                         android:textColor="@color/Custom_Black"
                         android:textSize="16sp" />
@@ -219,7 +219,7 @@
                         android:layout_height="wrap_content"
                         android:fontFamily="@font/cairo_bold"
 
-                        android:text="Submission status:"
+                        android:text="@string/submission_status"
                         android:textColor="@color/Custom_Black"
                         android:textSize="16sp" />
 
@@ -229,7 +229,7 @@
                         android:layout_height="wrap_content"
                         android:layout_marginStart="6dp"
                         android:fontFamily="@font/cairo_regular"
-                        android:text="No attempt"
+                        android:text="@string/no_attempt"
 
                         android:textColor="@color/Custom_Black"
                         android:textSize="16sp" />
@@ -249,7 +249,7 @@
                         android:layout_height="wrap_content"
 
                         android:fontFamily="@font/cairo_bold"
-                        android:text="Grading status:"
+                        android:text="@string/grading_status"
                         android:textColor="@color/Custom_Black"
                         android:textSize="16sp" />
 
@@ -259,7 +259,7 @@
                         android:layout_height="wrap_content"
                         android:layout_marginStart="6dp"
                         android:fontFamily="@font/cairo_regular"
-                        android:text="Not graded"
+                        android:text="@string/not_graded"
 
                         android:textColor="@color/Custom_Black"
                         android:textSize="16sp" />
@@ -278,7 +278,7 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:fontFamily="@font/cairo_bold"
-                        android:text="Time remaining:"
+                        android:text="@string/time_remaining"
 
                         android:textColor="@color/Custom_Black"
                         android:textSize="16sp" />
@@ -289,7 +289,7 @@
                         android:layout_height="wrap_content"
                         android:layout_marginStart="6dp"
                         android:fontFamily="@font/cairo_regular"
-                        android:text="30 Days 9 Hours"
+                        android:text="@string/_30_days_9_hours"
                         android:textColor="@color/Custom_Black"
 
                         android:textSize="16sp" />
@@ -308,7 +308,7 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:fontFamily="@font/cairo_bold"
-                        android:text="Last modified:"
+                        android:text="@string/last_modified"
                         android:textColor="@color/Custom_Black"
 
                         android:textSize="16sp" />
@@ -333,7 +333,7 @@
                     android:layout_marginTop="24dp"
                     android:layout_marginEnd="16dp"
                     android:fontFamily="@font/cairo_bold"
-                    android:text="Submit or edit submission"
+                    android:text="@string/submit_or_edit_submission"
                     android:textColor="@color/white"
                     app:backgroundTint="@color/Custom_MainColorBlue"
                     app:shapeAppearance="@style/ShapeAppearance.Material3.Corner.Medium" />

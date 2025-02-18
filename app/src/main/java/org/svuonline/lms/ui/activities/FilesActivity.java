@@ -1,8 +1,11 @@
 package org.svuonline.lms.ui.activities;
 
 import android.content.Intent;
+import android.content.res.ColorStateList;
+import android.graphics.Color;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.View;
 import android.widget.TextView;
 import android.os.Handler;
 
@@ -18,6 +21,7 @@ import org.svuonline.lms.utils.Utils;
 import org.svuonline.lms.ui.adapters.FilesAdapter.FileDownloadListener;
 
 import com.google.android.material.button.MaterialButton;
+import com.google.android.material.snackbar.Snackbar;
 import com.google.android.material.textview.MaterialTextView;
 
 import java.util.ArrayList;
@@ -34,6 +38,8 @@ public class FilesActivity extends BaseActivity implements FileDownloadListener 
     private int courseColor;
     private String currentButtonId;
     private FilesAdapter adapter;
+    MaterialButton favoriteButton;
+    final boolean[] isFavorite = {false};
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -62,6 +68,8 @@ public class FilesActivity extends BaseActivity implements FileDownloadListener 
         sectionTitle = findViewById(R.id.sectionTitle);
         backButton = findViewById(R.id.backButton);
         recyclerView = findViewById(R.id.filesRecyclerView);
+        favoriteButton = findViewById(R.id.favoriteButton);
+
 
         // تحديث العنوان واللون
         if (courseCode != null) {
@@ -95,6 +103,29 @@ public class FilesActivity extends BaseActivity implements FileDownloadListener 
         // إنشاء الأدابتر وتمرير this كـ FileDownloadListener
         adapter = new FilesAdapter(this, files, courseColor, this);
         recyclerView.setAdapter(adapter);
+
+        favoriteButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                isFavorite[0] = !isFavorite[0];
+                if (isFavorite[0]) {
+                    // إضافة الكورس للمفضلة
+                    favoriteButton.setIconResource(R.drawable.star_selected);
+                    favoriteButton.setIconTint(ColorStateList.valueOf(Color.WHITE));
+                    // يمكن إضافة رسالة للمستخدم باستخدام Snackbar أو Toast
+                    Snackbar.make(findViewById(android.R.id.content),
+                            getString(R.string.added_to_favorites),
+                            Snackbar.LENGTH_SHORT).show();
+                } else {
+                    // إزالة الكورس من المفضلة
+                    favoriteButton.setIconResource(R.drawable.star);
+                    favoriteButton.setIconTint(ColorStateList.valueOf(Color.WHITE));
+                    Snackbar.make(findViewById(android.R.id.content),
+                            getString(R.string.removed_from_favorites),
+                            Snackbar.LENGTH_SHORT).show();
+                }
+            }
+        });
     }
 
     private List<FileData> getFilesForButton(String buttonId) {
@@ -142,14 +173,13 @@ public class FilesActivity extends BaseActivity implements FileDownloadListener 
                 break;
 
             case "slides_powerpoint":
+
+            case "tools":
                 break;
 
             case "assignments":
                 files.add(new FileData("Assignment 1.pdf", false, R.drawable.pdf));
                 files.add(new FileData("Assignment 2.pdf", false, R.drawable.pdf));
-                break;
-
-            case "tools":
                 break;
 
             default:

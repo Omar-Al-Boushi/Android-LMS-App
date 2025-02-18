@@ -1,10 +1,16 @@
 package org.svuonline.lms.ui.activities;
 
 import android.content.Intent;
+import android.content.res.ColorStateList;
+import android.graphics.Color;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.View;
 
 import androidx.recyclerview.widget.LinearLayoutManager;
+
+import com.google.android.material.button.MaterialButton;
+import com.google.android.material.snackbar.Snackbar;
 
 import org.svuonline.lms.R;
 import org.svuonline.lms.databinding.ActivityCourseDetailsBinding;
@@ -20,6 +26,8 @@ import java.util.List;
 
 public class CourseDetailsActivity extends BaseActivity {
     private ActivityCourseDetailsBinding binding;
+    MaterialButton favoriteButton;
+    final boolean[] isFavorite = {false};
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -33,6 +41,8 @@ public class CourseDetailsActivity extends BaseActivity {
         String courseCode = intent.getStringExtra("course_code");
         String courseName = intent.getStringExtra("course_name");
         int courseColorRes = intent.getIntExtra("course_color", -1);
+        favoriteButton = findViewById(R.id.favoriteButton);
+
 
 
         // الحصول على قيمة اللون الفعلية
@@ -58,6 +68,29 @@ public class CourseDetailsActivity extends BaseActivity {
 
         // إعداد زر الرجوع
         binding.backButton.setOnClickListener(v -> finish());
+        favoriteButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                isFavorite[0] = !isFavorite[0];
+                if (isFavorite[0]) {
+                    // إضافة الكورس للمفضلة
+                    favoriteButton.setIconResource(R.drawable.star_selected);
+                    favoriteButton.setIconTint(ColorStateList.valueOf(Color.WHITE));
+                    // يمكن إضافة رسالة للمستخدم باستخدام Snackbar أو Toast
+                    Snackbar.make(findViewById(android.R.id.content),
+                            getString(R.string.added_to_favorites),
+                            Snackbar.LENGTH_SHORT).show();
+                } else {
+                    // إزالة الكورس من المفضلة
+                    favoriteButton.setIconResource(R.drawable.star);
+                    favoriteButton.setIconTint(ColorStateList.valueOf(Color.WHITE));
+                    Snackbar.make(findViewById(android.R.id.content),
+                            getString(R.string.removed_from_favorites),
+                            Snackbar.LENGTH_SHORT).show();
+                }
+            }
+        });
+
     }
 
     private CourseData createCourseData(String courseCode, String courseName, int courseColor) {
