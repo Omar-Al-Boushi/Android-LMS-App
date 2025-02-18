@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/Custom_MainColorBlue"
+    android:layoutDirection="locale"
+    android:paddingStart="16dp"
+    android:paddingEnd="16dp"
+    android:paddingBottom="16dp"
+    android:paddingTop="42dp"
+    android:id="@+id/parentLayout"
+    tools:context=".ui.activities.WelcomeActivity">
+
+    <!-- ViewPager2 لعرض الصور والنصوص مع السحب -->
+    <androidx.viewpager2.widget.ViewPager2
+        android:id="@+id/viewPager"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:layout_marginTop="32dp"
+        app:layout_constraintBottom_toTopOf="@+id/tabIndicator"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_chainStyle="packed" />
+
+    <!-- TabLayout لمؤشر النقاط -->
+    <com.google.android.material.tabs.TabLayout
+        android:id="@+id/tabIndicator"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:layout_marginBottom="32dp"
+        android:background="@android:color/transparent"
+        app:layout_constraintBottom_toTopOf="@+id/tvDescription"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/viewPager"
+        app:tabIndicatorColor="@color/light_blue"
+        app:tabIndicatorHeight="2dp"
+        app:tabSelectedTextColor="@color/Custom_MainColorGolden"
+        app:tabTextColor="@color/white"
+        app:tabTextAppearance="@style/TextAppearance.Material3.DisplaySmall" />
+
+    <!-- النص الوصفي -->
+
+    <!-- زر Get Started -->
+    <TextView
+        android:id="@+id/tvDescription"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:layout_marginBottom="24dp"
+        android:fontFamily="@font/cairo_bold"
+        android:text="@string/welcome_to_lms"
+        android:textColor="@color/white"
+        android:textSize="28sp"
+        app:flow_verticalBias="1.0"
+        app:layout_constraintBottom_toTopOf="@+id/btnGetStarted"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/tabIndicator"
+        app:lineHeight="52dp" />
+
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/btnGetStarted"
+        android:layout_width="0dp"
+        android:layout_height="90dp"
+        android:layout_marginTop="24dp"
+        android:layout_marginBottom="32dp"
+        android:fontFamily="@font/cairo_bold"
+        android:gravity="start|center_vertical"
+        android:text="@string/get_started"
+        android:textColor="@color/white"
+        android:textSize="24sp"
+        app:backgroundTint="@color/Custom_MainColorGolden"
+        app:cornerRadius="12dp"
+        app:icon="@drawable/arrow_right_24"
+        app:iconGravity="end"
+        app:iconSize="36dp"
+        app:iconTint="@color/white"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent" />
+
+
+</androidx.constraintlayout.widget.ConstraintLayout>

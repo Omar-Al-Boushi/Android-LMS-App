@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <style name="BottomNavigationActiveText" parent="TextAppearance.AppCompat">
+        <item name="android:fontFamily">@font/cairo_bold</item>
+        <item name="android:textSize">11sp</item>
+        <item name="android:textColor">@color/md_theme_primary</item>
+        <item name="android:textStyle">bold</item>
+
+    </style>
+
+    <style name="BottomNavigationInactiveText" parent="TextAppearance.AppCompat">
+        <item name="android:fontFamily">@font/cairo_regular</item>
+        <item name="android:textSize">10sp</item>
+        <item name="android:textColor">@color/md_theme_onSurfaceVariant</item>
+    </style>
+
+    <style name="NavigationText" parent="TextAppearance.MaterialComponents.Caption">
+        <item name="android:fontFamily">@font/cairo_regular</item>
+        <item name="android:textSize">14sp</item>
+    </style>
+
+    <style name="NavigationTextSelect" parent="TextAppearance.MaterialComponents.Caption">
+        <item name="android:fontFamily">@font/cairo_bold</item>
+        <item name="android:textSize">16sp</item>
+    </style>
+
+    <style name="SearchText" parent="TextAppearance.AppCompat">
+        <item name="android:fontFamily">@font/cairo_regular</item>
+        <item name="android:textSize">14sp</item>
+    </style>
+
+
+</resources>

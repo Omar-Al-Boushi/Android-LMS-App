@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--suppress NavigationFile -->
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/nav_graph"
+    app:startDestination="@id/fragment_dashboard">
+
+    <!-- الفراجمنتات -->
+    <fragment
+        android:id="@+id/fragment_dashboard"
+        android:name="org.svuonline.lms.ui.fragments.DashboardFragment"
+        android:label="@string/dashboard"
+        tools:layout="@layout/fragment_dashboard" />
+
+    <fragment
+        android:id="@+id/fragment_courses"
+        android:name="org.svuonline.lms.ui.fragments.CoursesFragment"
+        android:label="@string/courses"
+        tools:layout="@layout/fragment_courses" />
+
+    <fragment
+        android:id="@+id/fragment_assignments"
+        android:name="org.svuonline.lms.ui.fragments.AssignmentsFragment"
+        android:label="@string/assignment"
+        tools:layout="@layout/fragment_assignments" />
+
+    <fragment
+        android:id="@+id/fragment_notifications"
+        android:name="org.svuonline.lms.ui.fragments.NotificationsFragment"
+        android:label="@string/notifications"
+        tools:layout="@layout/fragment_notifications" />
+
+</navigation>

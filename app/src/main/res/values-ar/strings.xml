@@ -1,0 +1,121 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <string name="welcome_to_lms">مرحباً بك في تطبيق إدارة التعلم دعنا نبدأ...</string>
+    <string name="get_started">هيا لنبدأ</string>
+    <string name="next">التالي</string>
+    <string name="you_can_change_later">يمكنك تغيير ذلك لاحقاً من الإعدادات</string>
+    <string name="select_your_preferred_language">اختر لغتك المفضلة</string>
+    <string name="select_language_message">يرجى اختيار لغة قبل المتابعة</string>
+    <string name="select_your_preferred_mode">اختر نمطك المفضل</string>
+    <string name="dark_mode">النمط الغامق</string>
+    <string name="light_mode">النمط الفاتح</string>
+    <string name="select_mode_message">يرجى اختيار نمط قبل المتابعة</string>
+    <string name="explore">استكشف</string>
+    <string name="learn">تعلم</string>
+    <string name="connect">تواصل</string>
+    <string name="study">ادرس</string>
+    <string name="login_prompt">رجاءاً قم بإدخال بيانات حسابك</string>
+    <string name="username_hint">ادخل اسم المستخدم</string>
+    <string name="password_hint">ادخل كلمة السر</string>
+    <string name="remember_me">حفظ بيانات الدخول</string>
+    <string name="sign_in">تسجيل الدخول</string>
+    <string name="logo_desc">شعار الجامعة</string>
+    <string name="password">كلمة السر</string>
+    <string name="username">اسم المستخدم</string>
+    <string name="error_username_empty">اسم المستخدم لا يمكن أن يكون فارغاً</string>
+    <string name="error_username_invalid">اسم المستخدم غير صالح.</string>
+    <string name="error_password_empty">كلمة المرور لا يمكن أن تكون فارغة</string>
+    <string name="sign_in_success">تم تسجيل الدخول بنجاح</string>
+    <string name="sign_in_failed">فشل تسجيل الدخول. يرجى التحقق من صحة المعلومات المدخلة</string>
+    <string name="days_left">يوم متبقي</string>
+    <string name="remaining">متبقي</string>
+    <string name="completed">مكتمل</string>
+    <string name="assignment_to_do">وظائف يجب انجازها</string>
+    <string name="assignment_details">تفاصيل الوظائف:</string>
+    <string name="registered">مسجلة</string>
+    <string name="passed">ناجحة</string>
+    <string name="courses_details">تفاصيل المقررات:</string>
+    <string name="dashboard">لوحة البيانات</string>
+    <string name="courses">المقررات</string>
+    <string name="assignment">الوظائف</string>
+    <string name="notifications">الإشعارات</string>
+    <string name="remaining1">متبقية</string>
+    <string name="profile">الملف الشخصي</string>
+    <string name="calendar">التقويم</string>
+    <string name="favourites">المفضلة</string>
+    <string name="settings">الإعدادات</string>
+    <string name="omar_al_boushi">عمر البوشي</string>
+    <string name="bachelor_in_communications_technology_bact">الإجازة في تقانة الاتصالات - BACT</string>
+    <string name="search_by_course_name_or_code">ابحث حسب اسم المقرر أو رمزه</string>
+    <string name="enter_course_name">أكتب اسم أو رمز المقرر باللغة الانجليزية</string>
+    <string name="courses_overview">استعراض المقررات:</string>
+    <string name="filter_courses">تصفية المقررات</string>
+    <string name="switch_to_lists">تبديل إلى قوائم</string>
+    <string name="switch_to_cards">تبديل إلى بطاقات</string>
+    <string name="switch_to_cards_button">زر تبديل إلى بطاقات</string>
+    <string name="switch_to_lists_button">زر تبيدل إلى قوائم</string>
+    <string name="course_title_1">أمن الشبكات والبنية التحتية</string>
+    <string name="course_title_2">الاحتمالات والإحصاء</string>
+    <string name="course_title_3">الاتصالات الرقمية</string>
+    <string name="course_title_4">إدارة المشاريع</string>
+    <string name="course_title_5">تطبيقات الهواتف المحمولة</string>
+    <string name="newCourse">جديدة</string>
+    <string name="search_by_assignment_name_or_code">ابحث عن الوظيفة حسب اسم المقرر أو رمزه</string>
+    <string name="assignment_overview">استعراض الوظائف:</string>
+    <string name="filter_assignment">تصفية الوظائف</string>
+    <string name="sort_by_date">ترتيب حسب التاريخ</string>
+    <string name="start_first">البداية أولاً</string>
+    <string name="end_first">النهاية أولاً</string>
+    <string name="progress">قيد التقدم</string>
+    <string name="go_details">التفاصيل</string>
+    <string name="make_all_as_read">تعيين الكل كمقروء</string>
+    <string name="unread">الغير مقروء</string>
+    <string name="all">الكل</string>
+    <!-- نصوص الإشعارات -->
+    <string name="notification_content_added">تمت إضافة محتوى جديد إلى قسم الموارد لـ %s. اطلع عليه الآن!</string>
+    <string name="notification_assignment_graded">تم تقييم وظيفتك في %s. يمكنك الآن عرض التفاصيل.</string>
+    <string name="notification_assignment_added">تمت إضافة وظيفة جديدة في %s. يرجى مراجعتها وإكمالها.</string>
+
+    <!-- التواريخ -->
+    <string name="date_28_nov_2024">٢٨ نوفمبر ٢٠٢٤، ١:٢٢ صباحاً</string>
+    <string name="date_29_nov_2024_am">٢٩ نوفمبر ٢٠٢٤، ١٠:١٥ صباحاً</string>
+    <string name="date_30_nov_2025">٣٠ نوفمبر ٢٠٢٥، ٣:٤٥ مساءاً</string>
+
+
+    <string name="student_role">طالب</string>
+    <string name="doctor_role">دكتور</string>
+    <string name="coordinator_role">منسق</string>
+    <string name="program_manager_role">مدير برنامج</string>
+    <string name="system_manager_role">مدير نظام</string>
+
+    <string name="john_doe">محمد الأحمد</string>
+    <string name="jane_smith">فاطمة العلي</string>
+    <string name="alice_johnson">خديجة الباشا</string>
+
+    <string name="john_description">أنا طالب في السنة الثالثة في قسم العلوم الحاسوبية.</string>
+    <string name="jane_description">أنا دكتور متخصص في هندسة البرمجيات.</string>
+    <string name="alice_description">أنا منسقة ومسؤولة عن تنظيم الكورسات.</string>
+
+
+    <!-- عناوين الأقسام -->
+    <string name="section_course_materials">مواد المقرر</string>
+    <string name="section_s24_semester">فصل S24</string>
+
+    <!-- أزرار قسم "مواد المقرر" -->
+    <string name="btn_course_identification">تعريف المقرر</string>
+    <string name="btn_book_pdf">الكتاب / PDF</string>
+    <string name="btn_training_exam">اختبار تدريبي</string>
+    <string name="btn_participants">المشاركون</string>
+    <string name="btn_recorded_sessions">الجلسات المسجلة</string>
+    <string name="btn_references">المراجع</string>
+
+    <!-- أزرار قسم "فصل S24" -->
+    <string name="btn_semester_plan">خطة الفصل</string>
+    <string name="btn_slides_powerpoint">الشرائح / PowerPoint</string>
+    <string name="btn_assignments">الواجبات</string>
+    <string name="btn_tools">الأدوات</string>
+    <string name="search_by_name_or_id_of_user">ابحث حسب اسم المستخدم او رمزه</string>
+    <string name="no_files_available">لا توجد ملفات متاحة حالياً</string>
+
+</resources>

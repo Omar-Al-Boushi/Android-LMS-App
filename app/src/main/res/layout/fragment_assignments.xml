@@ -1,0 +1,269 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.core.widget.NestedScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/nestedScrollView"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/Custom_BackgroundColor"
+    android:clickable="true"
+    android:focusable="true"
+    android:focusableInTouchMode="true"
+    app:layout_behavior="@string/appbar_scrolling_view_behavior"
+    tools:context=".ui.fragments.AssignmentsFragment">
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:paddingTop="0dp"
+        android:paddingBottom="100dp">
+
+
+        <LinearLayout
+            android:id="@+id/linearLayout3"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_marginStart="16dp"
+            android:layout_marginEnd="16dp"
+            android:orientation="vertical"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent">
+
+            <com.google.android.material.textfield.TextInputLayout
+                android:id="@+id/outlinedTextField"
+                style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:layout_marginBottom="10dp"
+                app:hintEnabled="false"
+                android:textColorHint="@color/Med_Grey"
+                android:visibility="visible"
+                app:boxCornerRadiusBottomEnd="120dp"
+                app:boxCornerRadiusBottomStart="120dp"
+                app:boxCornerRadiusTopEnd="120dp"
+                app:boxCornerRadiusTopStart="120dp"
+                app:boxStrokeColor="@color/search_stroke_color"
+                app:boxStrokeWidth="1dp"
+                app:boxStrokeWidthFocused="1.5dp"
+                app:endIconMode="clear_text"
+                app:hintTextColor="@color/Med_Grey"
+                app:shapeAppearance="@style/ShapeAppearance.Material3.Corner.Full"
+                app:startIconDrawable="@drawable/search"
+                app:startIconTint="@color/Med_Grey">
+
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/search_bar"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:inputType="textEnableTextConversionSuggestions"
+                    android:maxLines="1"
+                    android:paddingStart="46dp"
+                    android:hint="@string/search_by_assignment_name_or_code"
+                    android:paddingEnd="46dp"
+                    android:textSize="11sp"
+                    app:boxCornerRadiusBottomEnd="100dp"
+                    app:boxCornerRadiusBottomStart="100dp"
+                    app:boxCornerRadiusTopEnd="100dp"
+                    app:boxCornerRadiusTopStart="100dp"
+                    tools:ignore="TextContrastCheck,VisualLintTextFieldSize" />
+            </com.google.android.material.textfield.TextInputLayout>
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:fontFamily="@font/cairo_bold"
+                android:text="@string/assignment_overview"
+                android:textColor="@color/md_theme_onSurface_highContrast"
+                android:textSize="20sp" />
+
+
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/filterParent"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:baselineAligned="false"
+            android:weightSum="4"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/linearLayout3">
+
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="6dp"
+                android:layout_weight="4"
+                android:orientation="vertical">
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/filterBtn"
+                    style="@style/Widget.Material3.Button.TextButton.Icon"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:fontFamily="@font/cairo_regular"
+                    android:padding="10dp"
+                    android:text="@string/filter_assignment"
+                    android:textColor="@color/md_theme_onSurface_highContrast"
+                    android:textSize="10sp"
+                    app:icon="@drawable/filter_selector"
+                    app:iconPadding="10dp"
+                    app:iconSize="16dp"
+                    app:iconTint="@color/md_theme_onSurface_highContrast"
+                    tools:ignore="SmallSp" />
+
+                <LinearLayout
+                    android:id="@+id/statusBtn"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="10dp"
+                    android:layout_marginTop="2dp"
+                    android:layout_marginBottom="10dp"
+                    android:visibility="gone">
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/progressBtn"
+                        style="@style/Widget.Material3.Button.IconButton.Filled"
+                        android:layout_width="wrap_content"
+                        android:layout_height="30dp"
+                        android:backgroundTint="@color/md_theme_primary"
+                        android:fontFamily="@font/cairo_regular"
+                        android:insetLeft="0dp"
+                        android:insetRight="0dp"
+                        android:paddingStart="8dp"
+                        android:paddingTop="0dp"
+                        android:paddingEnd="8dp"
+                        android:paddingBottom="0dp"
+                        android:text="@string/progress"
+                        android:textAllCaps="true"
+                        android:textColor="@color/white"
+                        android:textSize="8sp"
+                        tools:ignore="SmallSp" />
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/completedBtn"
+                        style="@style/Widget.Material3.Button.IconButton.Filled"
+                        android:layout_width="wrap_content"
+                        android:layout_height="30dp"
+                        android:layout_marginStart="8dp"
+                        android:backgroundTint="@color/dark_grey"
+                        android:fontFamily="@font/cairo_regular"
+                        android:insetLeft="0dp"
+                        android:insetRight="0dp"
+                        android:paddingStart="8dp"
+                        android:paddingTop="0dp"
+                        android:paddingEnd="8dp"
+                        android:paddingBottom="0dp"
+                        android:text="@string/completed"
+                        android:textAllCaps="true"
+                        android:textColor="@color/white"
+                        android:textSize="8sp"
+                        tools:ignore="SmallSp" />
+
+                </LinearLayout>
+
+
+            </LinearLayout>
+
+
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="6dp"
+                android:gravity="end"
+                android:orientation="vertical">
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/sortBtn"
+                    style="@style/Widget.Material3.Button.TextButton.Icon"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:fontFamily="@font/cairo_regular"
+                    android:padding="10dp"
+                    android:text="@string/sort_by_date"
+                    android:textColor="@color/md_theme_onSurface_highContrast"
+                    android:textSize="10sp"
+                    app:icon="@drawable/sort_selector"
+                    app:iconSize="18dp"
+                    app:iconGravity="end"
+                    app:iconPadding="10dp"
+                    app:iconTint="@color/md_theme_onSurface_highContrast"
+                    tools:ignore="SmallSp" />
+
+                <LinearLayout
+                    android:id="@+id/sortStatus"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="2dp"
+                    android:layout_marginEnd="10dp"
+                    android:layout_marginBottom="10dp"
+                    android:visibility="gone">
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/startFirstBtn"
+                        style="@style/Widget.Material3.Button.IconButton.Filled"
+                        android:layout_width="wrap_content"
+                        android:layout_height="30dp"
+                        android:backgroundTint="@color/md_theme_primary"
+                        android:fontFamily="@font/cairo_regular"
+                        android:insetLeft="0dp"
+                        android:insetRight="0dp"
+                        android:paddingStart="8dp"
+                        android:paddingTop="0dp"
+                        android:paddingEnd="8dp"
+                        android:paddingBottom="0dp"
+                        android:text="@string/start_first"
+                        android:textAllCaps="true"
+                        android:textColor="@color/white"
+                        android:textSize="8sp"
+                        tools:ignore="SmallSp" />
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/endFirstBtn"
+                        style="@style/Widget.Material3.Button.IconButton.Filled"
+                        android:layout_width="wrap_content"
+                        android:layout_height="30dp"
+                        android:layout_marginStart="8dp"
+                        android:backgroundTint="@color/dark_grey"
+                        android:fontFamily="@font/cairo_regular"
+                        android:insetLeft="0dp"
+                        android:insetRight="0dp"
+                        android:paddingStart="8dp"
+                        android:paddingTop="0dp"
+                        android:paddingEnd="8dp"
+                        android:paddingBottom="0dp"
+                        android:text="@string/end_first"
+                        android:textAllCaps="true"
+                        android:textColor="@color/white"
+                        android:textSize="8sp"
+                        tools:ignore="SmallSp" />
+
+                </LinearLayout>
+
+
+            </LinearLayout>
+
+
+        </LinearLayout>
+
+        <androidx.coordinatorlayout.widget.CoordinatorLayout
+            android:id="@+id/linearLayout4"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_marginTop="4dp"
+            android:layout_marginEnd="16dp"
+            android:orientation="vertical"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/filterParent">
+
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/recycler_view"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:nestedScrollingEnabled="false" />
+        </androidx.coordinatorlayout.widget.CoordinatorLayout>
+    </androidx.constraintlayout.widget.ConstraintLayout>
+</androidx.core.widget.NestedScrollView>

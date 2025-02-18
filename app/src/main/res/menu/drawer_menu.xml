@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+>
+        <item
+            android:id="@+id/nav_profile"
+            android:checkable="true"
+            android:icon="@drawable/profile_icon"
+            android:title="@string/profile" />
+
+        <item
+            android:id="@+id/nav_calendar"
+            android:checkable="true"
+            android:icon="@drawable/calendar_icon"
+            android:title="@string/calendar" />
+
+        <item
+            android:id="@+id/nav_favourites"
+            android:checkable="true"
+            android:icon="@drawable/favourites_icon"
+            android:title="@string/favourites" />
+
+        <item
+            android:id="@+id/nav_settings"
+            android:checkable="true"
+            android:icon="@drawable/settings_icon"
+            android:title="@string/settings" />
+
+    <item
+        android:id="@+id/footer_spacer_1"
+        android:checkable="false"
+        android:enabled="false"
+        android:orderInCategory="200"
+        android:title="" />
+    <item
+        android:id="@+id/footer_spacer_2"
+        android:checkable="false"
+        android:enabled="false"
+        android:orderInCategory="200"
+        android:title="" />
+    <item
+        android:id="@+id/footer_spacer_3"
+        android:checkable="false"
+        android:enabled="false"
+        android:orderInCategory="200"
+        android:title="" />
+
+</menu>

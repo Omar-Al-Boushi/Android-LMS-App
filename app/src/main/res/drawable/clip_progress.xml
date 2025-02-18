@@ -1,0 +1,17 @@
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <item>
+        <shape
+            android:shape="ring"
+            android:innerRadiusRatio="3"
+            android:thicknessRatio="18"
+            android:useLevel="false">
+            <solid android:color="@color/md_theme_background_mediumContrast" />
+        </shape>
+    </item>
+    <item>
+        <clip
+            android:drawable="@drawable/circular_progress"
+            android:clipOrientation="vertical"
+            android:gravity="top" />
+    </item>
+</layer-list>
