@@ -10,6 +10,7 @@ import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
 import org.svuonline.lms.databinding.ItemButtonSectionBinding;
+import org.svuonline.lms.ui.activities.AssignmentsActivity;
 import org.svuonline.lms.ui.activities.FilesActivity;
 import org.svuonline.lms.ui.activities.ParticipantsActivity;
 import org.svuonline.lms.ui.data.ButtonData;
@@ -70,6 +71,8 @@ public class ButtonsAdapter extends RecyclerView.Adapter<ButtonsAdapter.ButtonVi
                 if (button.getButtonId().equals("participants_button")) {
                     // فتح ParticipantsActivity
                     intent = new Intent(context, ParticipantsActivity.class);
+                } else if (button.getButtonId().equals("assignments")) {
+                    intent = new Intent(context, AssignmentsActivity.class);
                 } else {
                     // فتح FilesActivity للأزرار الأخرى
                     intent = new Intent(context, FilesActivity.class);

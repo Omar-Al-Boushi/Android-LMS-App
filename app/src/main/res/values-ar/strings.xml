@@ -118,4 +118,17 @@
     <string name="search_by_name_or_id_of_user">ابحث حسب اسم المستخدم او رمزه</string>
     <string name="no_files_available">لا توجد ملفات متاحة حالياً</string>
 
+    <string name="file_already_added">هذا الملف مضاف مسبقاً</string>
+    <string name="no_files_to_edit">لا توجد ملفات للتعديل</string>
+    <string name="choose_file_to_edit">اختر الملف الذي تريد تعديله</string>
+    <string name="no_files_to_delete">لا توجد ملفات للحذف</string>
+    <string name="choose_file_to_delete">اختر الملف الذي تريد حذفه</string>
+    <string name="confirm_delete">تأكيد الحذف</string>
+    <string name="are_you_sure_delete">هل أنت متأكد من حذف الملف؟</string>
+    <string name="yes">نعم</string>
+    <string name="cancel">الغاء</string>
+    <string name="no_files_selected">لم يتم اختيار أي ملف</string>
+    <string name="file_size_exceeds">حجم الملف يتجاوز الحد الأقصى %1$.0f MB</string>
+    <string name="uploading_files">جاري رفع الملفات...</string>
+    <string name="upload_successful">تم رفع الملفات بنجاح</string>
 </resources>

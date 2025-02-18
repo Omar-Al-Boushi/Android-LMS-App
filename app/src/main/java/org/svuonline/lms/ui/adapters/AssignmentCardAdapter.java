@@ -1,6 +1,7 @@
 package org.svuonline.lms.ui.adapters;
 
 import android.content.Context;
+import android.content.Intent;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -8,7 +9,12 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.recyclerview.widget.RecyclerView;
+
+import com.google.android.material.button.MaterialButton;
+
 import org.svuonline.lms.R;
+import org.svuonline.lms.ui.activities.AssignmentUploadActivity;
+import org.svuonline.lms.ui.activities.AssignmentsActivity;
 import org.svuonline.lms.ui.data.AssignmentCardData;
 import java.util.List;
 
@@ -41,6 +47,16 @@ public class AssignmentCardAdapter extends RecyclerView.Adapter<AssignmentCardAd
         // تعديل الدوران بناءً على اتجاه النص
         boolean isRTL = context.getResources().getConfiguration().getLayoutDirection() == View.LAYOUT_DIRECTION_RTL;
         adjustRotation(holder.parentStatus, isRTL);
+
+        // افترض أن هناك زر Go Details داخل البطاقة (مثلاً TextView أو Button)
+        holder.goDetails.setOnClickListener(v -> {
+            Intent intent = new Intent(context, AssignmentsActivity.class);
+            intent.putExtra("course_code", assignment.getCourseCode());
+            // افترض أن courseName أو عنوان آخر يمكن استخدامه كـ course_title
+            intent.putExtra("course_title", assignment.getCourseName());
+            intent.putExtra("course_color_value", assignment.getBackgroundColor());
+            context.startActivity(intent);
+        });
     }
 
     @Override
@@ -52,6 +68,7 @@ public class AssignmentCardAdapter extends RecyclerView.Adapter<AssignmentCardAd
         TextView courseName, courseCode, timeStart, timeEnd, status;
         ConstraintLayout cardView;
         ConstraintLayout parentStatus;  // إضافة حقل parentStatus
+        MaterialButton goDetails;
 
         public ViewHolder(@NonNull View itemView) {
             super(itemView);
@@ -62,6 +79,7 @@ public class AssignmentCardAdapter extends RecyclerView.Adapter<AssignmentCardAd
             status = itemView.findViewById(R.id.status);
             cardView = itemView.findViewById(R.id.container_assignment_card);
             parentStatus = itemView.findViewById(R.id.parentStatus);  // العثور على parentStatus
+            goDetails = itemView.findViewById(R.id.goDetailsBtn);
         }
     }
 

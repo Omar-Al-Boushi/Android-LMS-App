@@ -140,5 +140,17 @@
     <string name="search_by_name_or_id_of_user">Search by name or id of user</string>
     <string name="no_files_available">No files available currently</string>
 
-
+    <string name="file_already_added">This file is already added</string>
+    <string name="no_files_to_edit">No files to edit</string>
+    <string name="choose_file_to_edit">Please choose a file to edit</string>
+    <string name="no_files_to_delete">No files to delete</string>
+    <string name="choose_file_to_delete">Please choose a file to delete</string>
+    <string name="confirm_delete">Confirm Delete</string>
+    <string name="are_you_sure_delete">Are you sure delete?</string>
+    <string name="yes">Yes</string>
+    <string name="cancel">Cancel</string>
+    <string name="no_files_selected">No files to delete</string>
+    <string name="file_size_exceeds">File size exceeds the maximum allowed %1$.0f MB</string>
+    <string name="uploading_files">Uploading files...</string>
+    <string name="upload_successful">Files uploaded successfully</string>
 </resources>
