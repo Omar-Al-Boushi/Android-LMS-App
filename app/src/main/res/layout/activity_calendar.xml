@@ -1,0 +1,141 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.coordinatorlayout.widget.CoordinatorLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:background="@color/Custom_BackgroundColor"
+    android:layout_height="match_parent">
+
+    <!-- شريط الأدوات العلوي -->
+    <com.google.android.material.appbar.AppBarLayout
+        android:id="@+id/app_bar_top"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@color/Custom_BackgroundColor"
+        android:fitsSystemWindows="true"
+        android:paddingTop="8dp"
+        android:paddingBottom="0dp"
+        android:theme="@style/ThemeOverlay.MaterialComponents.ActionBar"
+        app:layout_anchorGravity="top"
+        app:liftOnScrollColor="@color/Custom_BackgroundColor">
+
+        <com.google.android.material.appbar.MaterialToolbar
+            android:id="@+id/toolbar_top"
+            android:layout_width="match_parent"
+            android:layout_height="?attr/actionBarSize"
+            android:background="@color/Custom_BackgroundColor"
+            android:fadeScrollbars="true"
+            android:theme="@style/ThemeOverlay.MaterialComponents.Dark.ActionBar"
+            app:layout_scrollFlags="scroll|snap"
+            app:navigationIcon="@drawable/arrow___left"
+            app:navigationIconTint="@color/Custom_Black">
+
+            <TextView
+                android:id="@+id/tv_toolbar_title"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:fontFamily="@font/cairo_bold"
+                android:text="@string/calendar"
+                android:textColor="@color/md_theme_onSurface_highContrast"
+                android:textSize="30sp" />
+
+            <!-- أيقونة الحساب يبقى كما هو -->
+            <com.google.android.material.imageview.ShapeableImageView
+                android:id="@+id/iv_profile"
+                android:layout_width="42dp"
+                android:layout_height="42dp"
+                android:layout_gravity="end"
+                android:layout_marginEnd="16dp"
+                android:padding="2dp"
+                android:scaleType="centerCrop"
+                android:src="@drawable/omar_photo"
+                app:shapeAppearanceOverlay="@style/ShapeAppearance.Material3.Corner.Full"
+                app:strokeColor="@color/md_theme_primary"
+                app:strokeWidth="3dp" />
+        </com.google.android.material.appbar.MaterialToolbar>
+    </com.google.android.material.appbar.AppBarLayout>
+
+    <!-- المحتوى القابل للتمرير -->
+    <androidx.core.widget.NestedScrollView
+        android:id="@+id/scroll_container"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        app:layout_behavior="@string/appbar_scrolling_view_behavior">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="16dp">
+
+            <!-- التقويم -->
+            <com.applandeo.materialcalendarview.CalendarView
+                android:id="@+id/calendarView"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                app:headerColor="@color/Custom_MainColorBlue"
+                app:daysLabelsColor="@color/Custom_Black"
+                app:anotherMonthsDaysLabelsColor="@color/Custom_Dark_Grey"
+                app:todayLabelColor="@color/Custom_MainColorBlue"
+                app:abbreviationsBarColor="@color/Custom_MainColorGolden"
+                app:abbreviationsLabelsColor="@color/white"
+                app:firstDayOfWeek="sunday"
+                app:type="one_day_picker"
+                app:eventsEnabled="true"
+                app:selectionColor="@color/Custom_MainColorGolden"
+                app:selectionLabelColor="@color/white"
+                app:pagesColor="@color/Custom_BackgroundColor"
+                android:layout_marginBottom="8dp"/>
+
+            <!-- نص توجيهي للمستخدم -->
+            <TextView
+                android:id="@+id/tv_instruction"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/calendar_instruction"
+                android:textColor="@color/white"
+                android:textSize="12sp"
+                android:textAlignment="center"
+                android:padding="12dp"
+                android:background="@color/Custom_MainColorBlue"
+                android:layout_marginBottom="16dp"/>
+
+            <!-- عنوان قائمة الأحداث -->
+            <TextView
+                android:id="@+id/text_events_header"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/events_label"
+                android:textAlignment="center"
+                android:fontFamily="@font/cairo_bold"
+                android:layout_gravity="center"
+                android:textColor="@color/Custom_Black"
+                android:textSize="18sp"
+                android:visibility="gone"
+                android:layout_marginBottom="16dp"/>
+
+            <!-- نص حالة فارغة -->
+            <TextView
+                android:id="@+id/tv_no_events"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/no_events"
+                android:textColor="@color/dark_grey"
+                android:textSize="16sp"
+                android:textAlignment="center"
+                android:gravity="center"
+                android:visibility="visible"
+                android:layout_marginBottom="16dp"/>
+
+            <!-- قائمة الأحداث -->
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/recyclerEvents"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:nestedScrollingEnabled="false"/>
+
+        </LinearLayout>
+    </androidx.core.widget.NestedScrollView>
+
+</androidx.coordinatorlayout.widget.CoordinatorLayout>

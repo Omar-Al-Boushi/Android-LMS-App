@@ -1,17 +1,28 @@
 package org.svuonline.lms.ui.activities;
 
+import android.app.AlertDialog;
+import android.app.Dialog;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.res.ColorStateList;
+import android.graphics.Color;
+import android.graphics.drawable.ColorDrawable;
 import android.os.Bundle;
 import android.os.Handler;
+import android.util.DisplayMetrics;
 import android.util.Log;
+import android.util.TypedValue;
+import android.view.Gravity;
+import android.view.LayoutInflater;
 import android.view.View;
+import android.view.WindowManager;
 import android.view.animation.AlphaAnimation;
 import android.widget.TextView;
 
+import androidx.activity.OnBackPressedCallback;
 import androidx.annotation.NonNull;
 import androidx.core.content.ContextCompat;
+import androidx.core.view.GravityCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentActivity;
@@ -24,6 +35,7 @@ import androidx.viewpager2.widget.ViewPager2;
 import com.google.android.material.appbar.MaterialToolbar;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.button.MaterialButton;
+import com.google.android.material.card.MaterialCardView;
 import com.google.android.material.imageview.ShapeableImageView;
 import com.google.android.material.navigation.NavigationView;
 
@@ -75,7 +87,74 @@ public class DashboardActivity extends BaseActivity {
 
         // مستمع الضغط على الزر لتغيير النمط
         appearanceBtn.setOnClickListener(v -> toggleDarkMode(appearanceBtn));
+
+        // التعامل مع زر الرجوع لإظهار تأكيد الخروج
+        getOnBackPressedDispatcher().addCallback(this, new OnBackPressedCallback(true) {
+            @Override
+            public void handleOnBackPressed() {
+                showExitConfirmDialog();
+            }
+        });
     }
+
+    private void showExitConfirmDialog() {
+        // نفّذ نفس تصميم item_dialog_confirm.xml
+        View customView = LayoutInflater.from(this).inflate(R.layout.item_dialog_confirm, null);
+        MaterialCardView cardView = customView.findViewById(R.id.cardDialogReset);
+        // تغيير لون الخلفية للبطاقة
+        cardView.setBackgroundTintList(ContextCompat.getColorStateList(this, R.color.Custom_MainColorBlue));
+
+        TextView message = customView.findViewById(R.id.tvMessage);
+        message.setText(R.string.exit_confirmation_message);
+
+        MaterialButton btnCancel = customView.findViewById(R.id.btnCancel);
+        MaterialButton btnConfirm = customView.findViewById(R.id.btnConfirm);
+
+        // إنشاء Dialog مخصص
+        Dialog dialog = new Dialog(this);
+        dialog.setContentView(customView);
+        dialog.setCancelable(false);
+
+        if (dialog.getWindow() != null) {
+            // جعل الخلفية شفافة
+            dialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
+
+            WindowManager.LayoutParams params = new WindowManager.LayoutParams();
+            params.copyFrom(dialog.getWindow().getAttributes());
+
+            // ارتفاع ثابت 150 dp
+            int heightInPx = (int) TypedValue.applyDimension(
+                    TypedValue.COMPLEX_UNIT_DIP,
+                    170,
+                    getResources().getDisplayMetrics()
+            );
+
+            // حساب عرض الشاشة مطروحاً الهامش 8dp على كل جانب
+            DisplayMetrics metrics = new DisplayMetrics();
+            getWindowManager().getDefaultDisplay().getMetrics(metrics);
+            int screenWidth = metrics.widthPixels;
+            int marginPx = (int) TypedValue.applyDimension(
+                    TypedValue.COMPLEX_UNIT_DIP,
+                    8,
+                    getResources().getDisplayMetrics()
+            );
+
+            params.width = screenWidth - 2 * marginPx;
+            params.height = heightInPx;
+            params.gravity = Gravity.CENTER;
+
+            dialog.getWindow().setAttributes(params);
+        }
+
+        btnCancel.setOnClickListener(v -> dialog.dismiss());
+        btnConfirm.setOnClickListener(v -> {
+            dialog.dismiss();
+            finishAffinity();
+        });
+
+        dialog.show();
+    }
+
 
     private void initViews() {
         drawerLayout = findViewById(R.id.drawer_layout);
@@ -109,12 +188,20 @@ public class DashboardActivity extends BaseActivity {
             } else if (id == R.id.nav_settings) {
                 Intent intent = new Intent(DashboardActivity.this, SettingsActivity.class);
                 startActivity(intent);
+            } else if (id == R.id.nav_favourites) {
+                Intent intent = new Intent(DashboardActivity.this, FavoritesActivity.class);
+                startActivity(intent);
+            } else if (id == R.id.nav_calendar) {
+                Intent intent = new Intent(DashboardActivity.this, CalendarActivity.class);
+                startActivity(intent);
             } else {
                 // التعامل مع باقي عناصر القائمة الجانبية (على سبيل المثال، عناصر أخرى مثل الداشبورد، الكورسات، ... إلخ)
                 menuItem.setChecked(true);
             }
-            drawerLayout.closeDrawer(navigationView);
-            return true;
+            // إلغاء التحديد مباشرة قبل إغلاق القائمة
+            menuItem.setChecked(false);
+            drawerLayout.closeDrawer(GravityCompat.START);
+            return false;
         });
         profileImage.setOnClickListener(v -> {
             Intent intent = new Intent(DashboardActivity.this, ProfileActivity.class);
@@ -221,6 +308,7 @@ public class DashboardActivity extends BaseActivity {
         }
         toolbarTitle.setText(title);
     }
+
 
     // دالة لتحديث الأيقونة بناءً على النمط الحالي
     private void updateAppearanceButton(MaterialButton button, boolean isNightMode) {

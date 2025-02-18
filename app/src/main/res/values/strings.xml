@@ -182,5 +182,31 @@
     <string name="bio">Bio</string>
     <string name="save_changes">Save Changes</string>
     <string name="your_bio">Your bio...</string>
+    <string name="fav_reset_dialog_title">Confirm Action</string>
+    <string name="fav_reset_dialog_message">Are you sure you want to delete all favorites?</string>
+    <string name="fav_reset_dialog_positive">Yes</string>
+    <string name="fav_reset_dialog_negative">No</string>
+    <string name="reset_all_favorites">reset all favorites</string>
+    <string name="favorites">Favorites</string>
+    <string name="confirm">Confirm</string>
+    <string name="events_label">Events</string>
+    <string name="calendar_title">Calendar</string>
+    <string name="no_events">There are no events for the selected day.</string>
+    <string name="calendar_instruction">Click on a date in the calendar to view recorded events.</string>
+    <string name="event_apr17_1">GMA205 assignment submission deadline</string>
+    <string name="event_apr17_2">Start of INT305 practice test</string>
+    <string name="event_apr17_3">Extra synchronous lecture IPG101</string>
+    <string name="event_apr17_4">Extra synchronous lecture IPG204</string>
+
+    <string name="event_apr20_1">Extra synchronous lecture for CEE203</string>
+    <string name="event_apr20_2">Start of graduation project submissions for all majors</string>
+    <string name="event_apr20_3">Project presentation submission</string>
+    <string name="event_apr20_4">Extra synchronous lecture IPG101</string>
+
+    <string name="event_apr22_1">Results of CCN404 practice test evaluation</string>
+    <string name="event_may01_1">Feedback form submission</string>
+    <string name="event_may05_1">Final review for GMA205</string>
+    <string name="exit_confirmation_message">You are about to close the application. Are you sure?</string>
+    <string name="confirm_submission_message">Are you sure you want to send these files?</string>
 
 </resources>

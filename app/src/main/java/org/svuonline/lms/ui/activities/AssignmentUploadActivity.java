@@ -1,23 +1,33 @@
 package org.svuonline.lms.ui.activities;
 
+import android.app.Dialog;
 import android.content.Intent;
 import android.content.res.ColorStateList;
 import android.database.Cursor;
 import android.graphics.Color;
 import android.graphics.PorterDuff;
+import android.graphics.drawable.ColorDrawable;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
 import android.provider.OpenableColumns;
+import android.util.DisplayMetrics;
 import android.util.Log;
+import android.util.TypedValue;
+import android.view.Gravity;
+import android.view.LayoutInflater;
 import android.view.View;
+import android.view.WindowManager;
+import android.widget.TextView;
 
 import androidx.appcompat.app.AlertDialog;
 import androidx.constraintlayout.widget.ConstraintLayout;
+import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.google.android.material.button.MaterialButton;
+import com.google.android.material.card.MaterialCardView;
 import com.google.android.material.snackbar.Snackbar;
 import com.google.android.material.textview.MaterialTextView;
 
@@ -181,9 +191,35 @@ public class AssignmentUploadActivity extends BaseActivity {
                             Snackbar.LENGTH_LONG).show();
                     return;
                 }
+
             }
+
             // إذا كانت أحجام الملفات ضمن الحد المسموح، قم بمحاكاة عملية الرفع
-            simulateUpload();
+            // عرض تأكيد الإرسال
+            showSubmissionConfirmDialog();
+        });
+
+        favoriteButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                isFavorite[0] = !isFavorite[0];
+                if (isFavorite[0]) {
+                    // إضافة الكورس للمفضلة
+                    favoriteButton.setIconResource(R.drawable.star_selected);
+                    favoriteButton.setIconTint(ColorStateList.valueOf(Color.WHITE));
+                    // يمكن إضافة رسالة للمستخدم باستخدام Snackbar أو Toast
+                    Snackbar.make(findViewById(android.R.id.content),
+                            getString(R.string.added_to_favorites),
+                            Snackbar.LENGTH_SHORT).show();
+                } else {
+                    // إزالة الكورس من المفضلة
+                    favoriteButton.setIconResource(R.drawable.star);
+                    favoriteButton.setIconTint(ColorStateList.valueOf(Color.WHITE));
+                    Snackbar.make(findViewById(android.R.id.content),
+                            getString(R.string.removed_from_favorites),
+                            Snackbar.LENGTH_SHORT).show();
+                }
+            }
         });
 
         favoriteButton.setOnClickListener(new View.OnClickListener() {
@@ -285,6 +321,46 @@ public class AssignmentUploadActivity extends BaseActivity {
                 .setNegativeButton(getString(R.string.cancel), (dialog, which) -> dialog.dismiss())
                 .create()
                 .show();
+    }
+
+    private void showSubmissionConfirmDialog() {
+        View customView = LayoutInflater.from(this).inflate(R.layout.item_dialog_confirm, null);
+        MaterialCardView cardView = customView.findViewById(R.id.cardDialogReset);
+        // تغيير tint وليس الخلفية نفسها
+        cardView.setBackgroundTintList(ContextCompat.getColorStateList(this, R.color.Custom_MainColorBlue));
+
+        TextView message = customView.findViewById(R.id.tvMessage);
+        message.setText(R.string.confirm_submission_message);  // نص مناسب للسياق
+
+        MaterialButton btnCancel = customView.findViewById(R.id.btnCancel);
+        MaterialButton btnConfirm = customView.findViewById(R.id.btnConfirm);
+
+        Dialog dialog = new Dialog(this);
+        dialog.setContentView(customView);
+        dialog.setCancelable(false);
+
+        if (dialog.getWindow() != null) {
+            dialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
+            WindowManager.LayoutParams params = new WindowManager.LayoutParams();
+            params.copyFrom(dialog.getWindow().getAttributes());
+            int heightPx = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 160, getResources().getDisplayMetrics());
+            DisplayMetrics metrics = new DisplayMetrics();
+            getWindowManager().getDefaultDisplay().getMetrics(metrics);
+            int screenWidth = metrics.widthPixels;
+            int marginPx = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 8, getResources().getDisplayMetrics());
+            params.width = screenWidth - 2 * marginPx;
+            params.height = heightPx;
+            params.gravity = Gravity.CENTER;
+            dialog.getWindow().setAttributes(params);
+        }
+
+        btnCancel.setOnClickListener(v -> dialog.dismiss());
+        btnConfirm.setOnClickListener(v -> {
+            dialog.dismiss();
+            simulateUpload();
+        });
+
+        dialog.show();
     }
 
     // الحصول على حجم الملف بوحدة الميجابايت

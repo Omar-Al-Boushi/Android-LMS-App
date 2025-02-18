@@ -156,4 +156,34 @@
     <string name="bio">الوصف</string>
     <string name="save_changes">حفظ التغييرات</string>
     <string name="your_bio">الوصف الخاص بك</string>
+    <string name="fav_reset_dialog_title">تأكيد العملية</string>
+    <string name="fav_reset_dialog_message">هل أنت متأكد من حذف جميع التفضيلات؟</string>
+    <string name="fav_reset_dialog_positive">نعم</string>
+    <string name="fav_reset_dialog_negative">الغاء</string>
+    <string name="reset_all_favorites">إعادة كل التفضيلات</string>
+    <string name="favorites">المفضلة</string>
+    <string name="confirm">تأكيد</string>
+    <string name="events_label">الأحداث</string>
+    <string name="calendar_title">التقويم</string>
+    <string name="no_events">لا يوجد أحداث في اليوم المحدد</string>
+    <string name="calendar_instruction">اضغط على تاريخ في التقويم لعرض الأحداث المسجّلة</string>
+
+
+    <string name="event_apr17_1">ينتهي تسليم الوظيفة GMA205</string>
+    <string name="event_apr17_2">يبدأ الاختبار التدريبي لمادة INT305</string>
+    <string name="event_apr17_3">محاضرة إضافية متزامنة IPG101</string>
+    <string name="event_apr17_4">محاضرة إضافية متزامنة IPG204</string>
+
+    <string name="event_apr20_1">محاضرة متزامنة اضافية لمادة CEE203</string>
+    <string name="event_apr20_2">بدء تسليم مشاريع التخرج لجميع الاختصاصات</string>
+    <string name="event_apr20_3">تسليم عرض المشروع</string>
+    <string name="event_apr20_4">محاضرة إضافية متزامنة IPG101</string>
+
+    <string name="event_apr22_1">ظهور نتائج تقييم الاختبارات التدريبية CCN404</string>
+    <string name="event_may01_1">تقديم استمارة التغذية الراجعة</string>
+    <string name="event_may05_1">مراجعة نهائية لمقرر GMA205</string>
+    <string name="exit_confirmation_message">أنت على وشك اغلاق التطبيق. هل أنت متأكد؟</string>
+    <string name="confirm_submission_message">هل أنت متأكد من رغبتك في إرسال هذه الملفات؟</string>
+
+
 </resources>

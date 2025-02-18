@@ -202,7 +202,7 @@ public class EditProfileActivity extends BaseActivity {
         profileIntent.putExtra("contact_email", email);
         profileIntent.putExtra("profile_bio", bio);
         // إذا كان لديك بيانات أخرى مثل اسم البروفايل أو الألوان، يمكنك تمريرها
-        profileIntent.putExtra("profile_name", "Test Name"); // مثال للاسم
+        profileIntent.putExtra("profile_name", "Omar Al boushi"); // مثال للاسم
         profileIntent.putExtra("header_color", getResources().getColor(R.color.Custom_MainColorBlue));
         profileIntent.putExtra("text_color", getResources().getColor(R.color.md_theme_primary));
         profileIntent.putExtra("is_current_user", true);

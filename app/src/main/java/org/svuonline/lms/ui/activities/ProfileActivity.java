@@ -258,9 +258,6 @@ public class ProfileActivity extends BaseActivity {
 
         // عند الضغط على زر الرجوع في الهيدر، العودة إلى DashboardActivity
         backButton.setOnClickListener(v -> {
-            Intent homeIntent = new Intent(ProfileActivity.this, DashboardActivity.class);
-            homeIntent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK);
-            startActivity(homeIntent);
             finish();
         });
     }
