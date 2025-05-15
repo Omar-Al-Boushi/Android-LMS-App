@@ -932,7 +932,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                 "1",
                 "Some files for INT305 have been modified. See the course page for changes.",
                 "تم تعديل بعض ملفات INT305. راجع صفحة المقرر للاطلاع على التغييرات.",
-                1,
+                0,
                 "course_files",
                 "10",
                 "2025-05-03-20:30:04"
@@ -961,7 +961,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                 "2",
                 "Some files for BMN203 have been modified. See the course page for changes.",
                 "تم تعديل بعض ملفات BMN203. راجع صفحة المقرر للاطلاع على التغييرات.",
-                1,
+                0,
                 "course_files",
                 "1",
                 "2025-05-03-10:10:19"
@@ -990,7 +990,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                 "3",
                 "Some files for GMA205 have been modified. See the course page for changes.",
                 "تم تعديل بعض ملفات GMA205. راجع صفحة المقرر للاطلاع على التغييرات.",
-                1,
+                0,
                 "course_files",
                 "8",
                 "2025-05-03-19:08:04"

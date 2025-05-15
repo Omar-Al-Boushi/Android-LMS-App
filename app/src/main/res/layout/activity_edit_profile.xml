@@ -54,6 +54,7 @@
                 app:layout_constraintTop_toTopOf="parent"
                 app:shapeAppearance="@style/ShapeAppearance.Material3.Corner.Full"
                 app:srcCompat="@drawable/omar_photo"
+                android:scaleType="centerCrop"
                 app:strokeColor="@color/white"
                 app:strokeWidth="1.5dp" />
 

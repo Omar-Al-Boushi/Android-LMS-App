@@ -72,6 +72,8 @@
                 app:layout_constraintVertical_bias="0.0"
                 app:shapeAppearance="@style/ShapeAppearance.Material3.Corner.Full"
                 app:srcCompat="@drawable/omar_photo"
+                android:scaleType="centerCrop"
+
                 app:strokeColor="@color/white"
                 app:strokeWidth="1.5dp" />
 
