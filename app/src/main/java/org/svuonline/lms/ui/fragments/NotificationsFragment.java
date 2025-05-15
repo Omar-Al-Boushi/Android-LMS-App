@@ -8,7 +8,6 @@ import android.os.Bundle;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.core.app.NotificationCompat;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
@@ -30,151 +29,225 @@ import org.svuonline.lms.ui.data.NotificationCardData;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * فراغمنت لعرض الإشعارات مع خيارات التصفية وإدارة حالة القراءة.
+ */
 public class NotificationsFragment extends Fragment {
-    private RecyclerView recyclerView;
-    private ProgressBar  progressBar;
-    private Button       btnAll, btnUnread, btnMarkAll;
 
+    // مفاتيح SharedPreferences وقناة الإشعارات
+    private static final String PREFS_NAME = "AppPreferences";
+    private static final String USER_PREFS_NAME = "user_prefs";
+    private static final String CHANNEL_ID = "lms_channel";
+    private static final String CHANNEL_NAME = "LMS Alerts";
+
+    // عناصر واجهة المستخدم
+    private RecyclerView recyclerView;
+    private ProgressBar progressBar;
+    private Button btnAll;
+    private Button btnUnread;
+    private Button btnMarkAll;
+
+    // المستودعات والبيانات
+    private NotificationRepository notificationRepository;
+    private NotificationManager notificationManager;
     private NotificationCardAdapter adapter;
     private List<NotificationCardData> notificationList;
-    private List<Integer>              notificationIds;
-
-    private NotificationRepository notificationRepo;
-    private NotificationManager    notificationManager;
-
-    private int    currentPage     = 1;
+    private List<Integer> notificationIds;
+    private int userId;
+    private String language;
+    private boolean unreadOnly = false;
+    private int currentPage = 1;
     private final int itemsPerPage = 20;
-    private int    userId;
-    private String lang;
-    private boolean unreadOnly     = false;
 
     @Override
-    public View onCreateView(@NonNull LayoutInflater inflater,
-                             ViewGroup container,
-                             Bundle savedInstanceState) {
+    public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         return inflater.inflate(R.layout.fragment_notifications, container, false);
     }
 
     @Override
-    public void onViewCreated(@NonNull View view,
-                              @Nullable Bundle savedInstanceState) {
+    public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
-        // views
-        recyclerView = view.findViewById(R.id.recyclerViewNotifications);
-        progressBar  = view.findViewById(R.id.progressBar);
-        btnAll       = view.findViewById(R.id.btnAll);
-        btnUnread    = view.findViewById(R.id.btnUnread);
-        btnMarkAll   = view.findViewById(R.id.btnMarkAllRead);
+        // تهيئة المكونات
+        initComponents();
 
-        // layout manager & lists
-        recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
-        notificationList  = new ArrayList<>();
-        notificationIds   = new ArrayList<>();
+        // تهيئة الواجهة
+        initViews(view);
 
-        // repo & manager
-        notificationRepo    = new NotificationRepository(getContext());
-        notificationManager = (NotificationManager)
-                requireContext().getSystemService(Context.NOTIFICATION_SERVICE);
+        // التحقق من بيانات المستخدم
+        if (!validateUserData()) {
+            return;
+        }
+
+        // تهيئة البيانات
+        initData();
+
+        // إعداد مستمعات الأحداث
+        setupListeners();
+
+        // تحميل الإشعارات
+        loadNotifications();
+    }
+
+    /**
+     * تهيئة المستودعات والإعدادات
+     */
+    private void initComponents() {
+        notificationRepository = new NotificationRepository(requireContext());
+        notificationManager = (NotificationManager) requireContext().getSystemService(Context.NOTIFICATION_SERVICE);
         createNotificationChannel();
+    }
 
-        // adapter
+    /**
+     * تهيئة عناصر الواجهة
+     * @param view الواجهة المراد تهيئتها
+     */
+    private void initViews(View view) {
+        recyclerView = view.findViewById(R.id.recyclerViewNotifications);
+        progressBar = view.findViewById(R.id.progressBar);
+        btnAll = view.findViewById(R.id.btnAll);
+        btnUnread = view.findViewById(R.id.btnUnread);
+        btnMarkAll = view.findViewById(R.id.btnMarkAllRead);
+    }
+
+    /**
+     * التحقق من صحة بيانات المستخدم
+     * @return صحيح إذا كانت البيانات صالحة
+     */
+    private boolean validateUserData() {
+        SharedPreferences userPrefs = requireActivity().getSharedPreferences(USER_PREFS_NAME, Context.MODE_PRIVATE);
+        userId = (int) userPrefs.getLong("user_id", -1);
+        if (userId == -1) {
+            showToast(R.string.user_id_not_found);
+            return false;
+        }
+
+        SharedPreferences appPrefs = requireActivity().getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
+        language = appPrefs.getString("selected_language", "en");
+        return true;
+    }
+
+    /**
+     * تهيئة البيانات (RecyclerView، القوائم)
+     */
+    private void initData() {
+        notificationList = new ArrayList<>();
+        notificationIds = new ArrayList<>();
         adapter = new NotificationCardAdapter(
                 requireContext(),
                 notificationList,
                 notificationIds,
-                notificationRepo
+                notificationRepository
         );
+        recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
         recyclerView.setAdapter(adapter);
+        setFilterButtonStyles();
+    }
 
-        // load user prefs
-        SharedPreferences up = requireActivity()
-                .getSharedPreferences("user_prefs", Context.MODE_PRIVATE);
-        userId = (int) up.getLong("user_id", -1);
-
-        SharedPreferences lp = requireActivity()
-                .getSharedPreferences("AppPreferences", Context.MODE_PRIVATE);
-        lang = lp.getString("selected_language", "en");
-
-        // button listeners
+    /**
+     * إعداد مستمعات الأحداث (التصفية، إدارة القراءة)
+     */
+    private void setupListeners() {
         btnAll.setOnClickListener(v -> {
             unreadOnly = false;
             setFilterButtonStyles();
-            loadNotificationsFromDb();
+            loadNotifications();
         });
+
         btnUnread.setOnClickListener(v -> {
             unreadOnly = true;
             setFilterButtonStyles();
-            loadNotificationsFromDb();
+            loadNotifications();
         });
+
         btnMarkAll.setOnClickListener(v -> {
-            notificationRepo.markAllReadForUser(userId);
+            notificationRepository.markAllReadForUser(userId);
             unreadOnly = false;
             setFilterButtonStyles();
-            loadNotificationsFromDb();
+            loadNotifications();
+            showToast(R.string.all_notifications_marked_read);
         });
-
-        // initial load
-        setFilterButtonStyles();
-        loadNotificationsFromDb();
     }
 
-    @Override
-    public void onResume() {
-        super.onResume();
-        loadNotificationsFromDb();
-    }
-
+    /**
+     * تحديث أنماط أزرار التصفية
+     */
     private void setFilterButtonStyles() {
-        int sel = ContextCompat.getColor(requireContext(), R.color.md_theme_primary);
-        int def = ContextCompat.getColor(requireContext(), R.color.dark_grey);
+        int selectedColor = ContextCompat.getColor(requireContext(), R.color.md_theme_primary);
+        int defaultColor = ContextCompat.getColor(requireContext(), R.color.dark_grey);
 
-        btnAll.setBackgroundTintList(ColorStateList.valueOf(unreadOnly ? def : sel));
-        btnUnread.setBackgroundTintList(ColorStateList.valueOf(unreadOnly ? sel : def));
+        btnAll.setBackgroundTintList(ColorStateList.valueOf(unreadOnly ? defaultColor : selectedColor));
+        btnUnread.setBackgroundTintList(ColorStateList.valueOf(unreadOnly ? selectedColor : defaultColor));
     }
 
-    private void loadNotificationsFromDb() {
+    /**
+     * تحميل الإشعارات من قاعدة البيانات
+     */
+    private void loadNotifications() {
         progressBar.setVisibility(View.VISIBLE);
 
-        List<NotificationRepository.NotificationEntity> entries =
-                notificationRepo.getNotifications(
-                        currentPage, itemsPerPage, userId, unreadOnly);
+        List<NotificationRepository.NotificationEntity> entries = notificationRepository.getNotifications(
+                currentPage, itemsPerPage, userId, unreadOnly);
 
         notificationList.clear();
         notificationIds.clear();
 
-        for (NotificationRepository.NotificationEntity e : entries) {
-            NotificationRepository.CourseInfo info = notificationRepo.getCourseInfo(e);
-            String message = lang.equals("ar") ? e.contentAr : e.contentEn;
+        for (NotificationRepository.NotificationEntity entry : entries) {
+            NotificationRepository.CourseInfo info = notificationRepository.getCourseInfo(entry);
+            String message = language.equals("ar") ? entry.contentAr : entry.contentEn;
 
-            // add data and corresponding ID
             notificationList.add(new NotificationCardData(
                     requireContext(),
-                    e.isRead,
+                    entry.isRead,
                     info.color,
                     info.code,
                     message,
-                    e.createdAt
+                    entry.createdAt
             ));
-            notificationIds.add(e.id);
-
+            notificationIds.add(entry.id);
         }
 
         adapter.notifyDataSetChanged();
         progressBar.setVisibility(View.GONE);
+
+        if (notificationList.isEmpty()) {
+            showToast(R.string.no_notifications_found);
+        }
     }
 
-
-
+    /**
+     * إنشاء قناة الإشعارات
+     */
     private void createNotificationChannel() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            NotificationChannel c = new NotificationChannel(
-                    "lms_channel",
-                    "LMS Alerts",
+            NotificationChannel channel = new NotificationChannel(
+                    CHANNEL_ID,
+                    CHANNEL_NAME,
                     NotificationManager.IMPORTANCE_DEFAULT
             );
-            c.setDescription("System notifications for LMS");
-            notificationManager.createNotificationChannel(c);
+            channel.setDescription("System notifications for LMS");
+            notificationManager.createNotificationChannel(channel);
+        }
+    }
+
+    /**
+     * تحديث الإشعارات عند استئناف الفراغمنت
+     */
+    @Override
+    public void onResume() {
+        super.onResume();
+        if (userId != -1) {
+            loadNotifications();
+        }
+    }
+
+    /**
+     * عرض رسالة Toast
+     * @param messageRes معرف الرسالة
+     */
+    private void showToast(int messageRes) {
+        if (getContext() != null) {
+            android.widget.Toast.makeText(getContext(), messageRes, android.widget.Toast.LENGTH_SHORT).show();
         }
     }
 }

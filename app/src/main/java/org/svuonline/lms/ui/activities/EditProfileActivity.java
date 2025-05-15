@@ -14,7 +14,6 @@ import android.widget.Toast;
 
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
-import androidx.annotation.Nullable;
 
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.imageview.ShapeableImageView;
@@ -28,40 +27,82 @@ import org.svuonline.lms.utils.Utils;
 
 import java.io.IOException;
 
+/**
+ * نشاط لتعديل بيانات الملف الشخصي للمستخدم.
+ */
 public class EditProfileActivity extends BaseActivity {
 
-    // Views
-    private MaterialButton btnBack, btnSave, btnCancel;
-    private TextInputLayout tilPhone, tilWhatsapp, tilFacebook, tilTelegram, tilEmail, tilBioEn, tilBioAr;
-    private EditText etPhone, etWhatsapp, etFacebook, etTelegram, etEmail, etBioEn, etBioAr;
+    // عناصر واجهة المستخدم
+    private MaterialButton btnBack;
+    private MaterialButton btnSave;
+    private MaterialButton btnCancel;
+    private TextInputLayout tilPhone;
+    private TextInputLayout tilWhatsapp;
+    private TextInputLayout tilFacebook;
+    private TextInputLayout tilTelegram;
+    private TextInputLayout tilEmail;
+    private TextInputLayout tilBioEn;
+    private TextInputLayout tilBioAr;
+    private EditText etPhone;
+    private EditText etWhatsapp;
+    private EditText etFacebook;
+    private EditText etTelegram;
+    private EditText etEmail;
+    private EditText etBioEn;
+    private EditText etBioAr;
     private ShapeableImageView ivProfile;
 
-    // State
-    private Uri selectedImageUri;
-    private Bitmap originalProfileBitmap;
-    private UserRepository userRepo;
+    // المستودعات
+    private UserRepository userRepository;
+
+    // بيانات النشاط
     private long currentUserId;
     private User currentUser;
     private boolean isArabic;
+    private Uri selectedImageUri;
+    private Bitmap originalProfileBitmap;
 
+    // مكونات إضافية
     private ActivityResultLauncher<Intent> imagePickerLauncher;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_edit_profile);
-        Utils.setSystemBarColorWithColorInt(this, getResources().getColor(R.color.Custom_MainColorBlue), getResources().getColor(R.color.Custom_BackgroundColor), 0);
 
-        isArabic = "ar".equals(
-                getSharedPreferences("AppPreferences", MODE_PRIVATE)
-                        .getString("selected_language", "en")
-        );
+        // تهيئة المكونات
+        initComponents();
 
-        // Bind views
+        // تهيئة الواجهة
+        initViews();
+
+        // التحقق من بيانات المستخدم
+        if (!validateUserData()) {
+            finish();
+            return;
+        }
+
+        // تهيئة البيانات
+        initData();
+
+        // إعداد مستمعات الأحداث
+        setupListeners();
+    }
+
+    /**
+     * تهيئة المستودعات
+     */
+    private void initComponents() {
+        userRepository = new UserRepository(this);
+    }
+
+    /**
+     * تهيئة عناصر الواجهة
+     */
+    private void initViews() {
         btnBack = findViewById(R.id.btnBack);
         btnSave = findViewById(R.id.btnSave);
         btnCancel = findViewById(R.id.btnCancel);
-
         tilPhone = findViewById(R.id.tilPhone);
         tilWhatsapp = findViewById(R.id.tilWhatsapp);
         tilFacebook = findViewById(R.id.tilFacebook);
@@ -69,7 +110,6 @@ public class EditProfileActivity extends BaseActivity {
         tilEmail = findViewById(R.id.tilEmail);
         tilBioEn = findViewById(R.id.tilBioEn);
         tilBioAr = findViewById(R.id.tilBioAr);
-
         etPhone = findViewById(R.id.etPhone);
         etWhatsapp = findViewById(R.id.etWhatsapp);
         etFacebook = findViewById(R.id.etFacebook);
@@ -77,34 +117,90 @@ public class EditProfileActivity extends BaseActivity {
         etEmail = findViewById(R.id.etEmail);
         etBioEn = findViewById(R.id.etBioEn);
         etBioAr = findViewById(R.id.etBioAr);
-
         ivProfile = findViewById(R.id.ivProfile);
+    }
 
-        // Repo and user
-        userRepo = new UserRepository(this);
+    /**
+     * التحقق من صحة بيانات المستخدم
+     * @return صحيح إذا كانت البيانات صالحة، خطأ إذا لزم إنهاء النشاط
+     */
+    private boolean validateUserData() {
+        // جلب اللغة
+        isArabic = "ar".equals(
+                getSharedPreferences("AppPreferences", MODE_PRIVATE)
+                        .getString("selected_language", "en")
+        );
+
+        // جلب userId
         currentUserId = getSharedPreferences("user_prefs", MODE_PRIVATE)
                 .getLong("user_id", -1);
-        currentUser = userRepo.getUserById(currentUserId);
-        if (currentUser == null) {
-            Toast.makeText(this, "User not found", Toast.LENGTH_SHORT).show();
-            finish();
-            return;
+        if (currentUserId == -1) {
+            showToast(R.string.user_id_not_found);
+            return false;
         }
+
+        // جلب المستخدم
+        currentUser = userRepository.getUserById(currentUserId);
+        if (currentUser == null) {
+            showToast(R.string.user_id_not_found);
+            return false;
+        }
+
+        return true;
+    }
+
+    /**
+     * تهيئة البيانات (إعداد الواجهة، تحميل الحقول، إعداد اللانشر)
+     */
+    private void initData() {
+        // إعداد لون شريط النظام
+        Utils.setSystemBarColorWithColorInt(this,
+                getResources().getColor(R.color.Custom_MainColorBlue),
+                getResources().getColor(R.color.Custom_BackgroundColor), 0);
 
         // حفظ الصورة الأصلية
         originalProfileBitmap = getBitmapFromImageView(ivProfile);
 
         // تحميل الحقول
+        setupFields();
+
+        // تحميل صورة الملف الشخصي
+        setupProfilePicture();
+
+        // إعداد اللانشر لاختيار الصورة
+        setupImagePicker();
+    }
+
+    /**
+     * إعداد مستمعات الأحداث (الأزرار، الصورة)
+     */
+    private void setupListeners() {
+        btnBack.setOnClickListener(v -> finish());
+        btnCancel.setOnClickListener(v -> {
+            showToast(R.string.cancel_edit);
+            finish();
+        });
+        btnSave.setOnClickListener(v -> saveProfileChanges());
+        ivProfile.setOnClickListener(v -> openImagePicker());
+    }
+
+    /**
+     * تحميل حقول الإدخال
+     */
+    private void setupFields() {
         etPhone.setText(stripPrefix(tilPhone, currentUser.getPhone()));
         etWhatsapp.setText(stripPrefix(tilWhatsapp, currentUser.getWhatsappNumber()));
         etFacebook.setText(stripPrefix(tilFacebook, currentUser.getFacebookUrl()));
         etTelegram.setText(stripPrefix(tilTelegram, currentUser.getTelegramHandle()));
         etEmail.setText(stripPrefix(tilEmail, currentUser.getEmail()));
-
         etBioEn.setText(isArabic ? currentUser.getBioAr() : currentUser.getBioEn());
         etBioAr.setText(isArabic ? currentUser.getBioEn() : currentUser.getBioAr());
+    }
 
-        // تحميل صورة البروفايل
+    /**
+     * تحميل صورة الملف الشخصي
+     */
+    private void setupProfilePicture() {
         String pic = currentUser.getProfilePicture();
         if (pic != null && pic.startsWith("content://")) {
             ivProfile.setImageURI(Uri.parse(pic));
@@ -115,74 +211,40 @@ public class EditProfileActivity extends BaseActivity {
         } else {
             ivProfile.setImageResource(R.drawable.avatar);
         }
+    }
 
-        // إعداد اللانشر لاختيار الصورة
+    /**
+     * إعداد اللانشر لاختيار الصورة
+     */
+    private void setupImagePicker() {
         imagePickerLauncher = registerForActivityResult(
                 new ActivityResultContracts.StartActivityForResult(),
                 result -> {
                     if (result.getResultCode() == RESULT_OK && result.getData() != null) {
                         selectedImageUri = result.getData().getData();
                         if (selectedImageUri != null) {
-                            // منح صلاحية دائمة للوصول للصورة
                             try {
                                 getContentResolver().takePersistableUriPermission(
                                         selectedImageUri,
                                         Intent.FLAG_GRANT_READ_URI_PERMISSION
                                 );
-                            } catch (SecurityException e) {
-                                e.printStackTrace();
-                            }
-
-                            try {
                                 ivProfile.setImageBitmap(
                                         MediaStore.Images.Media.getBitmap(getContentResolver(), selectedImageUri)
                                 );
+                            } catch (SecurityException e) {
+                                showToast(R.string.image_permission_error);
                             } catch (IOException e) {
-                                Toast.makeText(this, "فشل تحميل الصورة", Toast.LENGTH_SHORT).show();
+                                showToast(R.string.image_load_failed);
                             }
                         }
                     }
                 }
         );
-
-        // Listeners
-        btnBack.setOnClickListener(v -> finish());
-        ivProfile.setOnClickListener(v -> openImagePicker());
-        btnCancel.setOnClickListener(v -> {
-            Toast.makeText(this, "تم إلغاء التعديلات", Toast.LENGTH_SHORT).show();
-            finish();
-        });
-        btnSave.setOnClickListener(v -> saveProfileChanges());
     }
 
-    private String stripPrefix(TextInputLayout til, String full) {
-        if (full == null || full.isEmpty()) {
-            return "";
-        }
-
-        // الحصول على البادئة من الحقل
-        CharSequence prefix = til.getPrefixText();
-        String prefixStr = prefix != null ? prefix.toString() : "";
-
-        // قائمة البادئات المحتملة المخزنة في قاعدة البيانات
-        String[] possiblePrefixes = new String[] {
-                "https://wa.me/", "wa.me/", // لـ WhatsApp
-                "https://fb.com/", "facebook.com/", // لـ Facebook
-                "https://t.me/", "t.me/", // لـ Telegram
-                "+963" // للهاتف
-        };
-
-        // إزالة أي بادئة مطابقة من النص
-        for (String possiblePrefix : possiblePrefixes) {
-            if (full.startsWith(possiblePrefix)) {
-                return full.substring(possiblePrefix.length());
-            }
-        }
-
-        // إذا لم يتم العثور على بادئة، إرجاع النص كما هو
-        return full;
-    }
-
+    /**
+     * فتح نافذة اختيار الصورة
+     */
     private void openImagePicker() {
         Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
         intent.setType("image/*");
@@ -191,6 +253,35 @@ public class EditProfileActivity extends BaseActivity {
         imagePickerLauncher.launch(intent);
     }
 
+    /**
+     * إزالة البادئة من النص
+     * @param til حقل الإدخال
+     * @param full النص الكامل
+     * @return النص بعد إزالة البادئة
+     */
+    private String stripPrefix(TextInputLayout til, String full) {
+        if (full == null || full.isEmpty()) {
+            return "";
+        }
+        String[] possiblePrefixes = {
+                "https://wa.me/", "wa.me/",
+                "https://fb.com/", "facebook.com/",
+                "https://t.me/", "t.me/",
+                "+963"
+        };
+        for (String prefix : possiblePrefixes) {
+            if (full.startsWith(prefix)) {
+                return full.substring(prefix.length());
+            }
+        }
+        return full;
+    }
+
+    /**
+     * جلب الصورة كـ Bitmap من ImageView
+     * @param iv عنصر الصورة
+     * @return الصورة كـ Bitmap
+     */
     private Bitmap getBitmapFromImageView(ShapeableImageView iv) {
         Drawable d = iv.getDrawable();
         if (d instanceof BitmapDrawable) {
@@ -203,8 +294,10 @@ public class EditProfileActivity extends BaseActivity {
         return bmp;
     }
 
+    /**
+     * حفظ التغييرات على الملف الشخصي
+     */
     private void saveProfileChanges() {
-        // جلب النصوص من الحقول
         String phone = etPhone.getText().toString().trim();
         String whatsapp = etWhatsapp.getText().toString().trim();
         String facebook = etFacebook.getText().toString().trim();
@@ -213,30 +306,33 @@ public class EditProfileActivity extends BaseActivity {
         String bioAr = etBioAr.getText().toString().trim();
         String bioEn = etBioEn.getText().toString().trim();
 
-        // إضافة البادئات فقط إذا لم تكن موجودة
-        String phoneToSave = phone.startsWith("+963") ? phone : "+963" + phone;
-        String whatsappToSave = whatsapp.startsWith("wa.me/") ? whatsapp : "wa.me/" + whatsapp;
-        String facebookToSave = facebook.startsWith("facebook.com/") ? facebook : "facebook.com/" + facebook;
-        String telegramToSave = telegram.startsWith("t.me/") ? telegram : "t.me/" + telegram;
+        String phoneToSave = phone.isEmpty() ? "" : phone.startsWith("+963") ? phone : "+963" + phone;
+        String whatsappToSave = whatsapp.isEmpty() ? "" : whatsapp.startsWith("wa.me/") ? whatsapp : "wa.me/" + whatsapp;
+        String facebookToSave = facebook.isEmpty() ? "" : facebook.startsWith("facebook.com/") ? facebook : "facebook.com/" + facebook;
+        String telegramToSave = telegram.isEmpty() ? "" : telegram.startsWith("t.me/") ? telegram : "t.me/" + telegram;
 
-        // صورة الملف الشخصي
-        String picUri = selectedImageUri != null
-                ? selectedImageUri.toString()
-                : currentUser.getProfilePicture();
+        String picUri = selectedImageUri != null ? selectedImageUri.toString() : currentUser.getProfilePicture();
 
-        // تحديث البيانات
-        boolean ok = userRepo.updateUser(
+        boolean success = userRepository.updateUser(
                 currentUserId,
                 phoneToSave, whatsappToSave, facebookToSave, telegramToSave, email,
                 isArabic ? bioAr : bioEn, isArabic ? bioEn : bioAr, picUri
         );
 
-        if (ok) {
-            Toast.makeText(this, "تم تحديث الملف الشخصي", Toast.LENGTH_SHORT).show();
+        if (success) {
+            showToast(R.string.profile_updated);
             setResult(RESULT_OK);
             finish();
         } else {
-            Toast.makeText(this, "فشل التحديث", Toast.LENGTH_SHORT).show();
+            showToast(R.string.update_failed);
         }
+    }
+
+    /**
+     * عرض رسالة Toast
+     * @param messageRes معرف الرسالة
+     */
+    private void showToast(int messageRes) {
+        Toast.makeText(this, messageRes, Toast.LENGTH_SHORT).show();
     }
 }

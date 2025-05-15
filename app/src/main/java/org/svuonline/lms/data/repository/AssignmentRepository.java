@@ -3,8 +3,6 @@ package org.svuonline.lms.data.repository;
 import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
-import android.util.Log;
-
 import androidx.core.content.ContextCompat;
 
 import org.svuonline.lms.R;
@@ -108,6 +106,7 @@ public class AssignmentRepository {
                 " LEFT JOIN " + DBContract.AssignmentSubmission.TABLE_NAME + " sub ON a." + DBContract.Assignment.COL_ASSIGNMENT_ID + " = sub." + DBContract.AssignmentSubmission.COL_ASSIGNMENT_ID +
                 " AND sub." + DBContract.AssignmentSubmission.COL_USER_ID + " = e." + DBContract.Enrollment.COL_USER_ID +
                 " WHERE e." + DBContract.Enrollment.COL_USER_ID + " = ?" +
+                " AND e." + DBContract.Enrollment.COL_COURSE_STATUS + " = 'Registered'" + // شرط جديد
                 " AND a." + DBContract.Assignment.COL_DUE_DATE + " >= date('now')" +
                 " ORDER BY a." + DBContract.Assignment.COL_DUE_DATE + " ASC LIMIT 1";
         Cursor cursor = db.rawQuery(query, new String[]{String.valueOf(userId)});
@@ -189,9 +188,6 @@ public class AssignmentRepository {
 
         if (cursor.moveToFirst()) {
             assignmentId = cursor.getLong(cursor.getColumnIndexOrThrow(DBContract.Assignment.COL_ASSIGNMENT_ID));
-            Log.d("AssignmentRepository", "Found assignment_id=" + assignmentId + " for tool_id=" + toolId);
-        } else {
-            Log.w("AssignmentRepository", "No assignment found for tool_id=" + toolId);
         }
 
         cursor.close();
@@ -210,9 +206,6 @@ public class AssignmentRepository {
 
         if (cursor.moveToFirst()) {
             toolId = cursor.getString(cursor.getColumnIndexOrThrow(DBContract.Assignment.COL_TOOL_ID));
-            Log.d("AssignmentRepository", "Found tool_id=" + toolId + " for assignment_id=" + assignmentId);
-        } else {
-            Log.w("AssignmentRepository", "No tool_id found for assignment_id=" + assignmentId);
         }
 
         cursor.close();

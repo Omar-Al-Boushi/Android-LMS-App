@@ -1,11 +1,8 @@
 package org.svuonline.lms.data.repository;
 
-import static android.content.ContentValues.TAG;
-
 import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
-import android.util.Log;
 
 import org.svuonline.lms.data.db.DBContract;
 import org.svuonline.lms.data.db.DatabaseHelper;
@@ -120,7 +117,7 @@ public class EnrollmentRepository {
                 } while (cursor.moveToNext());
             }
         }
-        Log.d(TAG, "عدد المشاركين المسترجعين: " + participants.size());
+
         return participants;
     }
 }

@@ -21,13 +21,9 @@ import android.os.Handler;
 import android.os.Looper;
 import android.os.Vibrator;
 import android.os.VibratorManager;
-import android.util.Log;
-import android.view.View;
 import android.widget.TextView;
 
-import androidx.annotation.NonNull;
 import androidx.constraintlayout.widget.ConstraintLayout;
-import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 import androidx.core.content.FileProvider;
 import androidx.core.content.res.ResourcesCompat;
@@ -62,56 +58,113 @@ import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
+/**
+ * نشاط يعرض تفاصيل الوظيفة، بما في ذلك الملفات، حالة الإرسال، والوقت المتبقي.
+ * يتيح تحميل الملفات، إرسال الوظائف، وإدارة المفضلة.
+ */
 public class AssignmentsActivity extends BaseActivity implements FilesAdapter.FileDownloadListener {
 
-    // تعريف عناصر الواجهة
+    // تعريف المتغيرات
+    // عناصر الواجهة
     private MaterialTextView courseCodeTextView;
     private MaterialTextView courseTitleTextView;
-    private ConstraintLayout courseHeaderLayout;
-    private MaterialButton backButton, submitOrEdit, favoriteButton;
-    private int courseColor;
+    private ConstraintLayout courseHeaderContainer;
+    private MaterialButton backButton;
+    private MaterialButton submitOrEditButton;
+    private MaterialButton favoriteButton;
     private RecyclerView filesRecyclerView;
-    private FilesAdapter adapter;
-    private TextView openedDate, dueDate, submissionStatus, gradingStatus, timeRemaining, lastModified, assignmentName;
-    private boolean isFavorite;
+    private TextView openedDateTextView;
+    private TextView dueDateTextView;
+    private TextView submissionStatusTextView;
+    private TextView gradingStatusTextView;
+    private TextView timeRemainingTextView;
+    private TextView lastModifiedTextView;
+    private TextView assignmentNameTextView;
+
+    // بيانات النشاط
     private long userId;
     private String toolId;
     private long assignmentId;
     private String courseCode;
+    private int courseColor;
+    private boolean isFavorite;
+    private boolean isDueDatePassed;
+
+    // المستودعات
     private CourseRepository courseRepository;
     private AssignmentRepository assignmentRepository;
     private AssignmentSubmissionRepository submissionRepository;
     private EnrollmentRepository enrollmentRepository;
 
-    private boolean isDueDatePassed; // متغير لتتبع حالة الموعد النهائي
-
     // مكونات إدارة التحميل
     private DownloadManager downloadManager;
+    private FilesAdapter filesAdapter;
     private Map<Long, FileData> downloadIdToFileData = new HashMap<>();
     private Map<String, Long> downloadingFiles = new HashMap<>();
     private ExecutorService executorService;
     private Handler mainHandler;
     private Vibrator vibrator;
+
+    // ثوابت
     private static final int STORAGE_PERMISSION_REQUEST_CODE = 100;
+    private static final int NOTIFICATION_PERMISSION_REQUEST_CODE = 101;
+
+    // استقبال إشعارات تحميل الملفات
+    private final BroadcastReceiver downloadReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            handleDownloadComplete(intent);
+        }
+    };
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_assignments);
-        Log.d("AssignmentsActivity", "onCreate started");
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) { // Android 13+
-            if (checkSelfPermission(Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
-                requestPermissions(new String[]{Manifest.permission.POST_NOTIFICATIONS}, 101);
-            }
+
+        // طلب إذن الإشعارات لنظام Android 13 وما فوق
+        requestNotificationPermission();
+
+        // تهيئة المكونات
+        initComponents();
+
+        // التحقق من بيانات Intent
+        if (!validateIntentData()) {
+            finish();
+            return;
         }
 
+        // تهيئة الواجهة والبيانات
+        initViews();
+        initData();
+        setupListeners();
+
+        // تسجيل استقبال إشعارات التحميل
+        registerDownloadReceiver();
+    }
+
+    /**
+     * طلب إذن الإشعارات إذا لزم الأمر
+     */
+    private void requestNotificationPermission() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            if (checkSelfPermission(Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
+                requestPermissions(new String[]{Manifest.permission.POST_NOTIFICATIONS}, NOTIFICATION_PERMISSION_REQUEST_CODE);
+            }
+        }
+    }
+
+    /**
+     * تهيئة المكونات الأساسية (المستودعات، إدارة التحميل، الاهتزاز)
+     */
+    private void initComponents() {
         // تهيئة المستودعات
         courseRepository = new CourseRepository(this);
         assignmentRepository = new AssignmentRepository(this);
         submissionRepository = new AssignmentSubmissionRepository(this);
-        enrollmentRepository = new EnrollmentRepository(this); // إضافة تهيئة EnrollmentRepository
+        enrollmentRepository = new EnrollmentRepository(this);
 
-        // تهيئة مكونات التحميل
+        // تهيئة إدارة التحميل
         downloadManager = (DownloadManager) getSystemService(DOWNLOAD_SERVICE);
         executorService = Executors.newSingleThreadExecutor();
         mainHandler = new Handler(Looper.getMainLooper());
@@ -123,191 +176,328 @@ public class AssignmentsActivity extends BaseActivity implements FilesAdapter.Fi
         } else {
             vibrator = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
         }
+    }
 
+    /**
+     * التحقق من صحة بيانات Intent
+     * @return صحيح إذا كانت البيانات صالحة، خطأ إذا لزم إنهاء النشاط
+     */
+    private boolean validateIntentData() {
         // جلب userId من SharedPreferences
         SharedPreferences userPrefs = getSharedPreferences("user_prefs", MODE_PRIVATE);
         userId = userPrefs.getLong("user_id", -1);
-        Log.d("AssignmentsActivity", "userId: " + userId);
 
-        // جلب معرف الأداة من Intent
+        // جلب بيانات Intent
         Intent intent = getIntent();
         toolId = intent.getStringExtra("button_id");
         courseCode = intent.getStringExtra("course_code");
-        Log.d("AssignmentsActivity", "معرف الأداة: " + toolId + ", course_code=" + courseCode);
+
         if (toolId == null || courseCode == null) {
-            Log.e("AssignmentsActivity", "معرف الأداة غير موجود أو course_code غير موجود");
-            Snackbar.make(findViewById(R.id.main), "بيانات الأداة غير صحيحة", Snackbar.LENGTH_LONG).show();
-            finish();
-            return;
+            showSnackbar(R.string.invalid_tool_data);
+            return false;
         }
 
-        // جلب assignment_id بناءً على tool_id
+        // جلب معرف الوظيفة
         assignmentId = assignmentRepository.getAssignmentIdByToolId(toolId);
-        Log.d("AssignmentsActivity", "Fetched assignment_id=" + assignmentId + " for tool_id=" + toolId);
         if (assignmentId == -1) {
-            Log.e("AssignmentsActivity", "No assignment found for tool_id=" + toolId);
-            Snackbar.make(findViewById(R.id.main), R.string.assignment_not_found, Snackbar.LENGTH_LONG).show();
-            finish();
-            return;
+            showSnackbar(R.string.assignment_not_found);
+            return false;
         }
 
-        // ربط عناصر الواجهة من الـ Layout
+        return true;
+    }
+
+    /**
+     * تهيئة عناصر الواجهة
+     */
+    private void initViews() {
         courseCodeTextView = findViewById(R.id.courseCodeTextView);
         courseTitleTextView = findViewById(R.id.courseTitleTextView);
-        courseHeaderLayout = findViewById(R.id.courseHeaderLayout);
+        courseHeaderContainer = findViewById(R.id.courseHeaderLayout);
         backButton = findViewById(R.id.backButton);
-        submitOrEdit = findViewById(R.id.submitOrEdit);
-        filesRecyclerView = findViewById(R.id.filesRecyclerView);
-        openedDate = findViewById(R.id.openedDate);
-        dueDate = findViewById(R.id.DueDate);
-        submissionStatus = findViewById(R.id.SubmissionStatusDate);
-        gradingStatus = findViewById(R.id.GradingStatusDate);
-        timeRemaining = findViewById(R.id.TimeRemainingDate);
-        lastModified = findViewById(R.id.LastModifiedDate);
-        assignmentName = findViewById(R.id.assignmentName);
+        submitOrEditButton = findViewById(R.id.submitOrEdit);
         favoriteButton = findViewById(R.id.favoriteButton);
+        filesRecyclerView = findViewById(R.id.filesRecyclerView);
+        openedDateTextView = findViewById(R.id.openedDate);
+        dueDateTextView = findViewById(R.id.DueDate);
+        submissionStatusTextView = findViewById(R.id.SubmissionStatusDate);
+        gradingStatusTextView = findViewById(R.id.GradingStatusDate);
+        timeRemainingTextView = findViewById(R.id.TimeRemainingDate);
+        lastModifiedTextView = findViewById(R.id.LastModifiedDate);
+        assignmentNameTextView = findViewById(R.id.assignmentName);
 
-        // جلب بيانات الوظيفة من قاعدة البيانات
+        // إعداد RecyclerView
+        filesRecyclerView.setLayoutManager(new LinearLayoutManager(this));
+    }
+
+    /**
+     * تهيئة البيانات (جلب الوظيفة، تحديث الواجهة، إعداد الملفات)
+     */
+    private void initData() {
         boolean isArabic = isArabicLocale();
-        Log.d("AssignmentsActivity", "Fetching assignment details for assignment_id=" + assignmentId + ", isArabic=" + isArabic);
+
+        // جلب تفاصيل الوظيفة
         Assignment assignment = assignmentRepository.getAssignmentDetails(assignmentId, isArabic);
         if (assignment == null) {
-            Log.e("AssignmentsActivity", "Assignment not found for assignment_id=" + assignmentId);
-            Snackbar.make(findViewById(R.id.main), R.string.assignment_not_found, Snackbar.LENGTH_LONG).show();
+            showSnackbar(R.string.assignment_not_found);
             finish();
             return;
         }
-        Log.d("AssignmentsActivity", "Assignment fetched: title=" + (isArabic ? assignment.getTitleAr() : assignment.getTitleEn()));
-
 
         // تعيين بيانات الواجهة
         courseCodeTextView.setText(assignment.getCourseCode());
         courseTitleTextView.setText(assignment.getCourseName());
-        assignmentName.setText(isArabic ? assignment.getTitleAr() : assignment.getTitleEn());
+        assignmentNameTextView.setText(isArabic ? assignment.getTitleAr() : assignment.getTitleEn());
         courseColor = assignment.getHeaderColor();
-        courseHeaderLayout.setBackgroundColor(courseColor);
+        courseHeaderContainer.setBackgroundColor(courseColor);
         Utils.setSystemBarColorWithColorInt(this, courseColor, getResources().getColor(R.color.Custom_BackgroundColor), 0);
-        assignmentName.setTextColor(courseColor);
-        submitOrEdit.setBackgroundTintList(ColorStateList.valueOf(courseColor));
-
-        // التحقق من حالة التسجيل
-        boolean isEnrolled = enrollmentRepository.isUserEnrolledInCourse(userId, courseCode);
-        Log.d("AssignmentsActivity", "Is user enrolled in course " + courseCode + ": " + isEnrolled);
+        assignmentNameTextView.setTextColor(courseColor);
+        submitOrEditButton.setBackgroundTintList(ColorStateList.valueOf(courseColor));
 
         // تعيين تواريخ الوظيفة
-        openedDate.setText(assignment.getOpenDate());
-        dueDate.setText(assignment.getDueDate());
-
-        // حساب الوقت المتبقي وإعداد زر الإرسال/التعديل
-        timeRemaining.setText(calculateTimeRemaining(assignment.getDueDate()));
+        openedDateTextView.setText(assignment.getOpenDate());
+        dueDateTextView.setText(assignment.getDueDate());
+        timeRemainingTextView.setText(calculateTimeRemaining(assignment.getDueDate()));
 
         // جلب حالة الإرسال
-        Log.d("AssignmentsActivity", "Fetching submission status for assignment_id=" + assignmentId + ", user_id=" + userId);
-        AssignmentSubmission submission = submissionRepository.getSubmissionStatus(assignmentId, userId);
-        if (submission != null) {
-            submissionStatus.setText(submission.getStatus());
-            submissionStatus.setTypeface(ResourcesCompat.getFont(this, R.font.cairo_bold));
-            submissionStatus.setTextColor(getStatusColor(submission.getStatus()));
-            lastModified.setText(submission.getSubmittedAt() != null ? submission.getSubmittedAt() : "-");
-            gradingStatus.setText(submission.getGrade() > 0 ? String.format(Locale.getDefault(), "%.2f", submission.getGrade()) : getString(R.string.not_graded));
-            Log.d("AssignmentsActivity", "Submission found: status=" + submission.getStatus() + ", submitted_at=" + submission.getSubmittedAt());
-        } else {
-            submissionStatus.setText(R.string.no_attempt);
-            lastModified.setText("-");
-            gradingStatus.setText(R.string.not_graded);
-            Log.d("AssignmentsActivity", "No submission found for assignment_id=" + assignmentId);
-        }
+        updateSubmissionStatus();
 
-        // إعداد ملف الوظيفة
-        List<FileData> files = new ArrayList<>();
-        if (assignment.getAssignmentFile() != null && !assignment.getAssignmentFile().isEmpty()) {
-            String fileName = assignment.getTitleEn() + ".pdf"; // استخدام العنوان الإنجليزي دائمًا
-            files.add(new FileData(assignment.getAssignmentId(), fileName, assignment.getAssignmentFile(), this));
-            Log.d("AssignmentsActivity", "Added file: name=" + fileName + ", path=" + assignment.getAssignmentFile());
-        } else {
-            Log.w("AssignmentsActivity", "No assignment file found for assignment_id=" + assignmentId);
-        }
-        filesRecyclerView.setLayoutManager(new LinearLayoutManager(this));
-        adapter = new FilesAdapter(this, files, courseColor, this);
-        filesRecyclerView.setAdapter(adapter);
+        // إعداد الملفات
+        updateFileList();
 
-        // إعداد زر الرجوع
+        // إعداد حالة المفضلة
+        isFavorite = courseRepository.isCourseFavorite(userId, courseCode);
+        updateFavoriteButton();
+
+        // التحقق من نتيجة الرفع
+        handleUploadResult();
+    }
+
+    /**
+     * إعداد مستمعات الأحداث (الأزرار، المفضلة، الإرسال)
+     */
+    private void setupListeners() {
+        // زر الرجوع
         backButton.setOnClickListener(v -> finish());
 
-        submitOrEdit.setOnClickListener(v -> {
-            // التحقق من حالة التسجيل
-            if (!isEnrolled) {
-                Snackbar.make(findViewById(R.id.main),
-                        R.string.not_enrolled_in_course, Snackbar.LENGTH_LONG).show();
-                Log.d("AssignmentsActivity", "محاولة النقر على زر الإرسال بدون تسجيل في المقرر");
-                return;
-            }
-            // التحقق من الموعد النهائي
-            if (isDueDatePassed) {
-                Snackbar.make(findViewById(R.id.main),
-                        R.string.due_date_passed, Snackbar.LENGTH_LONG).show();
-                Log.d("AssignmentsActivity", "محاولة النقر على زر الإرسال بعد انتهاء الموعد النهائي");
-                return;
-            }
-            // إذا تم استيفاء جميع الشروط، انتقل إلى صفحة التحميل
-            Intent intentUpload = new Intent(this, AssignmentUploadActivity.class);
-            intentUpload.putExtra("course_code", assignment.getCourseCode());
-            intentUpload.putExtra("assignment_id", assignmentId);
-            intentUpload.putExtra("course_color_value", courseColor);
-            Log.d("AssignmentsActivity", "Starting AssignmentUploadActivity with assignment_id=" + assignmentId);
-            startActivity(intentUpload);
-        });
+        // زر الإرسال/التعديل
+        submitOrEditButton.setOnClickListener(v -> handleSubmitOrEdit());
 
-        // إعداد زر المفضلة
-        isFavorite = courseRepository.isCourseFavorite(userId, courseCode);
-        Log.d("AssignmentsActivity", "isFavorite: " + isFavorite + " for course_code=" + courseCode);
-        updateFavoriteButton();
-        favoriteButton.setOnClickListener(v -> {
-            isFavorite = !isFavorite;
-            courseRepository.setCourseFavorite(userId, courseCode, isFavorite);
-            updateFavoriteButton();
-            String message = isFavorite ? getString(R.string.added_to_favorites) :
-                    getString(R.string.removed_from_favorites);
-            Snackbar.make(findViewById(R.id.main), message, Snackbar.LENGTH_SHORT).show();
-            Log.d("AssignmentsActivity", "Favorite toggled: isFavorite=" + isFavorite);
-        });
+        // زر المفضلة
+        favoriteButton.setOnClickListener(v -> toggleFavorite());
+    }
 
-        // التحقق مما إذا كانت عملية الرفع تمت
-        if (intent.getBooleanExtra("upload_success", false)) {
-            String lastModifiedValue = intent.getStringExtra("last_modified");
-            String submissionStatusValue = intent.getStringExtra("submission_status");
-            String submissionStatusColor = intent.getStringExtra("submission_status_color");
-            Log.d("AssignmentsActivity", "Upload success: last_modified=" + lastModifiedValue + ", status=" + submissionStatusValue);
-
-            if (lastModifiedValue != null) {
-                lastModified.setText(lastModifiedValue);
-            }
-            if (submissionStatusValue != null) {
-                submissionStatus.setText(submissionStatusValue);
-                submissionStatus.setTypeface(ResourcesCompat.getFont(this, R.font.cairo_bold));
-            }
-            if (submissionStatusColor != null) {
-                submissionStatus.setTextColor(Color.parseColor(submissionStatusColor));
-            }
+    /**
+     * معالجة النقر على زر الإرسال/التعديل
+     */
+    private void handleSubmitOrEdit() {
+        // التحقق من حالة التسجيل
+        boolean isEnrolled = enrollmentRepository.isUserEnrolledInCourse(userId, courseCode);
+        if (!isEnrolled) {
+            showSnackbar(R.string.not_enrolled_in_course);
+            return;
         }
 
-        // تسجيل BroadcastReceiver لمراقبة اكتمال التحميل
+        // التحقق من الموعد النهائي
+        if (isDueDatePassed) {
+            showSnackbar(R.string.due_date_passed);
+            return;
+        }
+
+        // الانتقال إلى نشاط الرفع
+        Intent intent = new Intent(this, AssignmentUploadActivity.class);
+        intent.putExtra("course_code", courseCode);
+        intent.putExtra("assignment_id", assignmentId);
+        intent.putExtra("course_color_value", courseColor);
+        startActivity(intent);
+    }
+
+    /**
+     * تبديل حالة المفضلة
+     */
+    private void toggleFavorite() {
+        isFavorite = !isFavorite;
+        courseRepository.setCourseFavorite(userId, courseCode, isFavorite);
+        updateFavoriteButton();
+        int messageRes = isFavorite ? R.string.added_to_favorites : R.string.removed_from_favorites;
+        showSnackbar(messageRes);
+    }
+
+    /**
+     * تحديث أيقونة زر المفضلة
+     */
+    private void updateFavoriteButton() {
+        favoriteButton.setIconResource(isFavorite ? R.drawable.star_selected : R.drawable.star);
+        favoriteButton.setIconTint(ColorStateList.valueOf(Color.WHITE));
+    }
+
+    /**
+     * إعادة بناء قائمة الملفات
+     */
+    private void updateFileList() {
+        mainHandler.post(() -> {
+            boolean isArabic = isArabicLocale();
+            Assignment assignment = assignmentRepository.getAssignmentDetails(assignmentId, isArabic);
+            List<FileData> files = new ArrayList<>();
+            if (assignment != null && assignment.getAssignmentFile() != null && !assignment.getAssignmentFile().isEmpty()) {
+                String fileName = assignment.getTitleEn() + ".pdf";
+                files.add(new FileData(assignment.getAssignmentId(), fileName, assignment.getAssignmentFile(), this));
+            }
+            filesAdapter = new FilesAdapter(this, files, courseColor, this);
+            filesRecyclerView.setAdapter(filesAdapter);
+        });
+    }
+
+    /**
+     * تحديث حالة الإرسال
+     */
+    private void updateSubmissionStatus() {
+        AssignmentSubmission submission = submissionRepository.getSubmissionStatus(assignmentId, userId);
+        if (submission != null) {
+            submissionStatusTextView.setText(submission.getStatus());
+            submissionStatusTextView.setTypeface(ResourcesCompat.getFont(this, R.font.cairo_bold));
+            submissionStatusTextView.setTextColor(getStatusColor(submission.getStatus()));
+            lastModifiedTextView.setText(formatDate(submission.getSubmittedAt()));
+            gradingStatusTextView.setText(submission.getGrade() > 0 ?
+                    String.format(Locale.getDefault(), "%.2f", submission.getGrade()) :
+                    getString(R.string.not_graded));
+        } else {
+            submissionStatusTextView.setText(R.string.no_attempt);
+            lastModifiedTextView.setText("-");
+            gradingStatusTextView.setText(R.string.not_graded);
+        }
+    }
+
+    /**
+     * تنسيق التاريخ إلى صيغة yyyy-M-d
+     * @param dateString التاريخ الأصلي
+     * @return التاريخ المنسق أو "-" إذا كان فارغًا
+     */
+    private String formatDate(String dateString) {
+        if (dateString == null || dateString.isEmpty()) {
+            return "-";
+        }
+        try {
+            SimpleDateFormat parser = new SimpleDateFormat("yyyy-MM-dd", Locale.ENGLISH);
+            Date date = parser.parse(dateString);
+            SimpleDateFormat formatter = new SimpleDateFormat("yyyy-M-d", Locale.ENGLISH);
+            return formatter.format(date);
+        } catch (ParseException e) {
+            return dateString;
+        }
+    }
+
+    /**
+     * حساب الوقت المتبقي حتى الموعد النهائي
+     * @param dueDate تاريخ الموعد النهائي
+     * @return نص يمثل الوقت المتبقي أو رسالة انتهاء الموعد
+     */
+    private String calculateTimeRemaining(String dueDate) {
+        try {
+            SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd", Locale.ENGLISH);
+            Date due = sdf.parse(dueDate);
+            Date now = new Date();
+            assert due != null;
+            long diff = due.getTime() - now.getTime();
+            if (diff <= 0) {
+                isDueDatePassed = true;
+                timeRemainingTextView.setTextColor(Color.RED);
+                return getString(R.string.due_date_passed);
+            }
+            isDueDatePassed = false;
+            timeRemainingTextView.setTextColor(ContextCompat.getColor(this, R.color.Custom_Black));
+            long days = diff / (1000 * 60 * 60 * 24);
+            long hours = (diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60);
+            return String.format(Locale.ENGLISH, "%d days %d hours", days, hours);
+        } catch (ParseException e) {
+            isDueDatePassed = false;
+            timeRemainingTextView.setTextColor(ContextCompat.getColor(this, R.color.Custom_Black));
+            return "-";
+        }
+    }
+
+    /**
+     * إرجاع لون الحالة بناءً على قيمتها
+     * @param status حالة الإرسال
+     * @return قيمة اللون
+     */
+    private int getStatusColor(String status) {
+        if (status == null) {
+            return ContextCompat.getColor(this, R.color.Custom_Black);
+        }
+        switch (status.toLowerCase()) {
+            case "submitted":
+                return ContextCompat.getColor(this, R.color.colorCustomColor3);
+            case "late":
+                return ContextCompat.getColor(this, R.color.colorCustomColor1);
+            default:
+                return ContextCompat.getColor(this, R.color.Custom_Black);
+        }
+    }
+
+    /**
+     * معالجة نتيجة رفع الوظيفة
+     */
+    private void handleUploadResult() {
+        Intent intent = getIntent();
+        if (intent.getBooleanExtra("upload_success", false)) {
+            String lastModified = intent.getStringExtra("last_modified");
+            String submissionStatus = intent.getStringExtra("submission_status");
+            String submissionStatusColor = intent.getStringExtra("submission_status_color");
+
+            if (lastModified != null) {
+                lastModifiedTextView.setText(lastModified);
+            }
+            if (submissionStatus != null) {
+                submissionStatusTextView.setText(submissionStatus);
+                submissionStatusTextView.setTypeface(ResourcesCompat.getFont(this, R.font.cairo_bold));
+            }
+            if (submissionStatusColor != null) {
+                submissionStatusTextView.setTextColor(Color.parseColor(submissionStatusColor));
+            }
+        }
+    }
+
+    /**
+     * التحقق مما إذا كانت اللغة المختارة هي العربية
+     * @return صحيح إذا كانت اللغة عربية
+     */
+    private boolean isArabicLocale() {
+        SharedPreferences preferences = getSharedPreferences("AppPreferences", MODE_PRIVATE);
+        String selectedLanguage = preferences.getString("selected_language", "en");
+        return "ar".equals(selectedLanguage);
+    }
+
+    /**
+     * عرض رسالة Snackbar
+     * @param messageRes معرف الرسالة
+     */
+    private void showSnackbar(int messageRes) {
+        Snackbar.make(findViewById(R.id.main), messageRes, Snackbar.LENGTH_LONG).show();
+    }
+
+    /**
+     * عرض رسالة Snackbar مع نص مخصص
+     * @param message النص المخصص
+     */
+    private void showSnackbar(String message) {
+        Snackbar.make(findViewById(R.id.main), message, Snackbar.LENGTH_SHORT).show();
+    }
+
+    /**
+     * تسجيل استقبال إشعارات التحميل
+     */
+    private void registerDownloadReceiver() {
         IntentFilter filter = new IntentFilter(DownloadManager.ACTION_DOWNLOAD_COMPLETE);
         ContextCompat.registerReceiver(this, downloadReceiver, filter, ContextCompat.RECEIVER_EXPORTED);
     }
 
-
-    /**
-     * معالجة النقر على الملف
-     */
+    // دوال إدارة التحميل
     @Override
     public void onFileClicked(FileData fileData) {
-        Log.d("AssignmentsActivity", "تم النقر على الملف: " + fileData.getFileName() + ", محمل: " + fileData.isDownloaded());
         String fileName = fileData.getFileName();
         if (downloadingFiles.containsKey(fileName)) {
-            Snackbar.make(findViewById(R.id.main),
-                    getString(R.string.file_download_in_progress, fileName), Snackbar.LENGTH_SHORT).show();
-            Log.d("AssignmentsActivity", "الملف قيد التحميل: " + fileName);
+            showSnackbar(getString(R.string.file_download_in_progress, fileName));
             return;
         }
         if (fileData.isDownloaded()) {
@@ -318,7 +508,8 @@ public class AssignmentsActivity extends BaseActivity implements FilesAdapter.Fi
     }
 
     /**
-     * التحقق من الاتصال بالإنترنت
+     * التحقق من وجود اتصال بالإنترنت
+     * @return صحيح إذا كان هناك اتصال
      */
     private boolean isNetworkAvailable() {
         ConnectivityManager connectivityManager = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
@@ -327,7 +518,9 @@ public class AssignmentsActivity extends BaseActivity implements FilesAdapter.Fi
     }
 
     /**
-     * التحقق من صلاحية رابط التحميل
+     * التحقق من صحة رابط التحميل
+     * @param url الرابط
+     * @return صحيح إذا كان الرابط صالحًا
      */
     private boolean isValidUrl(String url) {
         if (url == null || url.isEmpty()) {
@@ -337,30 +530,25 @@ public class AssignmentsActivity extends BaseActivity implements FilesAdapter.Fi
     }
 
     /**
-     * بدء تحميل الملف
+     * بدء تحميل ملف
+     * @param fileData بيانات الملف
      */
     private void downloadFile(FileData fileData) {
         if (!isNetworkAvailable()) {
-            Snackbar.make(findViewById(R.id.main),
-                    R.string.check_internet_connection, Snackbar.LENGTH_SHORT).show();
+            showSnackbar(R.string.check_internet_connection);
             return;
         }
 
         String fileName = fileData.getFileName();
         if (downloadingFiles.containsKey(fileName)) {
-            Snackbar.make(findViewById(R.id.main),
-                    R.string.file_already_downloading, Snackbar.LENGTH_SHORT).show();
+            showSnackbar(R.string.file_already_downloading);
             return;
         }
 
         try {
             String fileUrl = fileData.getFilePath();
-            Log.d("AssignmentsActivity", "تحميل الملف: " + fileName + " من: " + fileUrl);
-
             if (!isValidUrl(fileUrl)) {
-                Log.e("AssignmentsActivity", "رابط التحميل غير صالح: " + fileUrl);
-                Snackbar.make(findViewById(R.id.main),
-                        R.string.invalid_download_url, Snackbar.LENGTH_SHORT).show();
+                showSnackbar(R.string.invalid_download_url);
                 return;
             }
 
@@ -375,34 +563,26 @@ public class AssignmentsActivity extends BaseActivity implements FilesAdapter.Fi
             downloadIdToFileData.put(downloadId, fileData);
             downloadingFiles.put(fileName, downloadId);
 
-            Snackbar.make(findViewById(R.id.main),
-                    getString(R.string.download_started, fileName), Snackbar.LENGTH_SHORT).show();
-
+            showSnackbar(getString(R.string.download_started, fileName));
             trackDownloadProgress(downloadId, fileData);
 
         } catch (Exception e) {
-            Log.e("AssignmentsActivity", "فشل بدء التحميل: " + e.getMessage(), e);
             downloadingFiles.remove(fileName);
-            Snackbar.make(findViewById(R.id.main),
-                    R.string.download_failed, Snackbar.LENGTH_SHORT).show();
+            showSnackbar(R.string.download_failed);
         }
     }
 
     /**
-     * فتح الملف المحمل
+     * فتح ملف محمل
+     * @param fileData بيانات الملف
      */
     private void openFile(FileData fileData) {
         try {
             String cleanFileName = fileData.getFileName().replaceAll("[^a-zA-Z0-9._-]", "_");
-            File file = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS),
-                    cleanFileName);
-            Log.d("AssignmentsActivity", "محاولة فتح الملف: " + file.getAbsolutePath());
+            File file = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS), cleanFileName);
 
             if (!file.exists() || file.length() == 0) {
-                Log.e("AssignmentsActivity", "الملف غير موجود أو تالف: " + file.getAbsolutePath());
-                Snackbar.make(findViewById(R.id.main),
-                        getString(R.string.file_not_found_or_corrupted, fileData.getFileName()),
-                        Snackbar.LENGTH_SHORT).show();
+                showSnackbar(getString(R.string.file_not_found_or_corrupted, fileData.getFileName()));
                 updateFileList();
                 return;
             }
@@ -416,20 +596,18 @@ public class AssignmentsActivity extends BaseActivity implements FilesAdapter.Fi
             try {
                 startActivity(Intent.createChooser(intent, getString(R.string.open_with)));
             } catch (android.content.ActivityNotFoundException e) {
-                Log.e("AssignmentsActivity", "لا يوجد تطبيق لفتح نوع الملف: " + mimeType);
-                Snackbar.make(findViewById(R.id.main),
-                        R.string.no_app_to_open_file, Snackbar.LENGTH_SHORT).show();
+                showSnackbar(R.string.no_app_to_open_file);
             }
         } catch (Exception e) {
-            Log.e("AssignmentsActivity", "فشل فتح الملف: " + e.getMessage(), e);
-            Snackbar.make(findViewById(R.id.main),
-                    R.string.failed_to_open_file, Snackbar.LENGTH_SHORT).show();
+            showSnackbar(R.string.failed_to_open_file);
             updateFileList();
         }
     }
 
     /**
      * إرجاع نوع MIME للملف
+     * @param fileType نوع الملف
+     * @return نوع MIME
      */
     private String getMimeType(String fileType) {
         switch (fileType.toLowerCase()) {
@@ -440,13 +618,14 @@ public class AssignmentsActivity extends BaseActivity implements FilesAdapter.Fi
             case "docx":
                 return "application/vnd.openxmlformats-officedocument.wordprocessingml.document";
             default:
-                Log.w("AssignmentsActivity", "نوع ملف غير معروف: " + fileType);
                 return "application/octet-stream";
         }
     }
 
     /**
      * تتبع تقدم التحميل
+     * @param downloadId معرف التحميل
+     * @param fileData بيانات الملف
      */
     private void trackDownloadProgress(long downloadId, FileData fileData) {
         executorService.execute(() -> {
@@ -457,42 +636,31 @@ public class AssignmentsActivity extends BaseActivity implements FilesAdapter.Fi
                     if (cursor.moveToFirst()) {
                         int statusIndex = cursor.getColumnIndex(DownloadManager.COLUMN_STATUS);
                         if (statusIndex == -1) {
-                            Log.e("AssignmentsActivity", "أعمدة الحالة مفقودة");
                             break;
                         }
 
                         int status = cursor.getInt(statusIndex);
                         if (status == DownloadManager.STATUS_SUCCESSFUL) {
-                            Log.d("AssignmentsActivity", "اكتمل التحميل: " + fileData.getFileName());
                             downloadingFiles.remove(fileData.getFileName());
                             downloadIdToFileData.remove(downloadId);
                             mainHandler.post(() -> {
                                 triggerVibration();
-                                Snackbar.make(findViewById(R.id.main),
-                                        getString(R.string.download_completed1, fileData.getFileName()),
-                                        Snackbar.LENGTH_SHORT).show();
+                                showSnackbar(getString(R.string.download_completed1, fileData.getFileName()));
                                 updateFileList();
                             });
                             break;
                         } else if (status == DownloadManager.STATUS_FAILED) {
-                            Log.e("AssignmentsActivity", "فشل التحميل: " + fileData.getFileName());
                             downloadingFiles.remove(fileData.getFileName());
                             downloadIdToFileData.remove(downloadId);
-                            mainHandler.post(() -> {
-                                Snackbar.make(findViewById(R.id.main),
-                                        getString(R.string.download_failed_with_file, fileData.getFileName()),
-                                        Snackbar.LENGTH_SHORT).show();
-                            });
+                            mainHandler.post(() -> showSnackbar(getString(R.string.download_failed_with_file, fileData.getFileName())));
                             break;
                         }
                     } else {
-                        Log.e("AssignmentsActivity", "لم يتم العثور على بيانات التحميل لـ: " + downloadId);
                         downloadingFiles.remove(fileData.getFileName());
                         downloadIdToFileData.remove(downloadId);
                         break;
                     }
                 } catch (Exception e) {
-                    Log.e("AssignmentsActivity", "خطأ في تتبع التحميل: " + e.getMessage());
                     downloadingFiles.remove(fileData.getFileName());
                     downloadIdToFileData.remove(downloadId);
                     break;
@@ -500,7 +668,6 @@ public class AssignmentsActivity extends BaseActivity implements FilesAdapter.Fi
                 try {
                     Thread.sleep(1000);
                 } catch (InterruptedException e) {
-                    Log.e("AssignmentsActivity", "تم مقاطعة تتبع التحميل", e);
                     break;
                 }
             }
@@ -517,200 +684,94 @@ public class AssignmentsActivity extends BaseActivity implements FilesAdapter.Fi
             } else {
                 vibrator.vibrate(200);
             }
-            Log.d("AssignmentsActivity", "تم تشغيل الاهتزاز");
-        } else {
-            Log.w("AssignmentsActivity", "جهاز الاهتزاز غير متاح");
         }
     }
 
     /**
-     * إعادة بناء قائمة الملفات
+     * معالجة اكتمال التحميل
+     * @param intent نية تحتوي على معرف التحميل
      */
-    private void updateFileList() {
-        mainHandler.post(() -> {
-            boolean isArabic = isArabicLocale();
-            Assignment assignment = assignmentRepository.getAssignmentDetails(assignmentId, isArabic);
-            List<FileData> files = new ArrayList<>();
-            if (assignment != null && assignment.getAssignmentFile() != null && !assignment.getAssignmentFile().isEmpty()) {
-                String fileName = assignment.getTitleEn() + ".pdf"; // استخدام العنوان الإنجليزي دائمًا
-                files.add(new FileData(assignment.getAssignmentId(), fileName, assignment.getAssignmentFile(), this));
-                Log.d("AssignmentsActivity", "Added file: name=" + fileName + ", path=" + assignment.getAssignmentFile());
-            }
-            adapter = new FilesAdapter(this, files, courseColor, this);
-            filesRecyclerView.setAdapter(adapter);
-            Log.d("AssignmentsActivity", "تم إعادة بناء قائمة الملفات");
-        });
-    }
+    private void handleDownloadComplete(Intent intent) {
+        long downloadId = intent.getLongExtra(DownloadManager.EXTRA_DOWNLOAD_ID, -1);
+        FileData fileData = downloadIdToFileData.get(downloadId);
+        if (fileData == null) {
+            return;
+        }
 
-    /**
-     * استقبال إشعارات اكتمال التحميل
-     */
-    private BroadcastReceiver downloadReceiver = new BroadcastReceiver() {
-        @Override
-        public void onReceive(Context context, Intent intent) {
-            Log.d("AssignmentsActivity", "تم استلام إشعار اكتمال التحميل");
-            long downloadId = intent.getLongExtra(DownloadManager.EXTRA_DOWNLOAD_ID, -1);
-            FileData fileData = downloadIdToFileData.get(downloadId);
-            if (fileData == null) {
-                Log.e("AssignmentsActivity", "لم يتم العثور على بيانات الملف لمعرف: " + downloadId);
-                return;
-            }
-
-            DownloadManager.Query query = new DownloadManager.Query();
-            query.setFilterById(downloadId);
-            try (Cursor cursor = downloadManager.query(query)) {
-                if (cursor.moveToFirst()) {
-                    int statusIndex = cursor.getColumnIndex(DownloadManager.COLUMN_STATUS);
-                    if (statusIndex == -1) {
-                        Log.e("AssignmentsActivity", "لم يتم العثور على عمود الحالة");
-                        handleDownloadFailure(fileData, downloadId, "عمود الحالة مفقود");
-                        return;
-                    }
-
-                    int status = cursor.getInt(statusIndex);
-                    if (status == DownloadManager.STATUS_SUCCESSFUL) {
-                        Log.d("AssignmentsActivity", "اكتمل تحميل الملف: " + fileData.getFileName());
-                        downloadingFiles.remove(fileData.getFileName());
-                        mainHandler.post(() -> {
-                            triggerVibration();
-                            Snackbar.make(findViewById(R.id.main),
-                                    getString(R.string.download_completed1, fileData.getFileName()),
-                                    Snackbar.LENGTH_SHORT).show();
-                            updateFileList();
-                        });
-                    } else {
-                        Log.e("AssignmentsActivity", "فشل تحميل الملف: " + fileData.getFileName());
-                        handleDownloadFailure(fileData, downloadId, "حالة التحميل: " + status);
-                    }
-                } else {
-                    Log.e("AssignmentsActivity", "لم يتم العثور على بيانات التحميل");
-                    handleDownloadFailure(fileData, downloadId, "لا توجد بيانات تحميل");
+        DownloadManager.Query query = new DownloadManager.Query();
+        query.setFilterById(downloadId);
+        try (Cursor cursor = downloadManager.query(query)) {
+            if (cursor.moveToFirst()) {
+                int statusIndex = cursor.getColumnIndex(DownloadManager.COLUMN_STATUS);
+                if (statusIndex == -1) {
+                    handleDownloadFailure(fileData, downloadId, "عمود الحالة مفقود");
+                    return;
                 }
-            } catch (Exception e) {
-                Log.e("AssignmentsActivity", "خطأ في معالجة التحميل: " + e.getMessage(), e);
-                handleDownloadFailure(fileData, downloadId, "استثناء: " + e.getMessage());
+
+                int status = cursor.getInt(statusIndex);
+                if (status == DownloadManager.STATUS_SUCCESSFUL) {
+                    downloadingFiles.remove(fileData.getFileName());
+                    mainHandler.post(() -> {
+                        triggerVibration();
+                        showSnackbar(getString(R.string.download_completed1, fileData.getFileName()));
+                        updateFileList();
+                    });
+                } else {
+                    handleDownloadFailure(fileData, downloadId, "حالة التحميل: " + status);
+                }
+            } else {
+                handleDownloadFailure(fileData, downloadId, "لا توجد بيانات تحميل");
             }
-            downloadIdToFileData.remove(downloadId);
+        } catch (Exception e) {
+            handleDownloadFailure(fileData, downloadId, "استثناء: " + e.getMessage());
         }
-    };
+        downloadIdToFileData.remove(downloadId);
+    }
 
     /**
      * معالجة فشل التحميل
+     * @param fileData بيانات الملف
+     * @param downloadId معرف التحميل
+     * @param reason سبب الفشل
      */
     private void handleDownloadFailure(FileData fileData, long downloadId, String reason) {
         downloadingFiles.remove(fileData.getFileName());
-        mainHandler.post(() -> {
-            Snackbar.make(findViewById(R.id.main),
-                    getString(R.string.download_failed_with_file, fileData.getFileName()),
-                    Snackbar.LENGTH_SHORT).show();
-        });
-        Log.e("AssignmentsActivity", "فشل التحميل: " + fileData.getFileName() + ", التفاصيل: " + reason);
-    }
-
-    private void updateFavoriteButton() {
-        favoriteButton.setIconResource(isFavorite ? R.drawable.star_selected : R.drawable.star);
-        favoriteButton.setIconTint(ColorStateList.valueOf(Color.WHITE));
-    }
-
-    private boolean isArabicLocale() {
-        SharedPreferences preferences = getSharedPreferences("AppPreferences", MODE_PRIVATE);
-        String selectedLanguage = preferences.getString("selected_language", "en");
-        Log.d("AssignmentsActivity", "Language: " + selectedLanguage);
-        return "ar".equals(selectedLanguage);
-    }
-
-    private String calculateTimeRemaining(String dueDate) {
-        try {
-            SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd",  Locale.ENGLISH);
-            Date due = sdf.parse(dueDate);
-            Date now = new Date();
-            assert due != null;
-            long diff = due.getTime() - now.getTime();
-            if (diff <= 0) {
-                isDueDatePassed = true; // تعيين حالة الموعد النهائي
-                timeRemaining.setTextColor(Color.RED); // تعيين اللون الأحمر
-                return getString(R.string.due_date_passed);
-            }
-            isDueDatePassed = false; // الموعد لم ينته بعد
-            timeRemaining.setTextColor(ContextCompat.getColor(this, R.color.Custom_Black)); // لون افتراضي
-            long days = diff / (1000 * 60 * 60 * 24);
-            long hours = (diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60);
-            return String.format( Locale.ENGLISH, "%d days %d hours", days, hours);
-        } catch (ParseException e) {
-            Log.e("AssignmentsActivity", "Error parsing due date: " + e.getMessage());
-            isDueDatePassed = false;
-            timeRemaining.setTextColor(ContextCompat.getColor(this, R.color.Custom_Black));
-            return "-";
-        }
+        mainHandler.post(() -> showSnackbar(getString(R.string.download_failed_with_file, fileData.getFileName())));
     }
 
     @Override
     protected void onResume() {
         super.onResume();
 
-        // 0. إعادة حساب الوقت المتبقّي إنجليزي
-        Assignment assignment = assignmentRepository.getAssignmentDetails(assignmentId, /* isArabic */ false);
+        // تحديث الوقت المتبقي
+        Assignment assignment = assignmentRepository.getAssignmentDetails(assignmentId, false);
         if (assignment != null) {
-            timeRemaining.setText(calculateTimeRemaining(assignment.getDueDate()));
+            timeRemainingTextView.setText(calculateTimeRemaining(assignment.getDueDate()));
         }
 
-        // 1. جلب حالة الإرسال
-        AssignmentSubmission submission = submissionRepository.getSubmissionStatus(assignmentId, userId);
+        // تحديث حالة الإرسال
+        updateSubmissionStatus();
 
-        if (submission != null) {
-            // أ. حالة الإرسال
-            submissionStatus.setText(submission.getStatus());
-            submissionStatus.setTypeface(ResourcesCompat.getFont(this, R.font.cairo_bold));
-            submissionStatus.setTextColor(getStatusColor(submission.getStatus()));
-
-            // ب. آخر تعديل بصيغة d-M-yyyy
-            String submittedAt = submission.getSubmittedAt();
-            if (submittedAt != null && !submittedAt.isEmpty()) {
-                try {
-                    SimpleDateFormat parser = new SimpleDateFormat("yyyy-MM-dd", Locale.ENGLISH);
-                    Date date = parser.parse(submittedAt);
-                    SimpleDateFormat formatter = new SimpleDateFormat("yyyy-M-d", Locale.ENGLISH);
-                    lastModified.setText(formatter.format(date));
-                } catch (ParseException e) {
-                    lastModified.setText(submittedAt);
-                }
-            } else {
-                lastModified.setText("-");
-            }
-        } else {
-            // لم تُرسل بعد
-            submissionStatus.setText(R.string.no_attempt);
-            lastModified.setText("-");
-        }
-
-        // 2. إعادة بناء قائمة الملفات
+        // تحديث قائمة الملفات
         updateFileList();
-    }
 
-
-
-
-
-    private int getStatusColor(String status) {
-        if (status == null) return ContextCompat.getColor(this, R.color.Custom_Black);
-        switch (status.toLowerCase()) {
-            case "submitted":
-                return ContextCompat.getColor(this, R.color.colorCustomColor3);
-            case "late":
-                return ContextCompat.getColor(this, R.color.colorCustomColor1);
-            default:
-                return ContextCompat.getColor(this, R.color.Custom_Black);
-        }
+        // تحديث حالة المفضلة (إضافة لتحسين السلوك)
+        isFavorite = courseRepository.isCourseFavorite(userId, courseCode);
+        updateFavoriteButton();
     }
 
     @Override
     protected void onDestroy() {
         super.onDestroy();
+
+        // إلغاء تسجيل متلقي التحميل
         try {
             unregisterReceiver(downloadReceiver);
         } catch (IllegalArgumentException e) {
-            Log.e("AssignmentsActivity", "المتلقي غير مسجل", e);
+            // تجاهل الخطأ إذا لم يكن المتلقي مسجلاً
         }
+
+        // إغلاق ExecutorService
         if (executorService != null && !executorService.isShutdown()) {
             executorService.shutdown();
         }

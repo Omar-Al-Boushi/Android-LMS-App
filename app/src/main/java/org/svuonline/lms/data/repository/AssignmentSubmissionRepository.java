@@ -10,23 +10,26 @@ import org.svuonline.lms.R;
 import org.svuonline.lms.data.db.DBContract;
 import org.svuonline.lms.data.db.DatabaseHelper;
 import org.svuonline.lms.data.model.AssignmentSubmission;
+import org.svuonline.lms.data.model.Event;
 import org.svuonline.lms.notifications.AppNotificationManager;
 import org.svuonline.lms.utils.DateTimeUtils;
 
 /**
- * Repository for handling assignment submissions and generating notifications.
+ * Repository for handling assignment submissions, generating notifications, and creating events.
  */
 public class AssignmentSubmissionRepository {
 
     private final DatabaseHelper dbHelper;
     private final NotificationRepository notifRepo;
+    private final EventRepository eventRepository; // إضافة EventRepository
     private final AppNotificationManager appNotif;
-    private final Context context;   // ← إضافة سياق التطبيق
+    private final Context context;
 
     public AssignmentSubmissionRepository(Context context) {
-        this.context = context.getApplicationContext();           // ← تخزين السياق
+        this.context = context.getApplicationContext();
         this.dbHelper = new DatabaseHelper(this.context);
         this.notifRepo = new NotificationRepository(this.context);
+        this.eventRepository = new EventRepository(this.context); // تهيئة EventRepository
         this.appNotif = new AppNotificationManager(this.context);
     }
 
@@ -63,7 +66,7 @@ public class AssignmentSubmissionRepository {
     }
 
     /**
-     * Insert or update a submission, then generate and immediately send corresponding notifications.
+     * Insert or update a submission, create an event for submission, and send notifications.
      */
     public void insertOrUpdateSubmission(long assignmentId,
                                          long userId,
@@ -102,7 +105,7 @@ public class AssignmentSubmissionRepository {
         }
         db.close();
 
-        // --- 2) جلب رمز المقرر لاستخدامه بالرسائل ---
+        // --- 2) جلب رمز المقرر لاستخدامه بالرسائل والحدث ---
         NotificationRepository.CourseInfo info = notifRepo.getCourseInfo(
                 new NotificationRepository.NotificationEntity(
                         0, (int) userId,
@@ -114,11 +117,23 @@ public class AssignmentSubmissionRepository {
         );
         String code = info.code.isEmpty() ? "–" : info.code;
 
-        // نصوص الإشعار
+        // --- 3) إنشاء حدث لتسليم الواجب إذا كان الحالة "Submitted" ---
+        if (status.equals("Submitted")) {
+            Event event = new Event();
+            event.setUserId(userId);
+            event.setTitleEn(String.format("Assignment Submitted for %s", code));
+            event.setTitleAr(String.format("تم تسليم واجب المقرر %s", code));
+            event.setEventDate(submittedAt); // التأكد من أن submittedAt بتنسيق yyyy-MM-dd
+            event.setType("assignment_submission");
+            event.setRelatedId(assignmentId);
+            eventRepository.addEvent(event);
+        }
+
+        // --- 4) نصوص الإشعار ---
         String enSubmitMsg = String.format("Your assignment for %s has been submitted.", code);
         String arSubmitMsg = String.format("تم تسليم واجب المقرر %s.", code);
 
-        // --- 3) إنشاء السجل في DB وإرسال إشعار النظام فوراً ---
+        // --- 5) إنشاء السجل في DB وإرسال إشعار النظام فوراً ---
         long notifyId1 = notifRepo.create(new NotificationRepository.NotificationEntity(
                 0, (int) userId,
                 enSubmitMsg, arSubmitMsg,
@@ -127,6 +142,7 @@ public class AssignmentSubmissionRepository {
                 (int) assignmentId,
                 DateTimeUtils.nowString()
         ));
+
         // اختر اللغة من SharedPreferences
         SharedPreferences lp = context.getSharedPreferences(
                 "AppPreferences", Context.MODE_PRIVATE);
@@ -138,7 +154,7 @@ public class AssignmentSubmissionRepository {
                 lang.equals("ar") ? arSubmitMsg : enSubmitMsg
         );
 
-        // --- 4) إذا كان هناك تقييم جديد، أنشئ الإشعار الثاني وأرسله فوراً ---
+        // --- 6) إذا كان هناك تقييم جديد، أنشئ الإشعار الثاني وأرسله فوراً ---
         if (updated > 0 && grade > 0) {
             String enGradedMsg = String.format("Your assignment for %s has been graded.", code);
             String arGradedMsg = String.format("تم تقييم واجب المقرر %s.", code);

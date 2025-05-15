@@ -79,6 +79,8 @@ public class FileData {
                 return isDownloaded ? R.drawable.docx_white : R.drawable.docx;
             case "doc":
                 return isDownloaded ? R.drawable.doc_white : R.drawable.doc;
+            case "lrec":
+                return isDownloaded ? R.drawable.lrecwhite : R.drawable.lrec;
             case "mp3":
                 return isDownloaded ? R.drawable.mp3_white : R.drawable.mp3;
             case "mp4":

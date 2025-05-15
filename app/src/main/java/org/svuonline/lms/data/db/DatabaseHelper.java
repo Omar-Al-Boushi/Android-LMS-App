@@ -4,6 +4,11 @@ import android.content.Context;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 
+import java.text.SimpleDateFormat;
+import java.time.LocalDate;
+import java.util.Calendar;
+import java.util.Locale;
+
 /**
  * كلاس لإدارة قاعدة البيانات.
  * يقوم بإنشاء الجداول وفق الهيكل المُعرّف في DBContract وتحديثها عند تغيّر إصدار قاعدة البيانات.
@@ -11,7 +16,7 @@ import android.database.sqlite.SQLiteOpenHelper;
 public class DatabaseHelper extends SQLiteOpenHelper {
 
     private static final String DATABASE_NAME = "lms_system.db";  // اسم قاعدة البيانات
-    private static final int DATABASE_VERSION = 7;                     // رقم إصدار قاعدة البيانات
+    private static final int DATABASE_VERSION = 1;                     // رقم إصدار قاعدة البيانات
 
     public DatabaseHelper(Context context) {
         super(context, DATABASE_NAME, null, DATABASE_VERSION);
@@ -605,161 +610,222 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         insertSectionTool(db, "36", "Tools", "أدوات", "file action");
 
         // إدخال بيانات جدول الموارد (Resource)
-        insertResource(db, "1", "Course_Identification.pdf", "https://drive.google.com/uc?export=download&id=1Vk1auP04e77JdHsdivdnEpjd7aU3M8YO", "7", "2024-01-15");
-        insertResource(db, "2", "Textbook_Part1.pdf", "https://drive.google.com/uc?export=download&id=1Vk1auP04e77JdHsdivdnEpjd7aU3M8YO", "7", "2024-01-16");
-        insertResource(db, "2", "Textbook_Part2.pdf", "https://drive.google.com/uc?export=download&id=1Vk1auP04e77JdHsdivdnEpjd7aU3M8YO", "7", "2024-01-17");
-        insertResource(db, "4", "Lecture1_Recording.mp4", "https://drive.google.com/uc?export=download&id=1Vk1auP04e77JdHsdivdnEpjd7aU3M8YO", "7", "2024-01-18");
-        insertResource(db, "5", "Reference_Article1.pdf", "https://drive.google.com/uc?export=download&id=1Vk1auP04e77JdHsdivdnEpjd7aU3M8YO", "7", "2024-01-19");
-        insertResource(db, "6", "Training_Exam_Sample.pdf", "https://drive.google.com/uc?export=download&id=1Vk1auP04e77JdHsdivdnEpjd7aU3M8YO", "7", "2024-01-20");
-        insertResource(db, "7", "Semester_Plan_S24.pdf", "https://drive.google.com/uc?export=download&id=1Vk1auP04e77JdHsdivdnEpjd7aU3M8YO", "7", "2024-01-21");
-        insertResource(db, "9", "Lecture1_Slides.pptx", "https://drive.google.com/uc?export=download&id=1Vk1auP04e77JdHsdivdnEpjd7aU3M8YO", "7", "2024-01-22");
-        insertResource(db, "9", "Lecture2_Slides.pptx", "https://drive.google.com/uc?export=download&id=1Vk1auP04e77JdHsdivdnEpjd7aU3M8YO", "7", "2024-01-23");
-        insertResource(db, "10", "Tool_Usage_Guide.pdf", "https://drive.google.com/uc?export=download&id=1Vk1auP04e77JdHsdivdnEpjd7aU3M8YO", "7", "2024-01-24");
-        insertResource(db, "11", "Course_Identification_C2.pdf", "https://drive.google.com/uc?export=download&id=1Vk1auP04e77JdHsdivdnEpjd7aU3M8YO", "7", "2024-01-25");
-        insertResource(db, "12", "Textbook_C2.pdf", "https://drive.google.com/uc?export=download&id=1Vk1auP04e77JdHsdivdnEpjd7aU3M8YO", "7", "2024-01-26");
-        insertResource(db, "14", "Recorded_Session_C2.mp4", "https://drive.google.com/uc?export=download&id=1Vk1auP04e77JdHsdivdnEpjd7aU3M8YO", "7", "2024-01-27");
-        insertResource(db, "15", "References_C2.pdf", "https://drive.google.com/uc?export=download&id=1Vk1auP04e77JdHsdivdnEpjd7aU3M8YO", "7", "2024-01-28");
-        insertResource(db, "16", "Training_Exam_C2.pdf", "https://drive.google.com/uc?export=download&id=1Vk1auP04e77JdHsdivdnEpjd7aU3M8YO", "7", "2024-01-29");
-        insertResource(db, "17", "Lecture_Slides_C2_F21.pptx", "https://drive.google.com/uc?export=download&id=1Vk1auP04e77JdHsdivdnEpjd7aU3M8YO", "7", "2024-01-30");
-        insertResource(db, "18", "Course_Identification_C3.pdf", "https://drive.google.com/uc?export=download&id=1Vk1auP04e77JdHsdivdnEpjd7aU3M8YO", "7", "2024-01-31");
-        insertResource(db, "19", "Book_C3_Part1.pdf", "https://drive.google.com/uc?export=download&id=1Vk1auP04e77JdHsdivdnEpjd7aU3M8YO", "7", "2024-02-01");
-        insertResource(db, "19", "Book_C3_Part2.pdf", "https://drive.google.com/uc?export=download&id=1Vk1auP04e77JdHsdivdnEpjd7aU3M8YO", "7", "2024-02-02");
-        insertResource(db, "21", "Recorded_Session_C3_Week1.mp4", "https://drive.google.com/uc?export=download&id=1Vk1auP04e77JdHsdivdnEpjd7aU3M8YO", "7", "2024-02-03");
-        insertResource(db, "21", "Recorded_Session_C3_Week2.mp4", "https://drive.google.com/uc?export=download&id=1Vk1auP04e77JdHsdivdnEpjd7aU3M8YO", "7", "2024-02-04");
-        insertResource(db, "22", "Reference_C3_Source1.pdf", "https://drive.google.com/uc?export=download&id=1Vk1auP04e77JdHsdivdnEpjd7aU3M8YO", "7", "2024-02-05");
-        insertResource(db, "22", "Reference_C3_Source2.pdf", "https://drive.google.com/uc?export=download&id=1Vk1auP04e77JdHsdivdnEpjd7aU3M8YO", "7", "2024-02-06");
-        insertResource(db, "23", "Training_Exam_C3_Midterm.pdf", "https://drive.google.com/uc?export=download&id=1Vk1auP04e77JdHsdivdnEpjd7aU3M8YO", "7", "2024-02-07");
-        insertResource(db, "24", "Semester_Plan_C3_S24.pdf", "https://drive.google.com/uc?export=download&id=1Vk1auP04e77JdHsdivdnEpjd7aU3M8YO", "7", "2024-02-08");
-        insertResource(db, "26", "Lecture_Slides_C3_S24_Week1.pptx", "https://drive.google.com/uc?export=download&id=1Vk1auP04e77JdHsdivdnEpjd7aU3M8YO", "7", "2024-02-09");
-        insertResource(db, "26", "Lecture_Slides_C3_S24_Week2.pptx", "https://drive.google.com/uc?export=download&id=1Vk1auP04e77JdHsdivdnEpjd7aU3M8YO", "7", "2024-02-10");
-        insertResource(db, "28", "Slides_C3_F21.pptx", "https://drive.google.com/uc?export=download&id=1Vk1auP04e77JdHsdivdnEpjd7aU3M8YO", "7", "2024-02-11");
-        insertResource(db, "34", "MATLAB_Intro.pdf", "https://drive.google.com/uc?export=download&id=1Vk1auP04e77JdHsdivdnEpjd7aU3M8YO", "7", "2024-02-12");
-        insertResource(db, "35", "IDM_Installation.pdf", "https://drive.google.com/uc?export=download&id=1Vk1auP04e77JdHsdivdnEpjd7aU3M8YO", "7", "2024-02-13");
-        insertResource(db, "36", "PacketTracer_Guide.pdf", "https://drive.google.com/uc?export=download&id=1Vk1auP04e77JdHsdivdnEpjd7aU3M8YO", "7", "2024-02-14");
-        insertResource(db, "37", "VisualStudio_Setup.pdf", "https://drive.google.com/uc?export=download&id=1Vk1auP04e77JdHsdivdnEpjd7aU3M8YO", "7", "2024-02-15");
-        insertResource(db, "38", "EMU_Tutorial.pdf", "https://drive.google.com/uc?export=download&id=1Vk1auP04e77JdHsdivdnEpjd7aU3M8YO", "7", "2024-02-16");
-        insertResource(db, "39", "VLC_Manual.pdf", "https://drive.google.com/uc?export=download&id=1Vk1auP04e77JdHsdivdnEpjd7aU3M8YO", "7", "2024-02-17");
-        insertResource(db, "40", "Course_Identification_C4.pdf", "https://drive.google.com/uc?export=download&id=1Vk1auP04e77JdHsdivdnEpjd7aU3M8YO", "7", "2024-02-18");
-        insertResource(db, "41", "Book_C4.pdf", "https://drive.google.com/uc?export=download&id=1Vk1auP04e77JdHsdivdnEpjd7aU3M8YO", "7", "2024-02-19");
-        insertResource(db, "43", "Recorded_Sessions_C4_Part1.mp4", "https://drive.google.com/uc?export=download&id=1Vk1auP04e77JdHsdivdnEpjd7aU3M8YO", "7", "2024-02-20");
-        insertResource(db, "43", "Recorded_Sessions_C4_Part2.mp4", "https://drive.google.com/uc?export=download&id=1Vk1auP04e77JdHsdivdnEpjd7aU3M8YO", "7", "2024-02-21");
-        insertResource(db, "44", "References_C4_Doc.pdf", "https://drive.google.com/uc?export=download&id=1Vk1auP04e77JdHsdivdnEpjd7aU3M8YO", "7", "2024-02-22");
-        insertResource(db, "45", "Training_Exam_C4.pdf", "https://drive.google.com/uc?export=download&id=1Vk1auP04e77JdHsdivdnEpjd7aU3M8YO", "7", "2024-02-23");
-        insertResource(db, "46", "Semester_Plan_C4_S24.pdf", "https://drive.google.com/uc?export=download&id=1Vk1auP04e77JdHsdivdnEpjd7aU3M8YO", "7", "2024-02-24");
-        insertResource(db, "48", "Slides_C4_S24_TopicA.pptx", "https://drive.google.com/uc?export=download&id=1Vk1auP04e77JdHsdivdnEpjd7aU3M8YO", "7", "2024-02-25");
-        insertResource(db, "48", "Slides_C4_S24_TopicB.pptx", "https://drive.google.com/uc?export=download&id=1Vk1auP04e77JdHsdivdnEpjd7aU3M8YO", "7", "2024-02-26");
-        insertResource(db, "49", "Tool_Guide_C4.pdf", "https://drive.google.com/uc?export=download&id=1Vk1auP04e77JdHsdivdnEpjd7aU3M8YO", "7", "2024-02-27");
-        insertResource(db, "50", "Slides_C4_F21.pptx", "https://drive.google.com/uc?export=download&id=1Vk1auP04e77JdHsdivdnEpjd7aU3M8YO", "7", "2024-02-28");
-        insertResource(db, "51", "MATLAB_Guide_C4.pdf", "https://drive.google.com/uc?export=download&id=1Vk1auP04e77JdHsdivdnEpjd7aU3M8YO", "7", "2024-02-29");
-        insertResource(db, "52", "IDM_C4.pdf", "https://drive.google.com/uc?export=download&id=1Vk1auP04e77JdHsdivdnEpjd7aU3M8YO", "7", "2024-03-01");
-        insertResource(db, "53", "PacketTracer_C4.pdf", "https://drive.google.com/uc?export=download&id=1Vk1auP04e77JdHsdivdnEpjd7aU3M8YO", "7", "2024-03-02");
-        insertResource(db, "54", "VisualStudio_C4.pdf", "https://drive.google.com/uc?export=download&id=1Vk1auP04e77JdHsdivdnEpjd7aU3M8YO", "7", "2024-03-03");
-        insertResource(db, "55", "EMU_C4.pdf", "https://drive.google.com/uc?export=download&id=1Vk1auP04e77JdHsdivdnEpjd7aU3M8YO", "7", "2024-03-04");
-        insertResource(db, "56", "VLC_C4.pdf", "https://drive.google.com/uc?export=download&id=1Vk1auP04e77JdHsdivdnEpjd7aU3M8YO", "7", "2024-03-05");
-        insertResource(db, "57", "Course_Identification_C5.pdf", "https://drive.google.com/uc?export=download&id=1Vk1auP04e77JdHsdivdnEpjd7aU3M8YO", "7", "2024-03-06");
-        insertResource(db, "58", "Book_C5_V1.pdf", "https://drive.google.com/uc?export=download&id=1Vk1auP04e77JdHsdivdnEpjd7aU3M8YO", "7", "2024-03-07");
-        insertResource(db, "58", "Book_C5_V2.pdf", "https://drive.google.com/uc?export=download&id=1Vk1auP04e77JdHsdivdnEpjd7aU3M8YO", "7", "2024-03-08");
-        insertResource(db, "60", "Recorded_Sessions_C5.mp4", "https://drive.google.com/uc?export=download&id=1Vk1auP04e77JdHsdivdnEpjd7aU3M8YO", "7", "2024-03-09");
-        insertResource(db, "61", "References_C5_Ch1.pdf", "https://drive.google.com/uc?export=download&id=1Vk1auP04e77JdHsdivdnEpjd7aU3M8YO", "7", "2024-03-10");
-        insertResource(db, "62", "Training_Exam_C5_Final.pdf", "https://drive.google.com/uc?export=download&id=1Vk1auP04e77JdHsdivdnEpjd7aU3M8YO", "7", "2024-03-11");
-        insertResource(db, "63", "Semester_Plan_C5_S24.pdf", "", "7", "2024-03-12");
-        insertResource(db, "65", "Slides_C5_S24_Week1.pptx", "", "7", "2024-03-13");
-        insertResource(db, "65", "Slides_C5_S24_Week2.pptx", "", "7", "2024-03-14");
-        insertResource(db, "66", "Tool_Guide_C5.pdf", "", "7", "2024-03-15");
-        insertResource(db, "67", "Course_Identification_C6.pdf", "", "7", "2024-03-16");
-        insertResource(db, "68", "Book_C6.pdf", "", "7", "2024-03-17");
-        insertResource(db, "70", "Recorded_Sessions_C6.mp4", "", "7", "2024-03-18");
-        insertResource(db, "71", "References_C6.pdf", "", "7", "2024-03-19");
-        insertResource(db, "72", "Training_Exam_C6.pdf", "", "7", "2024-03-20");
-        insertResource(db, "73", "Semester_Plan_C6_S24.pdf", "", "7", "2024-03-21");
-        insertResource(db, "75", "Slides_C6_S24_Intro.pptx", "", "7", "2024-03-22");
-        insertResource(db, "76", "Tool_Info_C6.pdf", "", "7", "2024-03-23");
-        insertResource(db, "77", "MATLAB_Exercise_C6.m", "", "7", "2024-03-24");
-        insertResource(db, "78", "IDM_Usage_C6.pdf", "", "7", "2024-03-25");
-        insertResource(db, "79", "PacketTracer_Lab_C6.pka", "", "7", "2024-03-26");
-        insertResource(db, "80", "VisualStudio_Project_C6.zip", "", "7", "2024-03-27");
-        insertResource(db, "81", "EMU_Config_C6.txt", "", "7", "2024-03-28");
-        insertResource(db, "82", "VLC_Tips_C6.pdf", "", "7", "2024-03-29");
-        insertResource(db, "83", "Course_Identification_C7.pdf", "", "7", "2024-03-30");
-        insertResource(db, "84", "Book_C7_Ch1.pdf", "", "7", "2024-03-31");
-        insertResource(db, "84", "Book_C7_Ch2.pdf", "", "7", "2024-04-01");
-        insertResource(db, "86", "Recorded_Sessions_C7_Week1.mp4", "", "7", "2024-04-02");
-        insertResource(db, "86", "Recorded_Sessions_C7_Week2.mp4", "", "7", "2024-04-03");
-        insertResource(db, "87", "References_C7_SourceA.pdf", "", "7", "2024-04-04");
-        insertResource(db, "87", "References_C7_SourceB.pdf", "", "7", "2024-04-05");
-        insertResource(db, "88", "Training_Exam_C7_Sample.pdf", "", "7", "2024-04-06");
-        insertResource(db, "89", "Semester_Plan_C7_S24.pdf", "", "7", "2024-04-07");
-        insertResource(db, "91", "Slides_C7_S24_TopicX.pptx", "", "7", "2024-04-08");
-        insertResource(db, "91", "Slides_C7_S24_TopicY.pptx", "", "7", "2024-04-09");
-        insertResource(db, "92", "Tool_Usage_C7.pdf", "", "7", "2024-04-10");
-        insertResource(db, "93", "Slides_C7_F21.pptx", "", "7", "2024-04-11");
-        insertResource(db, "94", "MATLAB_Guide_C7.pdf", "", "7", "2024-04-12");
-        insertResource(db, "95", "IDM_C7.pdf", "", "7", "2024-04-13");
-        insertResource(db, "96", "PacketTracer_C7.pka", "", "7", "2024-04-14");
-        insertResource(db, "97", "VisualStudio_C7.zip", "", "7", "2024-04-15");
-        insertResource(db, "98", "EMU_C7.txt", "", "7", "2024-04-16");
-        insertResource(db, "99", "VLC_C7.pdf", "", "7", "2024-04-17");
-        insertResource(db, "100", "Course_Identification_C8.pdf", "", "7", "2024-04-18");
-        insertResource(db, "101", "Book_C8.pdf", "", "7", "2024-04-19");
-        insertResource(db, "103", "Recorded_Sessions_C8.mp4", "", "7", "2024-04-20");
-        insertResource(db, "104", "References_C8.pdf", "", "7", "2024-04-21");
-        insertResource(db, "105", "Training_Exam_C8.pdf", "", "7", "2024-04-22");
-        insertResource(db, "106", "Semester_Plan_C8_S24.pdf", "", "7", "2024-04-23");
-        insertResource(db, "108", "Slides_C8_S24.pptx", "", "7", "2024-04-24");
-        insertResource(db, "109", "Tool_Manual_C8.pdf", "", "7", "2024-04-25");
-        insertResource(db, "110", "Slides_C8_F21.pptx", "", "7", "2024-04-26");
-        insertResource(db, "111", "Course_Identification_C9.pdf", "", "7", "2024-04-27");
-        insertResource(db, "112", "Book_C9_Vol1.pdf", "", "7", "2024-04-28");
-        insertResource(db, "112", "Book_C9_Vol2.pdf", "", "7", "2024-04-29");
-        insertResource(db, "114", "Recorded_Sessions_C9_Week1.mp4", "", "7", "2024-04-30");
-        insertResource(db, "115", "References_C9_Article.pdf", "", "7", "2024-05-01");
-        insertResource(db, "116", "Training_Exam_C9.pdf", "", "7", "2024-05-02");
-        insertResource(db, "117", "Semester_Plan_C9_S24.pdf", "", "7", "2024-05-03");
-        insertResource(db, "119", "Slides_C9_S24_Unit1.pptx", "", "7", "2024-05-04");
-        insertResource(db, "119", "Slides_C9_S24_Unit2.pptx", "", "7", "2024-05-05");
-        insertResource(db, "120", "Tool_Help_C9.pdf", "", "7", "2024-05-06");
-        insertResource(db, "121", "MATLAB_Reference_C9.pdf", "", "7", "2024-05-07");
-        insertResource(db, "122", "IDM_Guide_C9.pdf", "", "7", "2024-05-08");
-        insertResource(db, "123", "PacketTracer_Instructions_C9.pdf", "", "7", "2024-05-09");
-        insertResource(db, "124", "VisualStudio_Tutorial_C9.pdf", "", "7", "2024-05-10");
-        insertResource(db, "125", "EMU_Setup_C9.pdf", "", "7", "2024-05-11");
-        insertResource(db, "126", "VLC_Tips_and_Tricks_C9.pdf", "", "7", "2024-05-12");
-        insertResource(db, "127", "Course_Identification_C10.pdf", "", "7", "2024-05-13");
-        insertResource(db, "128", "Book_C10_Intro.pdf", "", "7", "2024-05-14");
-        insertResource(db, "128", "Book_C10_Advanced.pdf", "", "7", "2024-05-15");
-        insertResource(db, "130", "Recorded_Sessions_C10_Lecture1.mp4", "", "7", "2024-05-16");
-        insertResource(db, "130", "Recorded_Sessions_C10_Lecture2.mp4", "", "7", "2024-05-17");
-        insertResource(db, "131", "References_C10_Paper.pdf", "", "7", "2024-05-18");
-        insertResource(db, "132", "Training_Exam_C10.pdf", "", "7", "2024-05-19");
-        insertResource(db, "133", "Semester_Plan_C10_S24.pdf", "", "7", "2024-05-20");
-        insertResource(db, "135", "Slides_C10_S24_TopicA.pptx", "", "7", "2024-05-21");
-        insertResource(db, "135", "Slides_C10_S24_TopicB.pptx", "", "7", "2024-05-22");
-        insertResource(db, "136", "Tool_Documentation_C10.pdf", "", "7", "2024-05-23");
-        insertResource(db, "137", "Slides_C10_F21.pptx", "", "7", "2024-05-24");
-        insertResource(db, "138", "MATLAB_Exercises_C10.zip", "", "7", "2024-05-25");
-        insertResource(db, "139", "IDM_Manual_C10.pdf", "", "7", "2024-05-26");
-        insertResource(db, "140", "PacketTracer_Activities_C10.pka", "", "7", "2024-05-27");
-        insertResource(db, "141", "VisualStudio_Samples_C10.zip", "", "7", "2024-05-28");
-        insertResource(db, "142", "EMU_Guide_C10.pdf", "", "7", "2024-05-29");
-        insertResource(db, "143", "VLC_Playback_Tips_C10.pdf", "", "7", "2024-05-30");
-        insertResource(db, "144", "Course_Identification_C11.pdf", "", "7", "2024-05-31");
-        insertResource(db, "145", "Book_C11.pdf", "", "7", "2024-06-01");
-        insertResource(db, "147", "Recorded_Sessions_C11.mp4", "", "7", "2024-06-02");
-        insertResource(db, "148", "References_C11.pdf", "", "7", "2024-06-03");
-        insertResource(db, "149", "Training_Exam_C11.pdf", "", "7", "2024-06-04");
-        insertResource(db, "150", "Semester_Plan_C11_S24.pdf", "", "7", "2024-06-05");
-        insertResource(db, "152", "Slides_C11_S24.pptx", "", "7", "2024-06-06");
-        insertResource(db, "153", "Tool_Guide_C11.pdf", "", "7", "2024-06-07");
-        insertResource(db, "154", "Slides_C11_F21.pptx", "", "7", "2024-06-08");
-        insertResource(db, "155", "Course_Identification_C12.pdf", "", "7", "2024-06-09");
-        insertResource(db, "156", "Book_C12.pdf", "", "7", "2024-06-10");
-        insertResource(db, "158", "Recorded_Sessions_C12.mp4", "", "7", "2024-06-11");
-        insertResource(db, "159", "References_C12.pdf", "", "7", "2024-06-12");
-        insertResource(db, "160", "Training_Exam_C12.pdf", "", "7", "2024-06-13");
-        insertResource(db, "161", "Semester_Plan_C12_S24.pdf", "", "7", "2024-06-14");
-        insertResource(db, "163", "Slides_C12_S24.pptx", "", "7", "2024-06-15");
-        insertResource(db, "164", "Tool_Info_C12.pdf", "", "7", "2024-06-16");
+        String filePath = "https://drive.google.com/uc?export=download&id=1Vk1auP04e77JdHsdivdnEpjd7aU3M8YO";
+        int dateCounter = 0; // لتتبع التواريخ
 
+// BMN203 (Course ID: 1, Section IDs: 1-2)
+        insertResource(db, "1", "Course_Identification.pdf", filePath, "7", getDate(dateCounter++)); // Course Identification
+        for (int i = 1; i <= 12; i++) {
+            insertResource(db, "2", "Chapter_Number_" + i + ".pdf", filePath, "7", getDate(dateCounter++)); // Book / PDF
+        }
+        for (int i = 1; i <= 12; i++) {
+            insertResource(db, "4", "Session_Number_" + i + ".lrec", filePath, "7", getDate(dateCounter++)); // Recorded Sessions
+        }
+        insertResource(db, "5", "Reference_1.pdf", filePath, "7", getDate(dateCounter++)); // References
+        insertResource(db, "6", "Practice_Exam_1.pdf", filePath, "7", getDate(dateCounter++)); // Training Exam
+        insertResource(db, "7", "Schedule_S24.pdf", filePath, "7", getDate(dateCounter++)); // Semester Plan
+        insertResource(db, "9", "Presentation_1.pptx", filePath, "7", getDate(dateCounter++)); // Slides / PowerPoint
+        insertResource(db, "9", "Presentation_2.pptx", filePath, "7", getDate(dateCounter++)); // Slides / PowerPoint
+        insertResource(db, "10", "Tool_Guide_BMN203.pdf", filePath, "7", getDate(dateCounter++)); // Tools
+
+        // BQM304 (Course ID: 2, Section IDs: 3-4)
+        insertResource(db, "11", "Course_Identification.pdf", filePath, "7", getDate(dateCounter++)); // Course Identification
+        for (int i = 1; i <= 12; i++) {
+            insertResource(db, "12", "Chapter_Number_" + i + ".pdf", filePath, "7", getDate(dateCounter++)); // Book / PDF
+        }
+        for (int i = 1; i <= 12; i++) {
+            insertResource(db, "14", "Session_Number_" + i + ".lrec", filePath, "7", getDate(dateCounter++)); // Recorded Sessions
+        }
+        insertResource(db, "15", "Reference_2.pdf", filePath, "7", getDate(dateCounter++)); // References
+        insertResource(db, "16", "Practice_Exam_2.pdf", filePath, "7", getDate(dateCounter++)); // Training Exam
+        insertResource(db, "17", "Presentation_3.pptx", filePath, "7", getDate(dateCounter++)); // Slides / PowerPoint
+
+        // CCN401 (Course ID: 3, Section IDs: 5-8)
+        insertResource(db, "18", "Course_Identification.pdf", filePath, "7", getDate(dateCounter++)); // Course Identification
+        for (int i = 1; i <= 12; i++) {
+            insertResource(db, "19", "Chapter_Number_" + i + ".pdf", filePath, "7", getDate(dateCounter++)); // Book / PDF
+        }
+        for (int i = 1; i <= 12; i++) {
+            insertResource(db, "21", "Session_Number_" + i + ".lrec", filePath, "7", getDate(dateCounter++)); // Recorded Sessions
+        }
+        insertResource(db, "22", "Reference_3.pdf", filePath, "7", getDate(dateCounter++)); // References
+        insertResource(db, "22", "Reference_4.pdf", filePath, "7", getDate(dateCounter++)); // References
+        insertResource(db, "23", "Practice_Exam_3.pdf", filePath, "7", getDate(dateCounter++)); // Training Exam
+        insertResource(db, "24", "Schedule_S24.pdf", filePath, "7", getDate(dateCounter++)); // Semester Plan
+        insertResource(db, "26", "Presentation_4.pptx", filePath, "7", getDate(dateCounter++)); // Slides / PowerPoint
+        insertResource(db, "26", "Presentation_5.pptx", filePath, "7", getDate(dateCounter++)); // Slides / PowerPoint
+        insertResource(db, "28", "Presentation_6.pptx", filePath, "7", getDate(dateCounter++)); // Slides / PowerPoint
+
+        // CCN403 (Course ID: 4, Section IDs: 9-12)
+        insertResource(db, "29", "MATLAB.rar", filePath, "7", getDate(dateCounter++)); // MATLAB
+        insertResource(db, "30", "IDM.rar", filePath, "7", getDate(dateCounter++)); // IDM
+        insertResource(db, "31", "PacketTracer_1.pka", filePath, "7", getDate(dateCounter++)); // PacketTracer
+        insertResource(db, "32", "VisualStudio_Guide.pdf", filePath, "7", getDate(dateCounter++)); // VisualStudio
+        insertResource(db, "33", "EMU_Guide.pdf", filePath, "7", getDate(dateCounter++)); // EMU
+        insertResource(db, "34", "VLC.exe", filePath, "7", getDate(dateCounter++)); // VLC
+        insertResource(db, "35", "Course_Identification.pdf", filePath, "7", getDate(dateCounter++)); // Course Identification
+        for (int i = 1; i <= 12; i++) {
+            insertResource(db, "36", "Chapter_Number_" + i + ".pdf", filePath, "7", getDate(dateCounter++)); // Book / PDF
+        }
+        for (int i = 1; i <= 12; i++) {
+            insertResource(db, "38", "Session_Number_" + i + ".lrec", filePath, "7", getDate(dateCounter++)); // Recorded Sessions
+        }
+        insertResource(db, "39", "Reference_5.pdf", filePath, "7", getDate(dateCounter++)); // References
+        insertResource(db, "40", "Practice_Exam_4.pdf", filePath, "7", getDate(dateCounter++)); // Training Exam
+        insertResource(db, "41", "Schedule_S24.pdf", filePath, "7", getDate(dateCounter++)); // Semester Plan
+        insertResource(db, "43", "Presentation_7.pptx", filePath, "7", getDate(dateCounter++)); // Slides / PowerPoint
+        insertResource(db, "43", "Presentation_8.pptx", filePath, "7", getDate(dateCounter++)); // Slides / PowerPoint
+        insertResource(db, "44", "Tool_Guide_CCN403.pdf", filePath, "7", getDate(dateCounter++)); // Tools
+        insertResource(db, "45", "Presentation_9.pptx", filePath, "7", getDate(dateCounter++)); // Slides / PowerPoint
+        insertResource(db, "46", "MATLAB_2.rar", filePath, "7", getDate(dateCounter++)); // MATLAB (استخدام .rar)
+        insertResource(db, "47", "IDM_2.pdf", filePath, "7", getDate(dateCounter++)); // IDM
+        insertResource(db, "48", "PacketTracer_2.pka", filePath, "7", getDate(dateCounter++)); // PacketTracer
+        insertResource(db, "49", "VisualStudio_2.rar", filePath, "7", getDate(dateCounter++)); // VisualStudio (استخدام .rar)
+        insertResource(db, "50", "EMU_2.pdf", filePath, "7", getDate(dateCounter++)); // EMU
+        insertResource(db, "51", "VLC_2.pdf", filePath, "7", getDate(dateCounter++)); // VLC
+
+        // CEE203 (Course ID: 5, Section IDs: 13-14)
+        insertResource(db, "52", "Course_Identification.pdf", filePath, "7", getDate(dateCounter++)); // Course Identification
+        for (int i = 1; i <= 12; i++) {
+            insertResource(db, "53", "Chapter_Number_" + i + ".pdf", filePath, "7", getDate(dateCounter++)); // Book / PDF
+        }
+        for (int i = 1; i <= 12; i++) {
+            insertResource(db, "55", "Session_Number_" + i + ".lrec", filePath, "7", getDate(dateCounter++)); // Recorded Sessions
+        }
+        insertResource(db, "56", "Reference_6.pdf", filePath, "7", getDate(dateCounter++)); // References
+        insertResource(db, "57", "Practice_Exam_5.pdf", filePath, "7", getDate(dateCounter++)); // Training Exam
+        insertResource(db, "58", "Schedule_S24.pdf", filePath, "7", getDate(dateCounter++)); // Semester Plan
+        insertResource(db, "60", "Presentation_10.pptx", filePath, "7", getDate(dateCounter++)); // Slides / PowerPoint
+        insertResource(db, "60", "Presentation_11.pptx", filePath, "7", getDate(dateCounter++)); // Slides / PowerPoint
+        insertResource(db, "61", "Tool_Guide_CEE203.pdf", filePath, "7", getDate(dateCounter++)); // Tools
+
+        // CEE205 (Course ID: 6, Section IDs: 15-17)
+        insertResource(db, "62", "Course_Identification.pdf", filePath, "7", getDate(dateCounter++)); // Course Identification
+        for (int i = 1; i <= 12; i++) {
+            insertResource(db, "63", "Chapter_Number_" + i + ".pdf", filePath, "7", getDate(dateCounter++)); // Book / PDF
+        }
+        for (int i = 1; i <= 12; i++) {
+            insertResource(db, "65", "Session_Number_" + i + ".lrec", filePath, "7", getDate(dateCounter++)); // Recorded Sessions
+        }
+        insertResource(db, "66", "Reference_7.pdf", filePath, "7", getDate(dateCounter++)); // References
+        insertResource(db, "67", "Practice_Exam_6.pdf", filePath, "7", getDate(dateCounter++)); // Training Exam
+        insertResource(db, "68", "Schedule_S24.pdf", filePath, "7", getDate(dateCounter++)); // Semester Plan
+        insertResource(db, "70", "Presentation_12.pptx", filePath, "7", getDate(dateCounter++)); // Slides / PowerPoint
+        insertResource(db, "71", "Tool_Guide_CEE205.pdf", filePath, "7", getDate(dateCounter++)); // Tools
+        insertResource(db, "72", "MATLAB_1.m", filePath, "7", getDate(dateCounter++)); // MATLAB
+        insertResource(db, "73", "IDM.rar", filePath, "7", getDate(dateCounter++)); // IDM
+        insertResource(db, "74", "PacketTracer_3.pka", filePath, "7", getDate(dateCounter++)); // PacketTracer
+        insertResource(db, "75", "VisualStudio_3.zip", filePath, "7", getDate(dateCounter++)); // VisualStudio (استخدام .zip)
+        insertResource(db, "76", "EMU_Guide.pdf", filePath, "7", getDate(dateCounter++)); // EMU
+        insertResource(db, "77", "VLC.exe", filePath, "7", getDate(dateCounter++)); // VLC
+
+        // GMA204 (Course ID: 7, Section IDs: 18-21)
+        insertResource(db, "78", "Course_Identification.pdf", filePath, "7", getDate(dateCounter++)); // Course Identification
+        for (int i = 1; i <= 12; i++) {
+            insertResource(db, "79", "Chapter_Number_" + i + ".pdf", filePath, "7", getDate(dateCounter++)); // Book / PDF
+        }
+        for (int i = 1; i <= 12; i++) {
+            insertResource(db, "81", "Session_Number_" + i + ".lrec", filePath, "7", getDate(dateCounter++)); // Recorded Sessions
+        }
+        insertResource(db, "82", "Reference_8.pdf", filePath, "7", getDate(dateCounter++)); // References
+        insertResource(db, "82", "Reference_9.pdf", filePath, "7", getDate(dateCounter++)); // References
+        insertResource(db, "83", "Practice_Exam_7.pdf", filePath, "7", getDate(dateCounter++)); // Training Exam
+        insertResource(db, "84", "Schedule_S24.pdf", filePath, "7", getDate(dateCounter++)); // Semester Plan
+        insertResource(db, "86", "Presentation_13.pptx", filePath, "7", getDate(dateCounter++)); // Slides / PowerPoint
+        insertResource(db, "86", "Presentation_14.pptx", filePath, "7", getDate(dateCounter++)); // Slides / PowerPoint
+        insertResource(db, "87", "Tool_Guide_GMA204.pdf", filePath, "7", getDate(dateCounter++)); // Tools
+        insertResource(db, "88", "Presentation_15.pptx", filePath, "7", getDate(dateCounter++)); // Slides / PowerPoint
+        insertResource(db, "89", "MATLAB.rar", filePath, "7", getDate(dateCounter++)); // MATLAB
+        insertResource(db, "90", "IDM.rar", filePath, "7", getDate(dateCounter++)); // IDM
+        insertResource(db, "91", "PacketTracer_4.pka", filePath, "7", getDate(dateCounter++)); // PacketTracer
+        insertResource(db, "92", "VisualStudio_4.zip", filePath, "7", getDate(dateCounter++)); // VisualStudio (استخدام .zip)
+        insertResource(db, "93", "EMU_Guide.pdf", filePath, "7", getDate(dateCounter++)); // EMU
+        insertResource(db, "94", "VLC.exe", filePath, "7", getDate(dateCounter++)); // VLC
+
+        // GMA205 (Course ID: 8, Section IDs: 22-24)
+        insertResource(db, "95", "Course_Identification.pdf", filePath, "7", getDate(dateCounter++)); // Course Identification
+        for (int i = 1; i <= 12; i++) {
+            insertResource(db, "96", "Chapter_Number_" + i + ".pdf", filePath, "7", getDate(dateCounter++)); // Book / PDF
+        }
+        for (int i = 1; i <= 12; i++) {
+            insertResource(db, "98", "Session_Number_" + i + ".lrec", filePath, "7", getDate(dateCounter++)); // Recorded Sessions
+        }
+        insertResource(db, "99", "Reference_10.pdf", filePath, "7", getDate(dateCounter++)); // References
+        insertResource(db, "100", "Practice_Exam_8.pdf", filePath, "7", getDate(dateCounter++)); // Training Exam
+        insertResource(db, "101", "Schedule_S24.pdf", filePath, "7", getDate(dateCounter++)); // Semester Plan
+        insertResource(db, "103", "Presentation_16.pptx", filePath, "7", getDate(dateCounter++)); // Slides / PowerPoint
+        insertResource(db, "104", "Tool_Guide_GMA205.pdf", filePath, "7", getDate(dateCounter++)); // Tools
+        insertResource(db, "105", "Presentation_17.pptx", filePath, "7", getDate(dateCounter++)); // Slides / PowerPoint
+
+        // INT101 (Course ID: 9, Section IDs: 25-27)
+        insertResource(db, "106", "Course_Identification.pdf", filePath, "7", getDate(dateCounter++)); // Course Identification
+        for (int i = 1; i <= 12; i++) {
+            insertResource(db, "107", "Chapter_Number_" + i + ".pdf", filePath, "7", getDate(dateCounter++)); // Book / PDF
+        }
+        for (int i = 1; i <= 12; i++) {
+            insertResource(db, "109", "Session_Number_" + i + ".lrec", filePath, "7", getDate(dateCounter++)); // Recorded Sessions
+        }
+        insertResource(db, "110", "Reference_11.pdf", filePath, "7", getDate(dateCounter++)); // References
+        insertResource(db, "111", "Practice_Exam_9.pdf", filePath, "7", getDate(dateCounter++)); // Training Exam
+        insertResource(db, "112", "Schedule_S24.pdf", filePath, "7", getDate(dateCounter++)); // Semester Plan
+        insertResource(db, "114", "Presentation_18.pptx", filePath, "7", getDate(dateCounter++)); // Slides / PowerPoint
+        insertResource(db, "114", "Presentation_19.pptx", filePath, "7", getDate(dateCounter++)); // Slides / PowerPoint
+        insertResource(db, "115", "Tool_Guide_INT101.pdf", filePath, "7", getDate(dateCounter++)); // Tools
+        insertResource(db, "116", "MATLAB.rar", filePath, "7", getDate(dateCounter++)); // MATLAB
+        insertResource(db, "117", "IDM.rar", filePath, "7", getDate(dateCounter++)); // IDM
+        insertResource(db, "118", "PacketTracer_5.pka", filePath, "7", getDate(dateCounter++)); // PacketTracer
+        insertResource(db, "119", "VisualStudio_5.zip", filePath, "7", getDate(dateCounter++)); // VisualStudio (استخدام .zip)
+        insertResource(db, "120", "EMU_Guide.pdf", filePath, "7", getDate(dateCounter++)); // EMU
+        insertResource(db, "121", "VLC.exe", filePath, "7", getDate(dateCounter++)); // VLC
+
+        // IPG101 (Course ID: 11, Section IDs: 32-34)
+        insertResource(db, "122", "Course_Identification.pdf", filePath, "7", getDate(dateCounter++)); // Course Identification
+        for (int i = 1; i <= 12; i++) {
+            insertResource(db, "123", "Chapter_Number_" + i + ".pdf", filePath, "7", getDate(dateCounter++)); // Book / PDF
+        }
+        for (int i = 1; i <= 12; i++) {
+            insertResource(db, "125", "Session_Number_" + i + ".lrec", filePath, "7", getDate(dateCounter++)); // Recorded Sessions
+        }
+        insertResource(db, "126", "Reference_12.pdf", filePath, "7", getDate(dateCounter++)); // References
+        insertResource(db, "127", "Practice_Exam_10.pdf", filePath, "7", getDate(dateCounter++)); // Training Exam
+        insertResource(db, "128", "Schedule_S24.pdf", filePath, "7", getDate(dateCounter++)); // Semester Plan
+        insertResource(db, "130", "Presentation_20.pptx", filePath, "7", getDate(dateCounter++)); // Slides / PowerPoint
+        insertResource(db, "130", "Presentation_21.pptx", filePath, "7", getDate(dateCounter++)); // Slides / PowerPoint
+        insertResource(db, "131", "Tool_Guide_IPG101.pdf", filePath, "7", getDate(dateCounter++)); // Tools
+        insertResource(db, "132", "Presentation_22.pptx", filePath, "7", getDate(dateCounter++)); // Slides / PowerPoint
+        insertResource(db, "133", "MATLAB_3.rar", filePath, "7", getDate(dateCounter++)); // MATLAB (استخدام .rar)
+        insertResource(db, "134", "IDM.rar", filePath, "7", getDate(dateCounter++)); // IDM
+        insertResource(db, "135", "PacketTracer_6.pka", filePath, "7", getDate(dateCounter++)); // PacketTracer
+        insertResource(db, "136", "VisualStudio_6.rar", filePath, "7", getDate(dateCounter++)); // VisualStudio (استخدام .rar)
+        insertResource(db, "137", "EMU_Guide.pdf", filePath, "7", getDate(dateCounter++)); // EMU
+        insertResource(db, "138", "VLC.exe", filePath, "7", getDate(dateCounter++)); // VLC
+
+        // IPG204 (Course ID: 12, Section IDs: 35-36)
+        insertResource(db, "139", "Course_Identification.pdf", filePath, "7", getDate(dateCounter++)); // Course Identification
+        for (int i = 1; i <= 12; i++) {
+            insertResource(db, "140", "Chapter_Number_" + i + ".pdf", filePath, "7", getDate(dateCounter++)); // Book / PDF
+        }
+        for (int i = 1; i <= 12; i++) {
+            insertResource(db, "142", "Session_Number_" + i + ".lrec", filePath, "7", getDate(dateCounter++)); // Recorded Sessions
+        }
+        insertResource(db, "143", "Reference_13.pdf", filePath, "7", getDate(dateCounter++)); // References
+        insertResource(db, "144", "Practice_Exam_11.pdf", filePath, "7", getDate(dateCounter++)); // Training Exam
+        insertResource(db, "145", "Schedule_S24.pdf", filePath, "7", getDate(dateCounter++)); // Semester Plan
+        insertResource(db, "147", "Presentation_23.pptx", filePath, "7", getDate(dateCounter++)); // Slides / PowerPoint
+        insertResource(db, "148", "Tool_Guide_IPG204.pdf", filePath, "7", getDate(dateCounter++)); // Tools
+        insertResource(db, "149", "Presentation_24.pptx", filePath, "7", getDate(dateCounter++)); // Slides / PowerPoint
+        insertResource(db, "150", "Course_Identification.pdf", filePath, "7", getDate(dateCounter++)); // Course Identification
+        for (int i = 1; i <= 12; i++) {
+            insertResource(db, "151", "Chapter_Number_" + i + ".pdf", filePath, "7", getDate(dateCounter++)); // Book / PDF
+        }
+        for (int i = 1; i <= 12; i++) {
+            insertResource(db, "153", "Session_Number_" + i + ".lrec", filePath, "7", getDate(dateCounter++)); // Recorded Sessions
+        }
+        insertResource(db, "154", "Reference_14.pdf", filePath, "7", getDate(dateCounter++)); // References
+        insertResource(db, "155", "Practice_Exam_12.pdf", filePath, "7", getDate(dateCounter++)); // Training Exam
+        insertResource(db, "156", "Schedule_S24_2.pdf", filePath, "7", getDate(dateCounter++)); // Semester Plan
+        insertResource(db, "158", "Presentation_25.pptx", filePath, "7", getDate(dateCounter++)); // Slides / PowerPoint
+        insertResource(db, "159", "Tool_Guide_IPG204_2.pdf", filePath, "7", getDate(dateCounter++)); // Tools
 
         // إدخال بيانات جدول تسجيل المقررات (Enrollment)
         insertEnrollment(db, "1", "1", "Passed", 0, "2024-06-01");
@@ -830,8 +896,8 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         insertEnrollment(db, "6", "7", "Passed", 1, "2023-01-01");
 
         // إدخال بيانات جدول الـ Assignment
-        insertAssignment(db, "8", "Human Resources Management HW", "وظيفة إدارة الموارد البشرية", "2024-11-10", "2025-10-15", "https://drive.google.com/uc?export=download&id=1ldKqr25YFQ6saCrTMf1GLapj8yIicrzN", "7");
-        insertAssignment(db, "25", "Wireless Communications Networks HW", "وظيفة شبكات الاتصالات اللاسلكية", "2024-11-11", "2025-08-16", "https://drive.google.com/uc?export=download&id=1ldKqr25YFQ6saCrTMf1GLapj8yIicrzN", "7");
+        insertAssignment(db, "8", "Human Resources Management HW", "وظيفة إدارة الموارد البشرية", "2024-11-10", "2025-10-15", "https://drive.google.com/uc?export=download&id=1Vk1auP04e77JdHsdivdnEpjd7aU3M8YO", "7");
+        insertAssignment(db, "25", "Wireless Communications Networks HW", "وظيفة شبكات الاتصالات اللاسلكية", "2024-11-11", "2025-08-16", "https://drive.google.com/uc?export=download&id=1Vk1auP04e77JdHsdivdnEpjd7aU3M8YO", "7");
         insertAssignment(db, "42", "Mobile Applications for trading company", "تطبيق جوال لشركة بيع سلع", "2024-11-12", "2025-10-17", "https://drive.google.com/uc?export=download&id=1Vk1auP04e77JdHsdivdnEpjd7aU3M8YO", "7");
         insertAssignment(db, "59", "Signals and Systems HW", "وظيفة الإشارات والنظم", "2024-11-13", "2025-11-18", "https://drive.google.com/uc?export=download&id=19S5SKxKXVcDLk9PYegxKT5OYn2wOB0Gg", "7");
         insertAssignment(db, "69", "Digital Signal Processing HW", "وظيفة معالجة الإشارات الرقمية", "2024-11-14", "2025-05-19", "https://drive.google.com/uc?export=download&id=1RACvMKYAhXaTqR41giWMr9y7gfdEG-Im", "7");
@@ -889,7 +955,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                 0,
                 "course_tool",
                 "10",
-                "2025-05-02"
+                "2025-05-02-14:18:04"
         );
         insertNotification(db,
                 "2",
@@ -898,7 +964,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                 1,
                 "course_files",
                 "1",
-                "2025-05-03"
+                "2025-05-03-10:10:19"
         );
 
         // المستخدم 3: Abeer Kharfan (مقرر CCN401)
@@ -928,6 +994,331 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                 "course_files",
                 "8",
                 "2025-05-03-19:08:04"
+        );
+
+        // إدخال بيانات جدول الأحداث (Event)
+        // الأحداث السابقة (من الرد السابق)
+        // 1. أحداث بداية وانتهاء الواجبات
+        // واجب BMN203 (assignment_id = 1) لـ Omar (userId = 1)
+        insertEvent(db,
+                "1",
+                "Start of Human Resources Management HW",
+                "بداية واجب إدارة الموارد البشرية",
+                "2024-11-10",
+                "assignment_start",
+                "1"
+        );
+        insertEvent(db,
+                "1",
+                "Due Date for Human Resources Management HW",
+                "الموعد النهائي لواجب إدارة الموارد البشرية",
+                "2025-10-15",
+                "assignment_due",
+                "1"
+        );
+
+        // واجب CCN401 (assignment_id = 2) لـ Lana (userId = 2)
+        insertEvent(db,
+                "2",
+                "Start of Wireless Communications Networks HW",
+                "بداية واجب شبكات الاتصالات اللاسلكية",
+                "2024-11-11",
+                "assignment_start",
+                "2"
+        );
+        insertEvent(db,
+                "2",
+                "Due Date for Wireless Communications Networks HW",
+                "الموعد النهائي لواجب شبكات الاتصالات اللاسلكية",
+                "2025-08-16",
+                "assignment_due",
+                "2"
+        );
+
+        // واجب GMA205 (assignment_id = 7) لـ Abeer (userId = 3)
+        insertEvent(db,
+                "3",
+                "Start of Probability & Statistics HW",
+                "بداية واجب الاحتمالات والإحصاء",
+                "2024-11-16",
+                "assignment_start",
+                "7"
+        );
+        insertEvent(db,
+                "3",
+                "Due Date for Probability & Statistics HW",
+                "الموعد النهائي لواجب الاحتمالات والإحصاء",
+                "2025-10-28",
+                "assignment_due",
+                "7"
+        );
+
+        // 2. أحداث تعديل المقررات
+        insertEvent(db,
+                "1",
+                "Human Resources Management Course Updated",
+                "تم تحديث مقرر إدارة الموارد البشرية",
+                "2025-05-10",
+                "course_update",
+                "1"
+        );
+        insertEvent(db,
+                "2",
+                "Wireless Communications Networks Course Updated",
+                "تم تحديث مقرر شبكات الاتصالات اللاسلكية",
+                "2025-05-11",
+                "course_update",
+                "3"
+        );
+        insertEvent(db,
+                "3",
+                "Probability & Statistics Course Updated",
+                "تم تحديث مقرر الاحتمالات والإحصاء",
+                "2025-05-12",
+                "course_update",
+                "8"
+        );
+
+        // 3. أحداث بداية ونهاية الفصل الدراسي (S24, term_id = 1)
+        insertEvent(db,
+                "1",
+                "Start of S24 Semester",
+                "بداية الفصل الدراسي S24",
+                "2024-11-25",
+                "term_start",
+                "1"
+        );
+        insertEvent(db,
+                "1",
+                "End of S24 Semester",
+                "نهاية الفصل الدراسي S24",
+                "2025-07-30",
+                "term_end",
+                "1"
+        );
+        insertEvent(db,
+                "2",
+                "Start of S24 Semester",
+                "بداية الفصل الدراسي S24",
+                "2024-11-25",
+                "term_start",
+                "1"
+        );
+        insertEvent(db,
+                "2",
+                "End of S24 Semester",
+                "نهاية الفصل الدراسي S24",
+                "2025-07-30",
+                "term_end",
+                "1"
+        );
+        insertEvent(db,
+                "3",
+                "Start of S24 Semester",
+                "بداية الفصل الدراسي S24",
+                "2024-11-25",
+                "term_start",
+                "1"
+        );
+        insertEvent(db,
+                "3",
+                "End of S24 Semester",
+                "نهاية الفصل الدراسي S24",
+                "2025-07-30",
+                "term_end",
+                "1"
+        );
+
+        // 4. أحداث بداية ونهاية العام الدراسي (2025, year_id = 1)
+        insertEvent(db,
+                "1",
+                "Start of Academic Year 2025",
+                "بداية العام الدراسي 2025",
+                "2024-07-25",
+                "academic_year_start",
+                "1"
+        );
+        insertEvent(db,
+                "1",
+                "End of Academic Year 2025",
+                "نهاية العام الدراسي 2025",
+                "2025-12-30",
+                "academic_year_end",
+                "1"
+        );
+        insertEvent(db,
+                "2",
+                "Start of Academic Year 2025",
+                "بداية العام الدراسي 2025",
+                "2024-07-25",
+                "academic_year_start",
+                "1"
+        );
+        insertEvent(db,
+                "2",
+                "End of Academic Year 2025",
+                "نهاية العام الدراسي 2025",
+                "2025-12-30",
+                "academic_year_end",
+                "1"
+        );
+        insertEvent(db,
+                "3",
+                "Start of Academic Year 2025",
+                "بداية العام الدراسي 2025",
+                "2024-07-25",
+                "academic_year_start",
+                "1"
+        );
+        insertEvent(db,
+                "3",
+                "End of Academic Year 2025",
+                "نهاية العام الدراسي 2025",
+                "2025-12-30",
+                "academic_year_end",
+                "1"
+        );
+
+        // الأحداث الجديدة
+        // 5. أحداث إضافة موارد جديدة (مرتبطة بجدول Resource)
+        // مورد لـ BMN203 (resource_id = 1) لـ Omar (userId = 1)
+        insertEvent(db,
+                "1",
+                "New Resource Added for BMN203",
+                "تمت إضافة مورد جديد لمقرر إدارة الموارد البشرية",
+                "2025-05-13",
+                "resource_added",
+                "1" // resource_id
+        );
+
+        // مورد لـ CCN401 (resource_id = 2) لـ Lana (userId = 2)
+        insertEvent(db,
+                "2",
+                "New Resource Added for CCN401",
+                "تمت إضافة مورد جديد لمقرر شبكات الاتصالات اللاسلكية",
+                "2025-05-14",
+                "resource_added",
+                "2"
+        );
+
+        // مورد لـ GMA205 (resource_id = 7) لـ Abeer (userId = 3)
+        insertEvent(db,
+                "3",
+                "New Resource Added for GMA205",
+                "تمت إضافة مورد جديد لمقرر الاحتمالات والإحصاء",
+                "2025-05-15",
+                "resource_added",
+                "7"
+        );
+
+        // 6. أحداث إضافة أقسام مقررات (مرتبطة بجدول CourseSection)
+        // قسم لـ IPG101 (section_id = 11) لـ Abdo (userId = 4)
+        insertEvent(db,
+                "4",
+                "New Section Added for IPG101",
+                "تمت إضافة قسم جديد لمقرر مقدمة في البرمجة",
+                "2025-05-01",
+                "section_added",
+                "11" // section_id
+        );
+
+        // قسم لـ INT101 (section_id = 9) لـ Eman (userId = 5)
+        insertEvent(db,
+                "5",
+                "New Section Added for INT101",
+                "تمت إضافة قسم جديد لمقرر مقدمة في الشبكات",
+                "2025-05-02",
+                "section_added",
+                "9"
+        );
+
+        // 7. أحداث بداية ونهاية واجبات إضافية
+        // واجب IPG101 (assignment_id = 10) لـ Abdo (userId = 4)
+        insertEvent(db,
+                "4",
+                "Start of Introduction to Programming HW",
+                "بداية واجب مقدمة في البرمجة",
+                "2024-11-19",
+                "assignment_start",
+                "10"
+        );
+        insertEvent(db,
+                "4",
+                "Due Date for Introduction to Programming HW",
+                "الموعد النهائي لواجب مقدمة في البرمجة",
+                "2025-07-24",
+                "assignment_due",
+                "10"
+        );
+
+        // واجب INT101 (assignment_id = 8) لـ Eman (userId = 5)
+        insertEvent(db,
+                "5",
+                "Start of Introduction to Networks HW",
+                "بداية واجب مقدمة في الشبكات",
+                "2024-11-17",
+                "assignment_start",
+                "8"
+        );
+        insertEvent(db,
+                "5",
+                "Due Date for Introduction to Networks HW",
+                "الموعد النهائي لواجب مقدمة في الشبكات",
+                "2025-09-22",
+                "assignment_due",
+                "8"
+        );
+
+        // 8. أحداث إدارية
+        // تحديث حالة حساب Omar (userId = 1)
+        insertEvent(db,
+                "1",
+                "Account Status Updated",
+                "تم تحديث حالة الحساب",
+                "2025-05-14",
+                "account_status_updated",
+                "1" // user_id
+        );
+
+        // تغيير كلمة مرور Lana (userId = 2)
+        insertEvent(db,
+                "2",
+                "Password Changed",
+                "تم تغيير كلمة المرور",
+                "2025-05-15",
+                "password_changed",
+                "2"
+        );
+
+        // 9. أحداث امتحانات
+        // امتحان نهائي لـ BMN203 (course_id = 1) لـ Omar (userId = 1)
+        insertEvent(db,
+                "1",
+                "Final Exam for BMN203",
+                "الامتحان النهائي لمقرر إدارة الموارد البشرية",
+                "2025-07-15", // تاريخ وهمي قبل نهاية الفصل
+                "exam_scheduled",
+                "1" // course_id
+        );
+
+        // امتحان نهائي لـ CCN401 (course_id = 3) لـ Lana (userId = 2)
+        insertEvent(db,
+                "2",
+                "Final Exam for CCN401",
+                "الامتحان النهائي لمقرر شبكات الاتصالات اللاسلكية",
+                "2025-07-16",
+                "exam_scheduled",
+                "3"
+        );
+
+        // امتحان نهائي لـ GMA205 (course_id = 8) لـ Abeer (userId = 3)
+        insertEvent(db,
+                "3",
+                "Final Exam for GMA205",
+                "الامتحان النهائي لمقرر الاحتمالات والإحصاء",
+                "2025-07-17",
+                "exam_scheduled",
+                "8"
         );
 
 
@@ -1235,5 +1626,17 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                 + (type.isEmpty() ? "NULL" : "'" + type + "'") + ", "
                 + (relatedId.isEmpty() ? "NULL" : "'" + relatedId + "'") + ");";
         db.execSQL(sql);
+    }
+
+
+    /**
+     * دالة مساعدة لتوليد التواريخ تسلسليًا من 2024-01-15.
+     */
+    private String getDate(int counter) {
+        Calendar calendar = Calendar.getInstance();
+        calendar.set(2024, Calendar.JANUARY, 15); // تعيين التاريخ الأساسي: 2024-01-15
+        calendar.add(Calendar.DAY_OF_MONTH, counter); // إضافة الأيام بناءً على العداد
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd", Locale.US);
+        return sdf.format(calendar.getTime());
     }
 }

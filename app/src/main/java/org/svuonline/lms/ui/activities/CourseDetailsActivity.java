@@ -5,7 +5,6 @@ import android.content.SharedPreferences;
 import android.content.res.ColorStateList;
 import android.graphics.Color;
 import android.os.Bundle;
-import android.view.View;
 
 import androidx.recyclerview.widget.LinearLayoutManager;
 
@@ -15,16 +14,25 @@ import org.svuonline.lms.R;
 import org.svuonline.lms.data.repository.CourseRepository;
 import org.svuonline.lms.databinding.ActivityCourseDetailsBinding;
 import org.svuonline.lms.ui.adapters.SectionsAdapter;
+import org.svuonline.lms.ui.data.CourseData;
 import org.svuonline.lms.utils.BaseActivity;
 import org.svuonline.lms.utils.Utils;
-import org.svuonline.lms.ui.data.CourseData;
 
+/**
+ * نشاط لعرض تفاصيل المقرر والأقسام المرتبطة به.
+ */
 public class CourseDetailsActivity extends BaseActivity {
+
+    // عناصر الواجهة
     private ActivityCourseDetailsBinding binding;
+
+    // المستودعات
     private CourseRepository courseRepository;
+
+    // بيانات النشاط
     private long userId;
+    private String courseCode;
     private boolean isFavorite;
-    private String courseCode; // إضافة متغير لتخزين courseCode
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -32,66 +40,95 @@ public class CourseDetailsActivity extends BaseActivity {
         binding = ActivityCourseDetailsBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
 
-        // تهيئة المستودع
-        courseRepository = new CourseRepository(this);
+        // تهيئة المكونات
+        initComponents();
 
-        // جلب userId من SharedPreferences
-        SharedPreferences userPrefs = getSharedPreferences("user_prefs", MODE_PRIVATE);
-        userId = userPrefs.getLong("user_id", -1);
-
-        // استقبال البيانات من الـ Intent
-        Intent intent = getIntent();
-        courseCode = intent.getStringExtra("course_code");
-
-        // جلب بيانات المقرر من قاعدة البيانات
-        boolean isArabic = isArabicLocale();
-        CourseData courseData = courseRepository.getCourseData(courseCode, isArabic);
-        if (courseData == null) {
-            Snackbar.make(binding.getRoot(), R.string.course_not_found, Snackbar.LENGTH_LONG).show();
+        // التحقق من بيانات Intent
+        if (!validateIntentData()) {
             finish();
             return;
         }
 
-        // التحقق من حالة المفضلة
+        // تهيئة البيانات والواجهة
+        initData();
+        setupListeners();
+    }
+
+    /**
+     * تهيئة المستودعات
+     */
+    private void initComponents() {
+        courseRepository = new CourseRepository(this);
+    }
+
+    /**
+     * التحقق من صحة بيانات Intent
+     * @return صحيح إذا كانت البيانات صالحة، خطأ إذا لزم إنهاء النشاط
+     */
+    private boolean validateIntentData() {
+        // جلب userId
+        SharedPreferences userPrefs = getSharedPreferences("user_prefs", MODE_PRIVATE);
+        userId = userPrefs.getLong("user_id", -1);
+        if (userId == -1) {
+            showSnackbar(R.string.user_id_not_found);
+            return false;
+        }
+
+        // جلب courseCode
+        Intent intent = getIntent();
+        courseCode = intent.getStringExtra("course_code");
+        if (courseCode == null) {
+            showSnackbar(R.string.invalid_course_data);
+            return false;
+        }
+
+        return true;
+    }
+
+    /**
+     * تهيئة البيانات (جلب المقرر، تحديث الواجهة، إعداد الأقسام)
+     */
+    private void initData() {
+        boolean isArabic = isArabicLocale();
+
+        // جلب بيانات المقرر
+        CourseData courseData = courseRepository.getCourseData(courseCode, isArabic);
+        if (courseData == null) {
+            showSnackbar(R.string.course_not_found);
+            finish();
+            return;
+        }
+
+        // تحديث حالة المفضلة
         isFavorite = courseRepository.isCourseFavorite(userId, courseCode);
         updateFavoriteButton();
 
-        // تعيين اللون في شريط النظام
+        // إعداد شريط النظام
         Utils.setSystemBarColorWithColorInt(this, courseData.getHeaderColor(),
                 getResources().getColor(R.color.Custom_BackgroundColor), 0);
 
-        // تعيين البيانات في الواجهة
+        // إعداد الواجهة
         setupUI(courseData);
+    }
 
-        // إعداد زر الرجوع
+    /**
+     * إعداد مستمعات الأحداث (الأزرار)
+     */
+    private void setupListeners() {
         binding.backButton.setOnClickListener(v -> finish());
-
-        // إعداد زر المفضلة
-        binding.favoriteButton.setOnClickListener(v -> {
-            isFavorite = !isFavorite;
-            courseRepository.setCourseFavorite(userId, courseCode, isFavorite);
-            updateFavoriteButton();
-            String message = isFavorite ? getString(R.string.added_to_favorites) :
-                    getString(R.string.removed_from_favorites);
-            Snackbar.make(binding.getRoot(), message, Snackbar.LENGTH_SHORT).show();
-        });
+        binding.favoriteButton.setOnClickListener(v -> toggleFavorite());
     }
 
-    @Override
-    protected void onResume() {
-        super.onResume();
-        // إعادة التحقق من حالة المفضلة عند استئناف النشاط
-        isFavorite = courseRepository.isCourseFavorite(userId, courseCode);
-        updateFavoriteButton();
-    }
-
+    /**
+     * إعداد الواجهة
+     * @param courseData بيانات المقرر
+     */
     private void setupUI(CourseData courseData) {
-        // تعيين بيانات المقرر في العناصر
         binding.courseCodeTextView.setText(courseData.getCourseCode());
         binding.courseTitleTextView.setText(courseData.getCourseTitle());
         binding.courseHeaderLayout.setBackgroundColor(courseData.getHeaderColor());
 
-        // إعداد RecyclerView لعرض الأقسام
+        // إعداد RecyclerView للأقسام
         SectionsAdapter sectionsAdapter = new SectionsAdapter(
                 this,
                 courseData.getSections(),
@@ -103,14 +140,50 @@ public class CourseDetailsActivity extends BaseActivity {
         binding.sectionRecyclerView.setAdapter(sectionsAdapter);
     }
 
+    /**
+     * تبديل حالة المفضلة
+     */
+    private void toggleFavorite() {
+        isFavorite = !isFavorite;
+        courseRepository.setCourseFavorite(userId, courseCode, isFavorite);
+        updateFavoriteButton();
+        int messageRes = isFavorite ? R.string.added_to_favorites : R.string.removed_from_favorites;
+        showSnackbar(messageRes);
+    }
+
+    /**
+     * تحديث أيقونة زر المفضلة
+     */
     private void updateFavoriteButton() {
         binding.favoriteButton.setIconResource(isFavorite ? R.drawable.star_selected : R.drawable.star);
         binding.favoriteButton.setIconTint(ColorStateList.valueOf(Color.WHITE));
     }
 
+    /**
+     * التحقق من اللغة المختارة
+     * @return صحيح إذا كانت اللغة عربية
+     */
     private boolean isArabicLocale() {
         SharedPreferences preferences = getSharedPreferences("AppPreferences", MODE_PRIVATE);
         String selectedLanguage = preferences.getString("selected_language", "en");
         return "ar".equals(selectedLanguage);
+    }
+
+    /**
+     * عرض رسالة Snackbar
+     * @param messageRes معرف الرسالة
+     */
+    private void showSnackbar(int messageRes) {
+        Snackbar.make(binding.getRoot(), messageRes, Snackbar.LENGTH_LONG).show();
+    }
+
+    /**
+     * تحديث حالة المفضلة عند استئناف النشاط
+     */
+    @Override
+    protected void onResume() {
+        super.onResume();
+        isFavorite = courseRepository.isCourseFavorite(userId, courseCode);
+        updateFavoriteButton();
     }
 }

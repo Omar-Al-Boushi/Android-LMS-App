@@ -13,7 +13,6 @@ import android.os.Bundle;
 import android.os.Environment;
 import android.provider.OpenableColumns;
 import android.util.DisplayMetrics;
-import android.util.Log;
 import android.util.TypedValue;
 import android.view.Gravity;
 import android.view.LayoutInflater;
@@ -29,6 +28,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.card.MaterialCardView;
+import com.google.android.material.imageview.ShapeableImageView;
 import com.google.android.material.snackbar.Snackbar;
 import com.google.android.material.textview.MaterialTextView;
 
@@ -51,351 +51,407 @@ import java.io.OutputStream;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 
-// نشاط لرفع ملفات الواجبات مع دعم التعديل والحذف وإدارة المفضلة وعرض الإرسالات السابقة
+/**
+ * نشاط لرفع ملفات الواجبات مع دعم التعديل والحذف وإدارة المفضلة وعرض الإرسالات السابقة.
+ */
 public class AssignmentUploadActivity extends BaseActivity {
 
     // عناصر واجهة المستخدم
-    private MaterialTextView courseCodeTextView, courseTitleTextView; // نصوص لعرض رمز المقرر وعنوانه
-    private ConstraintLayout courseHeaderLayout; // تخطيط رأس المقرر
-    private MaterialButton backButton, submitOrEdit, favoriteButton; // أزرار للرجوع، الإرسال/التعديل، وإضافة المفضلة
-    private ConstraintLayout addEditFilesParent, selectFilesParent; // تخطيطات لإضافة/تعديل الملفات واختيار الملفات
-    private RecyclerView selectedFilesRecyclerView; // قائمة لعرض الملفات المختارة
-    private SelectedFilesAdapter selectedFilesAdapter; // محول لإدارة عرض الملفات في القائمة
-    private List<Uri> selectedFiles = new ArrayList<>(); // قائمة URIs للملفات المختارة
-    private ConstraintLayout addButtonCard, editButtonCard, deleteButtonCard; // أزرار لإضافة، تعديل، وحذف الملفات
-    private int courseColor; // لون المقرر
-    private String courseCode, courseTitle, assignmentTitle; // رمز المقرر، عنوانه، وعنوان الواجب
-    private long assignmentId, userId; // معرف الواجب ومعرف المستخدم
-    private boolean isFavorite; // حالة المفضلة (مضاف أم لا)
+    private MaterialTextView courseCodeTextView;
+    private MaterialTextView courseTitleTextView;
+    private ConstraintLayout courseHeaderContainer;
+    private MaterialButton backButton;
+    private MaterialButton submitOrEditButton;
+    private MaterialButton favoriteButton;
+    private ConstraintLayout addEditFilesParent;
+    private ConstraintLayout selectFilesParent;
+    private RecyclerView selectedFilesRecyclerView;
+    private ShapeableImageView addImage;
+    private ShapeableImageView editImage;
+    private ShapeableImageView removeImage;
+    private ConstraintLayout addButtonCard;
+    private ConstraintLayout editButtonCard;
+    private ConstraintLayout deleteButtonCard;
 
-    // متغيرات لإدارة الملفات
-    private static final int PICK_FILES_REQUEST_CODE = 1; // رمز طلب اختيار ملفات متعددة
-    private static final int PICK_FILE_FOR_EDIT_REQUEST_CODE = 2; // رمز طلب اختيار ملف للتعديل
-    private int positionToEdit = -1; // موقع الملف المراد تعديله
-    private boolean isEditMode = false; // حالة وضع التعديل
-    private boolean isRemoveMode = false; // حالة وضع الحذف
-    private static final double MAX_FILE_SIZE_MB = 200.0; // الحد الأقصى لحجم الملف (ميجابايت)
+    // بيانات النشاط
+    private long userId;
+    private long assignmentId;
+    private String courseCode;
+    private String courseTitle;
+    private String assignmentTitle;
+    private int courseColor;
+    private boolean isFavorite;
+    private List<Uri> selectedFiles = new ArrayList<>();
+    private SelectedFilesAdapter selectedFilesAdapter;
+    private int positionToEdit = -1;
+    private boolean isEditMode = false;
+    private boolean isRemoveMode = false;
 
-    // المستودعات لإدارة البيانات
-    private CourseRepository courseRepository; // مستودع المقررات
-    private AssignmentRepository assignmentRepository; // مستودع الواجبات
-    private AssignmentSubmissionRepository submissionRepository; // مستودع إرسالات الواجبات
-    private EnrollmentRepository enrollmentRepository; // مستودع التسجيل في المقررات
+    // المستودعات
+    private CourseRepository courseRepository;
+    private AssignmentRepository assignmentRepository;
+    private AssignmentSubmissionRepository submissionRepository;
+    private EnrollmentRepository enrollmentRepository;
 
-    // دالة الإنشاء الأساسية للنشاط
+    // ثوابت
+    private static final int PICK_FILES_REQUEST_CODE = 1;
+    private static final int PICK_FILE_FOR_EDIT_REQUEST_CODE = 2;
+    private static final double MAX_FILE_SIZE_MB = 200.0;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_assignment_upload); // تحديد تخطيط الواجهة
+        setContentView(R.layout.activity_assignment_upload);
 
-        initializeViews(); // تهيئة عناصر الواجهة
-        initializeRepositories(); // تهيئة المستودعات
-        setupUserId(); // إعداد معرف المستخدم
-        loadAssignmentData(); // تحميل بيانات الواجب
-        setupRecyclerView(); // إعداد قائمة الملفات
-        loadPreviousSubmission(); // تحميل الإرسال السابق إن وجد
-        setupFavoriteButton(); // إعداد زر المفضلة
-        setupFileSelection(); // إعداد اختيار الملفات
-        setupSubmitButton(); // إعداد زر الإرسال
+        // تهيئة المكونات
+        initComponents();
+
+        // التحقق من بيانات Intent
+        if (!validateIntentData()) {
+            finish();
+            return;
+        }
+
+        // تهيئة الواجهة والبيانات
+        initViews();
+        initData();
+        setupListeners();
     }
 
-    // تهيئة عناصر واجهة المستخدم
-    private void initializeViews() {
-        courseCodeTextView = findViewById(R.id.courseCodeTextView); // نص رمز المقرر
-        courseTitleTextView = findViewById(R.id.courseTitleTextView); // نص عنوان المقرر
-        courseHeaderLayout = findViewById(R.id.courseHeaderLayout); // تخطيط رأس المقرر
-        backButton = findViewById(R.id.backButton); // زر الرجوع
-        submitOrEdit = findViewById(R.id.submitOrEdit); // زر الإرسال/التعديل
-        favoriteButton = findViewById(R.id.favoriteButton); // زر المفضلة
-        addEditFilesParent = findViewById(R.id.addEditFilesParent); // تخطيط إضافة/تعديل الملفات
-        selectFilesParent = findViewById(R.id.selectFilesParent); // تخطيط اختيار الملفات
-        selectedFilesRecyclerView = findViewById(R.id.selectedFilesRecyclerView); // قائمة الملفات
-        addButtonCard = findViewById(R.id.addBtn1); // زر إضافة ملف
-        editButtonCard = findViewById(R.id.editBtn1); // زر تعديل ملف
-        deleteButtonCard = findViewById(R.id.removeBtn1); // زر حذف ملف
+    /**
+     * تهيئة المستودعات
+     */
+    private void initComponents() {
+        courseRepository = new CourseRepository(this);
+        assignmentRepository = new AssignmentRepository(this);
+        submissionRepository = new AssignmentSubmissionRepository(this);
+        enrollmentRepository = new EnrollmentRepository(this);
     }
 
-    // تهيئة مستودعات البيانات
-    private void initializeRepositories() {
-        courseRepository = new CourseRepository(this); // إنشاء مستودع المقررات
-        assignmentRepository = new AssignmentRepository(this); // إنشاء مستودع الواجبات
-        submissionRepository = new AssignmentSubmissionRepository(this); // إنشاء مستودع الإرسالات
-        enrollmentRepository = new EnrollmentRepository(this); // إنشاء مستودع التسجيل
-    }
-
-    // إعداد معرف المستخدم من التفضيلات المشتركة
-    private void setupUserId() {
+    /**
+     * التحقق من صحة بيانات Intent
+     * @return صحيح إذا كانت البيانات صالحة، خطأ إذا لزم إنهاء النشاط
+     */
+    private boolean validateIntentData() {
+        // جلب userId من SharedPreferences
         SharedPreferences preferences = getSharedPreferences("user_prefs", MODE_PRIVATE);
-        userId = preferences.getLong("user_id", -1); // جلب معرف المستخدم
-        Log.d("AssignmentUpload", "userId: " + userId); // تسجيل معرف المستخدم
+        userId = preferences.getLong("user_id", -1);
+
+        // جلب بيانات Intent
+        Intent intent = getIntent();
+        assignmentId = intent.getLongExtra("assignment_id", -1);
+        courseCode = intent.getStringExtra("course_code");
+        courseTitle = intent.getStringExtra("course_title");
+        courseColor = intent.getIntExtra("course_color_value", -1);
+
+        if (assignmentId == -1 || courseCode == null) {
+            showSnackbar(R.string.invalid_assignment_data);
+            return false;
+        }
+
+        return true;
     }
 
-    // تحميل بيانات الواجب والمقرر
-    private void loadAssignmentData() {
-        Intent intent = getIntent();
-        assignmentId = intent.getLongExtra("assignment_id", -1); // جلب معرف الواجب
-        courseCode = intent.getStringExtra("course_code"); // جلب رمز المقرر
-        courseTitle = intent.getStringExtra("course_title"); // جلب عنوان المقرر
-        courseColor = intent.getIntExtra("course_color_value", -1); // جلب لون المقرر
+    /**
+     * تهيئة عناصر الواجهة
+     */
+    private void initViews() {
+        courseCodeTextView = findViewById(R.id.courseCodeTextView);
+        courseTitleTextView = findViewById(R.id.courseTitleTextView);
+        courseHeaderContainer = findViewById(R.id.courseHeaderLayout);
+        backButton = findViewById(R.id.backButton);
+        submitOrEditButton = findViewById(R.id.submitOrEdit);
+        favoriteButton = findViewById(R.id.favoriteButton);
+        addEditFilesParent = findViewById(R.id.addEditFilesParent);
+        selectFilesParent = findViewById(R.id.selectFilesParent);
+        selectedFilesRecyclerView = findViewById(R.id.selectedFilesRecyclerView);
+        addButtonCard = findViewById(R.id.addBtn1);
+        editButtonCard = findViewById(R.id.editBtn1);
+        deleteButtonCard = findViewById(R.id.removeBtn1);
+        addImage = findViewById(R.id.addImg);
+        editImage = findViewById(R.id.editImg);
+        removeImage = findViewById(R.id.removeImg);
+    }
 
-        // التحقق من صحة بيانات الواجب
-        if (assignmentId == -1 || courseCode == null) {
-            Snackbar.make(findViewById(android.R.id.content), R.string.invalid_assignment_data, Snackbar.LENGTH_LONG).show();
-            finish(); // إنهاء النشاط إذا كانت البيانات غير صالحة
-            return;
+    /**
+     * تهيئة البيانات (جلب الواجب، تحديث الواجهة، إعداد الملفات)
+     */
+    private void initData() {
+        boolean isArabic = isArabicLocale();
+
+        // تعيين أيقونات الأزرار حسب اللغة
+        if (isArabic) {
+            addImage.setImageResource(R.drawable.add_ar);
+            editImage.setImageResource(R.drawable.edit_ar);
+            removeImage.setImageResource(R.drawable.remove_ar);
         }
 
-        boolean isArabic = isArabicLocale(); // التحقق من اللغة (عربية أم إنجليزية)
-        Assignment assignment = assignmentRepository.getAssignmentDetails(assignmentId, isArabic); // جلب تفاصيل الواجب
+        // جلب تفاصيل الواجب
+        Assignment assignment = assignmentRepository.getAssignmentDetails(assignmentId, isArabic);
         if (assignment == null) {
-            Snackbar.make(findViewById(android.R.id.content), R.string.assignment_not_found, Snackbar.LENGTH_LONG).show();
-            finish(); // إنهاء النشاط إذا لم يتم العثور على الواجب
+            showSnackbar(R.string.assignment_not_found);
+            finish();
             return;
         }
 
-        // تعيين بيانات المقرر والواجب مع التحقق من القيم الفارغة
-        if (courseCodeTextView != null && assignment.getCourseCode() != null) {
-            courseCodeTextView.setText(assignment.getCourseCode()); // تعيين رمز المقرر
-        } else {
-            Log.w("AssignmentUpload", "courseCodeTextView or courseCode is null");
-        }
-        if (courseTitleTextView != null && assignment.getCourseName() != null) {
-            courseTitleTextView.setText(assignment.getCourseName()); // تعيين عنوان المقرر
-        } else {
-            Log.w("AssignmentUpload", "courseTitleTextView or courseName is null");
-        }
-        assignmentTitle = isArabic ? assignment.getTitleAr() : assignment.getTitleEn(); // تعيين عنوان الواجب حسب اللغة
+        // تعيين بيانات الواجهة
+        courseCodeTextView.setText(assignment.getCourseCode() != null ? assignment.getCourseCode() : "");
+        courseTitleTextView.setText(assignment.getCourseName() != null ? assignment.getCourseName() : "");
+        assignmentTitle = isArabic ? assignment.getTitleAr() : assignment.getTitleEn();
         if (assignmentTitle == null) {
-            Log.w("AssignmentUpload", "assignmentTitle is null");
-            assignmentTitle = ""; // قيمة افتراضية
+            assignmentTitle = "";
         }
 
-        // إذا لم يتم تمرير لون المقرر، جلب اللون من مستودع المقررات
+        // إعداد لون المقرر
         if (courseColor == -1) {
             CourseData courseData = courseRepository.getCourseData(courseCode, isArabic);
-            if (courseData != null) {
-                courseColor = courseData.getHeaderColor(); // جلب لون المقرر
-            } else {
-                courseColor = ContextCompat.getColor(this, R.color.Custom_MainColorBlue); // لون افتراضي
-                Log.w("AssignmentUpload", "CourseData is null, using default color");
-            }
+            courseColor = courseData != null ? courseData.getHeaderColor() : ContextCompat.getColor(this, R.color.Custom_MainColorBlue);
         }
-        courseHeaderLayout.setBackgroundColor(courseColor); // تعيين لون خلفية رأس المقرر
-        addEditFilesParent.getBackground().setColorFilter(courseColor, PorterDuff.Mode.SRC_ATOP); // تطبيق اللون على تخطيط الإضافة/التعديل
-        selectFilesParent.getBackground().setColorFilter(courseColor, PorterDuff.Mode.SRC_ATOP); // تطبيق اللون على تخطيط اختيار الملفات
-        submitOrEdit.setBackgroundTintList(ColorStateList.valueOf(courseColor)); // تطبيق اللون على زر الإرسال
-        Utils.setSystemBarColorWithColorInt(this, courseColor, getResources().getColor(R.color.Custom_BackgroundColor), 0); // تعيين لون شريط النظام
+        courseHeaderContainer.setBackgroundColor(courseColor);
+        addEditFilesParent.getBackground().setColorFilter(courseColor, PorterDuff.Mode.SRC_ATOP);
+        selectFilesParent.getBackground().setColorFilter(courseColor, PorterDuff.Mode.SRC_ATOP);
+        submitOrEditButton.setBackgroundTintList(ColorStateList.valueOf(courseColor));
+        Utils.setSystemBarColorWithColorInt(this, courseColor, getResources().getColor(R.color.Custom_BackgroundColor), 0);
+
+        // إعداد قائمة الملفات
+        setupRecyclerView();
+
+        // تحميل الإرسالات السابقة
+        loadPreviousSubmission();
+
+        // إعداد حالة المفضلة
+        isFavorite = courseRepository.isCourseFavorite(userId, courseCode);
+        updateFavoriteButton();
     }
 
-    // تحميل الإرسال السابق إن وجد
-    private void loadPreviousSubmission() {
-        String filePaths = submissionRepository.getSubmissionFilePaths(assignmentId, userId); // جلب مسارات الملفات من الإرسال السابق
-        if (filePaths != null && !filePaths.isEmpty()) {
-            String[] paths = filePaths.split(","); // تقسيم المسارات إلى مصفوفة
-            for (String path : paths) {
-                path = path.trim();
-                if (!path.isEmpty()) {
-                    File file = new File(path);
-                    if (file.exists()) {
-                        Uri fileUri = Uri.fromFile(file); // تحويل المسار إلى URI
-                        selectedFiles.add(fileUri); // إضافة الملف إلى القائمة
-                    } else {
-                        Log.w("AssignmentUpload", "File does not exist: " + path);
-                    }
-                }
-            }
-            if (!selectedFiles.isEmpty()) {
-                selectedFilesAdapter.notifyDataSetChanged(); // تحديث قائمة الملفات
-                selectFilesParent.setVisibility(View.GONE); // إخفاء تخطيط اختيار الملفات
-                addEditFilesParent.setVisibility(View.VISIBLE); // إظهار تخطيط الإضافة/التعديل
-            }
-        }
+    /**
+     * إعداد مستمعات الأحداث (الأزرار، اختيار الملفات، الإرسال)
+     */
+    private void setupListeners() {
+        // زر الرجوع
+        backButton.setOnClickListener(v -> finish());
+
+        // زر الإرسال
+        submitOrEditButton.setOnClickListener(v -> handleSubmission());
+
+        // زر المفضلة
+        favoriteButton.setOnClickListener(v -> toggleFavorite());
+
+        // إعداد اختيار الملفات
+        setupFileSelection();
     }
 
-    // إعداد زر المفضلة
-    private void setupFavoriteButton() {
-        isFavorite = courseRepository.isCourseFavorite(userId, courseCode); // التحقق من حالة المفضلة
-        updateFavoriteButton(); // تحديث أيقونة الزر
-
-        favoriteButton.setOnClickListener(v -> {
-            isFavorite = !isFavorite; // تبديل حالة المفضلة
-            courseRepository.setCourseFavorite(userId, courseCode, isFavorite); // تحديث حالة المفضلة في المستودع
-            updateFavoriteButton(); // تحديث أيقونة الزر
-            String message = isFavorite ? getString(R.string.added_to_favorites) : getString(R.string.removed_from_favorites);
-            Snackbar.make(findViewById(android.R.id.content), message, Snackbar.LENGTH_SHORT).show(); // عرض رسالة تأكيد
-        });
-    }
-
-    // تحديث أيقونة زر المفضلة
-    private void updateFavoriteButton() {
-        favoriteButton.setIconResource(isFavorite ? R.drawable.star_selected : R.drawable.star); // تعيين أيقونة النجمة
-        favoriteButton.setIconTint(ColorStateList.valueOf(Color.WHITE)); // تعيين لون الأيقونة
-    }
-
-    // إعداد قائمة الملفات المختارة
+    /**
+     * إعداد قائمة الملفات المختارة
+     */
     private void setupRecyclerView() {
-        selectedFilesRecyclerView.setLayoutManager(new LinearLayoutManager(this)); // تعيين إدارة التخطيط الخطي
-        selectedFilesAdapter = new SelectedFilesAdapter(this, selectedFiles, courseColor); // إنشاء المحول
-        selectedFilesRecyclerView.setAdapter(selectedFilesAdapter); // ربط المحول بالقائمة
+        selectedFilesRecyclerView.setLayoutManager(new LinearLayoutManager(this));
+        selectedFilesAdapter = new SelectedFilesAdapter(this, selectedFiles, courseColor);
+        selectedFilesRecyclerView.setAdapter(selectedFilesAdapter);
 
-        // معالج النقر على عنصر في القائمة
         selectedFilesAdapter.setOnItemClickListener(position -> {
             if (isEditMode) {
-                positionToEdit = position; // تحديد موقع الملف للتعديل
-                openFilePicker(PICK_FILE_FOR_EDIT_REQUEST_CODE, false); // فتح نافذة اختيار ملف
-                isEditMode = false; // إنهاء وضع التعديل
+                positionToEdit = position;
+                openFilePicker(PICK_FILE_FOR_EDIT_REQUEST_CODE, false);
+                isEditMode = false;
             } else if (isRemoveMode) {
-                showDeleteConfirmation(position); // عرض تأكيد الحذف
-                isRemoveMode = false; // إنهاء وضع الحذف
+                showDeleteConfirmation(position);
+                isRemoveMode = false;
             }
         });
     }
 
-    // إعداد اختيار الملفات
+    /**
+     * إعداد اختيار الملفات
+     */
     private void setupFileSelection() {
-        selectFilesParent.setOnClickListener(v -> openFilePicker(PICK_FILES_REQUEST_CODE, true)); // فتح نافذة اختيار ملفات عند النقر
+        selectFilesParent.setOnClickListener(v -> openFilePicker(PICK_FILES_REQUEST_CODE, true));
 
-        addButtonCard.setOnClickListener(v -> openFilePicker(PICK_FILES_REQUEST_CODE, true)); // فتح نافذة اختيار ملفات عند النقر على زر الإضافة
+        addButtonCard.setOnClickListener(v -> openFilePicker(PICK_FILES_REQUEST_CODE, true));
 
         editButtonCard.setOnClickListener(v -> {
             if (selectedFiles.isEmpty()) {
-                Snackbar.make(findViewById(android.R.id.content), R.string.no_files_to_edit, Snackbar.LENGTH_SHORT).show(); // رسالة إذا لم تكن هناك ملفات
+                showSnackbar(R.string.no_files_to_edit);
             } else {
-                isEditMode = true; // تفعيل وضع التعديل
-                Snackbar.make(findViewById(android.R.id.content), R.string.choose_file_to_edit, Snackbar.LENGTH_SHORT).show(); // رسالة لاختيار ملف للتعديل
+                isEditMode = true;
+                showSnackbar(R.string.choose_file_to_edit);
             }
         });
 
         deleteButtonCard.setOnClickListener(v -> {
             if (selectedFiles.isEmpty()) {
-                Snackbar.make(findViewById(android.R.id.content), R.string.no_files_to_delete, Snackbar.LENGTH_SHORT).show(); // رسالة إذا لم تكن هناك ملفات
+                showSnackbar(R.string.no_files_to_delete);
             } else {
-                isRemoveMode = true; // تفعيل وضع الحذف
-                Snackbar.make(findViewById(android.R.id.content), R.string.choose_file_to_delete, Snackbar.LENGTH_SHORT).show(); // رسالة لاختيار ملف للحذف
+                isRemoveMode = true;
+                showSnackbar(R.string.choose_file_to_delete);
             }
         });
     }
 
-    // إعداد زر الإرسال
-    private void setupSubmitButton() {
-        submitOrEdit.setOnClickListener(v -> {
-            if (selectedFiles.isEmpty()) {
-                Snackbar.make(findViewById(android.R.id.content), R.string.no_files_selected, Snackbar.LENGTH_SHORT).show(); // رسالة إذا لم يتم اختيار ملفات
+    /**
+     * معالجة النقر على زر الإرسال
+     */
+    private void handleSubmission() {
+        if (selectedFiles.isEmpty()) {
+            showSnackbar(R.string.no_files_selected);
+            return;
+        }
+
+        for (Uri fileUri : selectedFiles) {
+            double sizeInMB = getFileSizeInMB(fileUri);
+            if (sizeInMB > MAX_FILE_SIZE_MB) {
+                showSnackbar(getString(R.string.file_size_exceeds, MAX_FILE_SIZE_MB));
                 return;
             }
+        }
 
-            // التحقق من حجم الملفات
-            for (Uri fileUri : selectedFiles) {
-                double sizeInMB = getFileSizeInMB(fileUri);
-                if (sizeInMB > MAX_FILE_SIZE_MB) {
-                    Snackbar.make(findViewById(android.R.id.content),
-                            getString(R.string.file_size_exceeds, MAX_FILE_SIZE_MB), Snackbar.LENGTH_LONG).show(); // رسالة إذا تجاوز الحجم الحد
-                    return;
-                }
-            }
-
-            showSubmissionConfirmDialog(); // عرض نافذة تأكيد الإرسال
-        });
-
-        backButton.setOnClickListener(v -> finish()); // إنهاء النشاط عند النقر على زر الرجوع
+        showSubmissionConfirmDialog();
     }
 
-    // فتح نافذة اختيار الملفات
+    /**
+     * تبديل حالة المفضلة
+     */
+    private void toggleFavorite() {
+        isFavorite = !isFavorite;
+        courseRepository.setCourseFavorite(userId, courseCode, isFavorite);
+        updateFavoriteButton();
+        int messageRes = isFavorite ? R.string.added_to_favorites : R.string.removed_from_favorites;
+        showSnackbar(messageRes);
+    }
+
+    /**
+     * تحديث أيقونة زر المفضلة
+     */
+    private void updateFavoriteButton() {
+        favoriteButton.setIconResource(isFavorite ? R.drawable.star_selected : R.drawable.star);
+        favoriteButton.setIconTint(ColorStateList.valueOf(Color.WHITE));
+    }
+
+    /**
+     * تحميل الإرسال السابق إن وجد
+     */
+    private void loadPreviousSubmission() {
+        String filePaths = submissionRepository.getSubmissionFilePaths(assignmentId, userId);
+        if (filePaths != null && !filePaths.isEmpty()) {
+            for (String path : filePaths.split(",")) {
+                path = path.trim();
+                if (!path.isEmpty()) {
+                    File file = new File(path);
+                    if (file.exists()) {
+                        selectedFiles.add(Uri.fromFile(file));
+                    }
+                }
+            }
+            if (!selectedFiles.isEmpty()) {
+                selectedFilesAdapter.notifyDataSetChanged();
+                selectFilesParent.setVisibility(View.GONE);
+                addEditFilesParent.setVisibility(View.VISIBLE);
+            }
+        }
+    }
+
+    /**
+     * فتح نافذة اختيار الملفات
+     * @param requestCode رمز الطلب
+     * @param allowMultiple السماح باختيار ملفات متعددة
+     */
     private void openFilePicker(int requestCode, boolean allowMultiple) {
         Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
         intent.addCategory(Intent.CATEGORY_OPENABLE);
-        intent.setType("*/*"); // السماح بجميع أنواع الملفات
+        intent.setType("*/*");
         if (allowMultiple) {
-            intent.putExtra(Intent.EXTRA_ALLOW_MULTIPLE, true); // السماح باختيار ملفات متعددة
+            intent.putExtra(Intent.EXTRA_ALLOW_MULTIPLE, true);
         }
-        startActivityForResult(intent, requestCode); // بدء نشاط اختيار الملف
+        startActivityForResult(intent, requestCode);
     }
 
-    // معالجة نتائج اختيار الملفات
+    /**
+     * معالجة نتائج اختيار الملفات
+     */
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
         if (resultCode == RESULT_OK && data != null) {
             if (requestCode == PICK_FILES_REQUEST_CODE) {
-                // معالجة اختيار ملفات متعددة
                 if (data.getClipData() != null) {
                     int count = data.getClipData().getItemCount();
                     for (int i = 0; i < count; i++) {
                         Uri fileUri = data.getClipData().getItemAt(i).getUri();
                         if (!selectedFiles.contains(fileUri)) {
-                            selectedFiles.add(fileUri); // إضافة الملف إذا لم يكن موجودًا
+                            selectedFiles.add(fileUri);
                         } else {
-                            Snackbar.make(findViewById(android.R.id.content), R.string.file_already_added, Snackbar.LENGTH_SHORT).show(); // رسالة إذا كان الملف مضافًا
+                            showSnackbar(R.string.file_already_added);
                         }
                     }
                 } else if (data.getData() != null) {
-                    // معالجة اختيار ملف واحد
                     Uri fileUri = data.getData();
                     if (!selectedFiles.contains(fileUri)) {
-                        selectedFiles.add(fileUri); // إضافة الملف
+                        selectedFiles.add(fileUri);
                     } else {
-                        Snackbar.make(findViewById(android.R.id.content), R.string.file_already_added, Snackbar.LENGTH_SHORT).show(); // رسالة إذا كان الملف مضافًا
+                        showSnackbar(R.string.file_already_added);
                     }
                 }
-                selectedFilesAdapter.notifyDataSetChanged(); // تحديث قائمة الملفات
-                selectFilesParent.setVisibility(View.GONE); // إخفاء تخطيط اختيار الملفات
-                addEditFilesParent.setVisibility(View.VISIBLE); // إظهار تخطيط الإضافة/التعديل
+                selectedFilesAdapter.notifyDataSetChanged();
+                selectFilesParent.setVisibility(View.GONE);
+                addEditFilesParent.setVisibility(View.VISIBLE);
             } else if (requestCode == PICK_FILE_FOR_EDIT_REQUEST_CODE) {
-                // معالجة تعديل ملف
                 if (data.getData() != null && positionToEdit >= 0) {
                     Uri fileUri = data.getData();
                     if (!selectedFiles.contains(fileUri)) {
-                        selectedFiles.set(positionToEdit, fileUri); // استبدال الملف القديم
-                        selectedFilesAdapter.notifyItemChanged(positionToEdit); // تحديث العنصر في القائمة
+                        selectedFiles.set(positionToEdit, fileUri);
+                        selectedFilesAdapter.notifyItemChanged(positionToEdit);
                     } else {
-                        Snackbar.make(findViewById(android.R.id.content), R.string.file_already_added, Snackbar.LENGTH_SHORT).show(); // رسالة إذا كان الملف مضافًا
+                        showSnackbar(R.string.file_already_added);
                     }
-                    positionToEdit = -1; // إعادة تعيين موقع التعديل
+                    positionToEdit = -1;
                 }
             }
         }
     }
 
-    // عرض نافذة تأكيد حذف ملف
-    private void showDeleteConfirmation(final int position) {
+    /**
+     * عرض نافذة تأكيد حذف ملف
+     * @param position موقع الملف في القائمة
+     */
+    private void showDeleteConfirmation(int position) {
         new AlertDialog.Builder(this)
-                .setTitle(getString(R.string.confirm_delete)) // عنوان النافذة
-                .setMessage(getString(R.string.are_you_sure_delete)) // رسالة التأكيد
-                .setPositiveButton(getString(R.string.yes), (dialog, which) -> {
-                    selectedFiles.remove(position); // حذف الملف من القائمة
-                    selectedFilesAdapter.notifyItemRemoved(position); // تحديث القائمة
+                .setTitle(R.string.confirm_delete)
+                .setMessage(R.string.are_you_sure_delete)
+                .setPositiveButton(R.string.yes, (dialog, which) -> {
+                    selectedFiles.remove(position);
+                    selectedFilesAdapter.notifyItemRemoved(position);
                     if (selectedFiles.isEmpty()) {
-                        addEditFilesParent.setVisibility(View.GONE); // إخفاء تخطيط الإضافة/التعديل
-                        selectFilesParent.setVisibility(View.VISIBLE); // إظهار تخطيط اختيار الملفات
+                        addEditFilesParent.setVisibility(View.GONE);
+                        selectFilesParent.setVisibility(View.VISIBLE);
                     }
                 })
-                .setNegativeButton(getString(R.string.cancel), (dialog, which) -> dialog.dismiss()) // إلغاء الحذف
+                .setNegativeButton(R.string.cancel, (dialog, which) -> dialog.dismiss())
                 .create()
                 .show();
     }
 
-    // عرض نافذة تأكيد الإرسال
+    /**
+     * عرض نافذة تأكيد الإرسال
+     */
     private void showSubmissionConfirmDialog() {
-        View customView = LayoutInflater.from(this).inflate(R.layout.item_dialog_confirm, null); // تحميل تخطيط النافذة
+        View customView = LayoutInflater.from(this).inflate(R.layout.item_dialog_confirm, null);
         MaterialCardView cardView = customView.findViewById(R.id.cardDialogReset);
-        cardView.setBackgroundTintList(ColorStateList.valueOf(courseColor)); // تعيين لون الخلفية
+        cardView.setBackgroundTintList(ColorStateList.valueOf(courseColor));
 
         TextView message = customView.findViewById(R.id.tvMessage);
-        message.setText(R.string.confirm_submission_message); // تعيين رسالة التأكيد
+        message.setText(R.string.confirm_submission_message);
 
-        MaterialButton btnCancel = customView.findViewById(R.id.btnCancel); // زر الإلغاء
-        MaterialButton btnConfirm = customView.findViewById(R.id.btnConfirm); // زر التأكيد
+        MaterialButton btnCancel = customView.findViewById(R.id.btnCancel);
+        MaterialButton btnConfirm = customView.findViewById(R.id.btnConfirm);
 
         Dialog dialog = new Dialog(this);
         dialog.setContentView(customView);
-        dialog.setCancelable(false); // منع إغلاق النافذة بالنقر خارجها
+        dialog.setCancelable(false);
 
-        // إعداد أبعاد النافذة
         if (dialog.getWindow() != null) {
             dialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
             WindowManager.LayoutParams params = new WindowManager.LayoutParams();
@@ -411,173 +467,203 @@ public class AssignmentUploadActivity extends BaseActivity {
             dialog.getWindow().setAttributes(params);
         }
 
-        btnCancel.setOnClickListener(v -> dialog.dismiss()); // إغلاق النافذة عند النقر على الإلغاء
+        btnCancel.setOnClickListener(v -> dialog.dismiss());
         btnConfirm.setOnClickListener(v -> {
-            dialog.dismiss(); // إغلاق النافذة
-            simulateUpload(); // بدء عملية الرفع
+            dialog.dismiss();
+            simulateUpload();
         });
 
-        dialog.show(); // عرض النافذة
+        dialog.show();
     }
 
-    // حساب حجم الملف بالميجابايت
+    /**
+     * حساب حجم الملف بالميجابايت
+     * @param uri معرف الملف
+     * @return الحجم بالميجابايت
+     */
     private double getFileSizeInMB(Uri uri) {
         double sizeInBytes = 0;
         try (Cursor cursor = getContentResolver().query(uri, null, null, null, null)) {
             if (cursor != null && cursor.moveToFirst()) {
                 int sizeIndex = cursor.getColumnIndex(OpenableColumns.SIZE);
                 if (sizeIndex != -1) {
-                    sizeInBytes = cursor.getLong(sizeIndex); // جلب حجم الملف بالبايت
+                    sizeInBytes = cursor.getLong(sizeIndex);
                 }
             }
         } catch (Exception ignored) {
-            Log.w("AssignmentUpload", "Error getting file size for URI: " + uri);
         }
-        return sizeInBytes / (1024.0 * 1024.0); // تحويل البايت إلى ميجابايت
+        return sizeInBytes / (1024.0 * 1024.0);
     }
 
-    // محاكاة عملية رفع الملفات
+    /**
+     * محاكاة عملية رفع الملفات
+     */
     private void simulateUpload() {
-        Snackbar.make(findViewById(android.R.id.content), R.string.uploading_files, Snackbar.LENGTH_INDEFINITE).show(); // عرض رسالة "جارٍ الرفع"
+        showSnackbar(R.string.uploading_files, Snackbar.LENGTH_INDEFINITE);
 
         new Thread(() -> {
             try {
-                Thread.sleep(2000); // محاكاة تأخير الرفع (2 ثانية)
+                Thread.sleep(2000);
 
-                // التحقق من تسجيل المستخدم في المقرر
                 if (!enrollmentRepository.isUserEnrolledInCourse(userId, courseCode)) {
-                    runOnUiThread(() -> {
-                        Snackbar.make(findViewById(android.R.id.content), R.string.not_enrolled_in_course, Snackbar.LENGTH_LONG).show();
-                    });
+                    runOnUiThread(() -> showSnackbar(R.string.not_enrolled_in_course));
                     return;
                 }
 
-                // التحقق من الموعد النهائي للواجب
                 Assignment assignment = assignmentRepository.getAssignmentDetails(assignmentId, isArabicLocale());
                 if (assignment == null) {
-                    runOnUiThread(() -> {
-                        Snackbar.make(findViewById(android.R.id.content), R.string.assignment_not_found, Snackbar.LENGTH_LONG).show();
-                    });
+                    runOnUiThread(() -> showSnackbar(R.string.assignment_not_found));
                     return;
                 }
                 if (isDueDatePassed(assignment.getDueDate())) {
-                    runOnUiThread(() -> {
-                        Snackbar.make(findViewById(android.R.id.content), R.string.due_date_passed, Snackbar.LENGTH_LONG).show();
-                    });
+                    runOnUiThread(() -> showSnackbar(R.string.due_date_passed));
                     return;
                 }
 
-                // حفظ الملفات محليًا وجمع مساراتها
                 List<String> filePaths = new ArrayList<>();
                 for (Uri fileUri : selectedFiles) {
-                    String fileName = getFileNameFromUri(fileUri); // جلب اسم الملف
-                    String filePath = saveFileLocally(fileUri, fileName); // حفظ الملف محليًا
+                    String fileName = getFileNameFromUri(fileUri);
+                    String filePath = saveFileLocally(fileUri, fileName);
                     if (filePath != null) {
-                        filePaths.add(filePath); // إضافة المسار إلى القائمة
-                    } else {
-                        Log.w("AssignmentUpload", "Failed to save file: " + fileName);
+                        filePaths.add(filePath);
                     }
                 }
 
-                // التحقق من نجاح حفظ الملفات
                 if (filePaths.isEmpty()) {
-                    runOnUiThread(() -> {
-                        Snackbar.make(findViewById(android.R.id.content), R.string.file_save_failed, Snackbar.LENGTH_LONG).show();
-                    });
+                    runOnUiThread(() -> showSnackbar(R.string.file_save_failed));
                     return;
                 }
 
-                // إنشاء إرسال جديد أو تحديث إرسال موجود
-                String currentDate = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(new Date()); // التاريخ الحالي
-                String status = isDueDatePassed(assignment.getDueDate()) ? "Late" : "Submitted"; // حالة الإرسال
+                String currentDate = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(new Date());
+                String status = isDueDatePassed(assignment.getDueDate()) ? "Late" : "Submitted";
 
                 submissionRepository.insertOrUpdateSubmission(
                         assignmentId,
                         userId,
                         currentDate,
-                        String.join(",", filePaths), // تجميع مسارات الملفات
+                        String.join(",", filePaths),
                         status,
-                        0.0f, // الدرجة (افتراضيًا 0)
-                        0L, // معرف المصحح (افتراضيًا 0)
-                        null // تعليقات المصحح (افتراضيًا null)
+                        0.0f,
+                        0L,
+                        null
                 );
 
-                // تحديث الواجهة بعد الإرسال الناجح
                 runOnUiThread(() -> {
-                    Snackbar.make(findViewById(android.R.id.content), R.string.upload_successful, Snackbar.LENGTH_SHORT).show(); // رسالة النجاح
-                    finish(); // إنهاء النشاط الحالي
+                    showSnackbar(R.string.upload_successful);
+                    finish();
                 });
             } catch (InterruptedException e) {
-                e.printStackTrace();
-                runOnUiThread(() -> {
-                    Snackbar.make(findViewById(android.R.id.content), R.string.upload_failed, Snackbar.LENGTH_LONG).show(); // رسالة الفشل
-                });
+                runOnUiThread(() -> showSnackbar(R.string.upload_failed));
             }
         }).start();
     }
 
-    // التحقق من انتهاء الموعد النهائي
+    /**
+     * التحقق من انتهاء الموعد النهائي
+     * @param dueDate تاريخ الموعد النهائي
+     * @return صحيح إذا انتهى الموعد
+     */
     private boolean isDueDatePassed(String dueDate) {
         if (dueDate == null) {
-            Log.w("AssignmentUpload", "Due date is null");
             return false;
         }
         try {
             SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault());
-            Date due = sdf.parse(dueDate); // تحويل تاريخ الاستحقاق إلى كائن Date
-            Date now = new Date(); // التاريخ الحالي
-            return due != null && due.getTime() - now.getTime() <= 0; // إذا كان التاريخ قد انتهى
+            Date due = sdf.parse(dueDate);
+            Date now = new Date();
+            return due != null && due.getTime() - now.getTime() <= 0;
         } catch (ParseException e) {
-            Log.e("AssignmentUpload", "Error parsing due date: " + e.getMessage()); // تسجيل خطأ التحويل
             return false;
         }
     }
 
-    // التحقق من اللغة (عربية أم إنجليزية)
-    private boolean isArabicLocale() {
-        SharedPreferences preferences = getSharedPreferences("AppPreferences", MODE_PRIVATE);
-        String selectedLanguage = preferences.getString("selected_language", "en"); // جلب اللغة المختارة
-        return "ar".equals(selectedLanguage); // إرجاع true إذا كانت اللغة عربية
-    }
-
-    // جلب اسم الملف من URI
+    /**
+     * جلب اسم الملف من URI
+     * @param uri معرف الملف
+     * @return اسم الملف
+     */
     private String getFileNameFromUri(Uri uri) {
-        String fileName = "file_" + System.currentTimeMillis(); // اسم افتراضي
-        try {
-            Cursor cursor = getContentResolver().query(uri, null, null, null, null);
+        String fileName = "file_" + System.currentTimeMillis();
+        try (Cursor cursor = getContentResolver().query(uri, null, null, null, null)) {
             if (cursor != null && cursor.moveToFirst()) {
                 int nameIndex = cursor.getColumnIndex(OpenableColumns.DISPLAY_NAME);
                 if (nameIndex != -1) {
-                    fileName = cursor.getString(nameIndex); // جلب اسم الملف الأصلي
+                    fileName = cursor.getString(nameIndex);
                 }
-                cursor.close();
             }
         } catch (Exception e) {
-            Log.e("AssignmentUpload", "Error getting file name: " + e.getMessage()); // تسجيل خطأ
         }
         return fileName;
     }
 
-    // حفظ الملف محليًا
+    /**
+     * حفظ الملف محليًا
+     * @param fileUri معرف الملف
+     * @param fileName اسم الملف
+     * @return المسار المطلق أو null إذا فشل الحفظ
+     */
     private String saveFileLocally(Uri fileUri, String fileName) {
         try {
-            File directory = new File(getExternalFilesDir(Environment.DIRECTORY_DOCUMENTS), "Submissions"); // إنشاء مجلد للتخزين
+            File directory = new File(getExternalFilesDir(Environment.DIRECTORY_DOCUMENTS), "Submissions");
             if (!directory.exists()) {
-                directory.mkdirs(); // إنشاء المجلد إذا لم يكن موجودًا
+                directory.mkdirs();
             }
-            File destinationFile = new File(directory, fileName); // إنشاء ملف الوجهة
+            File destinationFile = new File(directory, fileName);
             try (InputStream in = getContentResolver().openInputStream(fileUri);
                  OutputStream out = new FileOutputStream(destinationFile)) {
                 byte[] buffer = new byte[1024];
                 int len;
                 while ((len = in.read(buffer)) != -1) {
-                    out.write(buffer, 0, len); // كتابة الملف
+                    out.write(buffer, 0, len);
                 }
             }
-            return destinationFile.getAbsolutePath(); // إرجاع المسار المطلق
+            return destinationFile.getAbsolutePath();
         } catch (IOException e) {
-            Log.e("AssignmentUpload", "Error saving file: " + e.getMessage()); // تسجيل خطأ
             return null;
         }
+    }
+
+    /**
+     * التحقق من اللغة المختارة
+     * @return صحيح إذا كانت اللغة عربية
+     */
+    private boolean isArabicLocale() {
+        SharedPreferences preferences = getSharedPreferences("AppPreferences", MODE_PRIVATE);
+        String selectedLanguage = preferences.getString("selected_language", "en");
+        return "ar".equals(selectedLanguage);
+    }
+
+    /**
+     * عرض رسالة Snackbar
+     * @param messageRes معرف الرسالة
+     */
+    private void showSnackbar(int messageRes) {
+        Snackbar.make(findViewById(android.R.id.content), messageRes, Snackbar.LENGTH_LONG).show();
+    }
+
+    /**
+     * عرض رسالة Snackbar مع نص مخصص
+     * @param message النص المخصص
+     */
+    private void showSnackbar(String message) {
+        Snackbar.make(findViewById(android.R.id.content), message, Snackbar.LENGTH_SHORT).show();
+    }
+
+    /**
+     * عرض رسالة Snackbar مع مدة مخصصة
+     * @param messageRes معرف الرسالة
+     * @param duration مدة العرض
+     */
+    private void showSnackbar(int messageRes, int duration) {
+        Snackbar.make(findViewById(android.R.id.content), messageRes, duration).show();
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+
+        // تحديث حالة المفضلة
+        isFavorite = courseRepository.isCourseFavorite(userId, courseCode);
+        updateFavoriteButton();
     }
 }

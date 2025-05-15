@@ -4,7 +4,6 @@ import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
-import android.util.Log;
 
 import org.svuonline.lms.R;
 import org.svuonline.lms.data.db.DBContract;
@@ -41,14 +40,10 @@ public class UserRepository {
     public long loginUser(String emailOrUsername, String passwordHash) {
         try (SQLiteDatabase db = dbHelper.getReadableDatabase()) {
             String input = emailOrUsername.toLowerCase();
-            Log.d(TAG, "الإدخال (قبل المعالجة): " + emailOrUsername);
-            Log.d(TAG, "الإدخال (بعد التحويل إلى أحرف صغيرة): " + input);
 
             if (!input.contains("@")) {
                 input = input + "@svuonline.org";
             }
-            Log.d(TAG, "البريد الإلكتروني النهائي للاستعلام: " + input);
-            Log.d(TAG, "هاش كلمة المرور: " + passwordHash);
 
             String[] columns = {DBContract.Users.COL_USER_ID};
             String selection = DBContract.Users.COL_EMAIL + " = ? AND " +
@@ -56,9 +51,6 @@ public class UserRepository {
                     "LOWER(" + DBContract.Users.COL_ROLE + ") = ? AND " +
                     "LOWER(" + DBContract.Users.COL_ACCOUNT_STATUS + ") = ?";
             String[] selectionArgs = {input, passwordHash, "student", "active"};
-            Log.d(TAG, "شروط الاستعلام: " + selection);
-            Log.d(TAG, "معاملات الاستعلام: بريد=" + selectionArgs[0] + ", هاش=" + selectionArgs[1] +
-                    ", دور=" + selectionArgs[2] + ", حالة=" + selectionArgs[3]);
 
             try (Cursor cursor = db.query(
                     DBContract.Users.TABLE_NAME,
@@ -68,10 +60,8 @@ public class UserRepository {
                     null, null, null)) {
                 if (cursor.moveToFirst()) {
                     long userId = cursor.getLong(cursor.getColumnIndexOrThrow(DBContract.Users.COL_USER_ID));
-                    Log.d(TAG, "تسجيل الدخول ناجح، معرف المستخدم: " + userId);
                     return userId;
                 } else {
-                    Log.d(TAG, "فشل تسجيل الدخول: لم يتم العثور على مستخدم مطابق");
                     return -1;
                 }
             }
@@ -85,18 +75,15 @@ public class UserRepository {
         try (SQLiteDatabase db = dbHelper.getReadableDatabase();
              Cursor cursor = db.rawQuery("SELECT email, password_hash, role, account_status FROM " +
                      DBContract.Users.TABLE_NAME, null)) {
-            Log.d(TAG, "المستخدمون في قاعدة البيانات:");
             if (cursor.moveToFirst()) {
                 do {
                     String email = cursor.getString(cursor.getColumnIndexOrThrow(DBContract.Users.COL_EMAIL));
                     String passwordHash = cursor.getString(cursor.getColumnIndexOrThrow(DBContract.Users.COL_PASSWORD_HASH));
                     String role = cursor.getString(cursor.getColumnIndexOrThrow(DBContract.Users.COL_ROLE));
                     String accountStatus = cursor.getString(cursor.getColumnIndexOrThrow(DBContract.Users.COL_ACCOUNT_STATUS));
-                    Log.d(TAG, "مستخدم: بريد=" + email + ", هاش=" + passwordHash +
-                            ", دور=" + role + ", حالة=" + accountStatus);
+
                 } while (cursor.moveToNext());
             } else {
-                Log.d(TAG, "لم يتم العثور على مستخدمين في قاعدة البيانات");
             }
         }
     }
@@ -151,10 +138,8 @@ public class UserRepository {
                             cursor.getString(cursor.getColumnIndexOrThrow(DBContract.Users.COL_BIO_AR)),
                             cursor.getInt(cursor.getColumnIndexOrThrow(DBContract.Users.COL_PROGRAM_ID))
                     );
-                    Log.d(TAG, "تم استرجاع المستخدم: " + user.getNameEn());
                     return user;
                 } else {
-                    Log.d(TAG, "لم يتم العثور على مستخدم بمعرف: " + userId);
                     return null;
                 }
             }
@@ -183,10 +168,8 @@ public class UserRepository {
                     null, null, null)) {
                 if (cursor.moveToFirst()) {
                     String programName = cursor.getString(cursor.getColumnIndexOrThrow(column));
-                    Log.d(TAG, "تم استرجاع اسم البرنامج الأكاديمي (" + (isArabic ? "عربي" : "إنجليزي") + "): " + programName);
                     return programName != null ? programName : "";
                 } else {
-                    Log.d(TAG, "لم يتم العثور على برنامج أكاديمي بمعرف: " + programId);
                     return "";
                 }
             }
@@ -266,11 +249,9 @@ public class UserRepository {
                     courseList.add(course);
                 } while (cursor.moveToNext());
             }
-        } catch (Exception e) {
-            Log.e(TAG, "خطأ أثناء جلب المقررات: " + e.getMessage());
+        } catch (Exception ignored) {
         }
 
-        Log.d(TAG, "عدد المقررات المسترجعة: " + courseList.size());
         return courseList;
     }
 
@@ -347,7 +328,6 @@ public class UserRepository {
                 new String[]{String.valueOf(userId)}
         );
 
-        Log.d(TAG, "Reset favorites for user " + userId + ": " + rowsAffected + " rows affected");
         return rowsAffected > 0;
     }
 
@@ -424,11 +404,9 @@ public class UserRepository {
                     favoriteList.add(course);
                 } while (cursor.moveToNext());
             }
-        } catch (Exception e) {
-            Log.e(TAG, "Error fetching favorite courses: " + e.getMessage());
+        } catch (Exception ignored) {
         }
 
-        Log.d(TAG, "Number of favorite courses retrieved: " + favoriteList.size());
         return favoriteList;
     }
 

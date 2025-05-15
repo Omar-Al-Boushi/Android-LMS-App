@@ -9,7 +9,6 @@ import android.graphics.Rect;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
-import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.inputmethod.EditorInfo;
@@ -36,96 +35,179 @@ import org.svuonline.lms.utils.Utils;
 
 import java.util.List;
 
+/**
+ * نشاط لعرض المشاركين في المقرر مع دعم البحث وإدارة المفضلة.
+ */
 public class ParticipantsActivity extends BaseActivity {
+
+    // عناصر واجهة المستخدم
     private TextView courseCodeTextView;
     private TextView courseTitleTextView;
-    private ConstraintLayout courseHeaderLayout;
+    private ConstraintLayout courseHeaderContainer;
     private TextView sectionTitle;
     private MaterialButton backButton;
     private MaterialButton favoriteButton;
     private RecyclerView recyclerView;
     private TextInputEditText searchBar;
     private TextInputLayout textInputLayout;
-    private ParticipantsAdapter adapter;
-    private EnrollmentRepository enrollmentRepository;
-    private CourseRepository courseRepository;
+
+    // بيانات النشاط
     private String courseCode;
-    private boolean isArabic;
+    private String courseTitle;
+    private String buttonLabel;
     private int courseColor;
     private long userId;
     private boolean isFavorite;
+    private boolean isArabic;
+
+    // المستودعات
+    private EnrollmentRepository enrollmentRepository;
+    private CourseRepository courseRepository;
+
+    // مكونات إضافية
+    private ParticipantsAdapter adapter;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_participants);
 
-        // تهيئة المستودعات
+        // تهيئة المكونات
+        initComponents();
+
+        // التحقق من بيانات Intent
+        if (!validateIntentData()) {
+            finish();
+            return;
+        }
+
+        // تهيئة الواجهة والبيانات
+        initViews();
+        initData();
+        setupListeners();
+    }
+
+    /**
+     * تهيئة المستودعات
+     */
+    private void initComponents() {
         enrollmentRepository = new EnrollmentRepository(this);
         courseRepository = new CourseRepository(this);
+    }
 
-        // جلب userId من SharedPreferences
+    /**
+     * التحقق من صحة بيانات Intent
+     * @return صحيح إذا كانت البيانات صالحة، خطأ إذا لزم إنهاء النشاط
+     */
+    private boolean validateIntentData() {
+        // جلب userId
         SharedPreferences userPrefs = getSharedPreferences("user_prefs", MODE_PRIVATE);
         userId = userPrefs.getLong("user_id", -1);
+        if (userId == -1) {
+            showSnackbar(R.string.user_id_not_found);
+            return false;
+        }
 
-        // جلب اللغة من SharedPreferences
+        // جلب اللغة
         SharedPreferences prefs = getSharedPreferences("AppPreferences", MODE_PRIVATE);
         isArabic = "ar".equals(prefs.getString("selected_language", "en"));
 
-        // ربط العناصر من الـ layout
+        // جلب بيانات Intent
+        Intent intent = getIntent();
+        courseCode = intent.getStringExtra("course_code");
+        courseTitle = intent.getStringExtra("course_title");
+        courseColor = intent.getIntExtra("course_color_value", -1);
+        buttonLabel = intent.getStringExtra("button_label");
+
+        if (courseCode == null) {
+            showSnackbar(R.string.course_not_found);
+            return false;
+        }
+
+        return true;
+    }
+
+    /**
+     * تهيئة عناصر الواجهة
+     */
+    private void initViews() {
         courseCodeTextView = findViewById(R.id.courseCodeTextView);
         courseTitleTextView = findViewById(R.id.courseTitleTextView);
-        courseHeaderLayout = findViewById(R.id.courseHeaderLayout);
+        courseHeaderContainer = findViewById(R.id.courseHeaderLayout);
         sectionTitle = findViewById(R.id.sectionTitle);
         backButton = findViewById(R.id.backButton);
         favoriteButton = findViewById(R.id.favoriteButton);
         recyclerView = findViewById(R.id.filesRecyclerView);
         searchBar = findViewById(R.id.search_bar);
         textInputLayout = findViewById(R.id.outlinedTextField);
+    }
 
-        // تهيئة RecyclerView
-        recyclerView.setLayoutManager(new LinearLayoutManager(this));
-
-        // استقبال البيانات من الـ Intent
-        Intent intent = getIntent();
-        String buttonId = intent.getStringExtra("button_id");
-        courseCode = intent.getStringExtra("course_code");
-        String courseTitle = intent.getStringExtra("course_title");
-        int courseColorValue = intent.getIntExtra("course_color_value", -1);
-        String buttonLabel = intent.getStringExtra("button_label");
-
-        // التحقق من وجود courseCode
-        if (courseCode == null) {
-            Log.e("ParticipantsActivity", "لم يتم تمرير courseCode");
-            Snackbar.make(findViewById(android.R.id.content), R.string.course_not_found, Snackbar.LENGTH_LONG).show();
-            finish();
-            return;
-        }
-
+    /**
+     * تهيئة البيانات (إعداد الواجهة، المشاركين، المفضلة)
+     */
+    private void initData() {
         // إعداد الواجهة
-        setupUI(courseTitle, courseColorValue, buttonLabel);
+        setupUI();
 
-        // التحقق من حالة المفضلة
+        // إعداد حالة المفضلة
         isFavorite = courseRepository.isCourseFavorite(userId, courseCode);
         updateFavoriteButton();
 
-        // إعداد زر الرجوع
-        backButton.setOnClickListener(v -> finish());
-
-        // إعداد زر المفضلة
-        favoriteButton.setOnClickListener(v -> {
-            isFavorite = !isFavorite;
-            courseRepository.setCourseFavorite(userId, courseCode, isFavorite);
-            updateFavoriteButton();
-            String message = isFavorite ? getString(R.string.added_to_favorites) :
-                    getString(R.string.removed_from_favorites);
-            Snackbar.make(v, message, Snackbar.LENGTH_SHORT).show();
-        });
-
-        // جلب المشاركين من قاعدة البيانات
+        // إعداد المشاركين
         setupParticipants();
 
+        // إعداد RecyclerView
+        recyclerView.setLayoutManager(new LinearLayoutManager(this));
+    }
+
+    /**
+     * إعداد مستمعات الأحداث (الأزرار، شريط البحث)
+     */
+    private void setupListeners() {
+        // زر الرجوع
+        backButton.setOnClickListener(v -> finish());
+
+        // زر المفضلة
+        favoriteButton.setOnClickListener(v -> toggleFavorite());
+
         // إعداد شريط البحث
+        setupSearchBar();
+    }
+
+    /**
+     * إعداد الواجهة
+     */
+    private void setupUI() {
+        courseCodeTextView.setText(courseCode);
+        courseTitleTextView.setText(courseTitle != null ? courseTitle : "");
+        sectionTitle.setText(buttonLabel != null ? buttonLabel : getString(R.string.btn_participants));
+
+        if (courseColor == -1) {
+            courseColor = 0xFF005A82; // اللون الافتراضي
+        }
+        courseHeaderContainer.setBackgroundColor(courseColor);
+        Utils.setSystemBarColorWithColorInt(this, courseColor, getResources().getColor(R.color.Custom_BackgroundColor), 0);
+    }
+
+    /**
+     * إعداد قائمة المشاركين
+     */
+    private void setupParticipants() {
+        int courseId = courseRepository.getCourseIdByCode(courseCode);
+        if (courseId == -1) {
+            showSnackbar(R.string.course_not_found);
+            finish();
+            return;
+        }
+        List<ParticipantData> participants = enrollmentRepository.getParticipantsByCourseId(courseId, null, isArabic);
+        adapter = new ParticipantsAdapter(this, participants, courseCode);
+        recyclerView.setAdapter(adapter);
+    }
+
+    /**
+     * إعداد شريط البحث
+     */
+    private void setupSearchBar() {
         searchBar.setImeOptions(EditorInfo.IME_ACTION_SEARCH);
         searchBar.setOnFocusChangeListener((v, hasFocus) -> {
             if (hasFocus) {
@@ -148,7 +230,6 @@ public class ParticipantsActivity extends BaseActivity {
             return false;
         });
 
-        // إعداد مستمع لأيقونة مسح النص
         textInputLayout.setEndIconOnClickListener(v -> {
             searchBar.setText("");
             performSearch("");
@@ -157,14 +238,55 @@ public class ParticipantsActivity extends BaseActivity {
         });
     }
 
-    @Override
-    protected void onResume() {
-        super.onResume();
-        // إعادة التحقق من حالة المفضلة عند استئناف النشاط
-        isFavorite = courseRepository.isCourseFavorite(userId, courseCode);
+    /**
+     * تبديل حالة المفضلة
+     */
+    private void toggleFavorite() {
+        isFavorite = !isFavorite;
+        courseRepository.setCourseFavorite(userId, courseCode, isFavorite);
         updateFavoriteButton();
+        int messageRes = isFavorite ? R.string.added_to_favorites : R.string.removed_from_favorites;
+        showSnackbar(messageRes);
     }
 
+    /**
+     * تحديث أيقونة زر المفضلة
+     */
+    private void updateFavoriteButton() {
+        favoriteButton.setIconResource(isFavorite ? R.drawable.star_selected : R.drawable.star);
+        favoriteButton.setIconTint(ColorStateList.valueOf(Color.WHITE));
+    }
+
+    /**
+     * تنفيذ البحث عن المشاركين
+     * @param query نص البحث
+     */
+    private void performSearch(String query) {
+        int courseId = courseRepository.getCourseIdByCode(courseCode);
+        List<ParticipantData> filteredParticipants = enrollmentRepository.getParticipantsByCourseId(courseId, query, isArabic);
+        adapter.updateParticipants(filteredParticipants);
+    }
+
+    /**
+     * إخفاء لوحة المفاتيح
+     */
+    private void hideKeyboard() {
+        InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
+        imm.hideSoftInputFromWindow(searchBar.getWindowToken(), 0);
+    }
+
+    /**
+     * إظهار لوحة المفاتيح
+     * @param view العنصر المراد إظهار لوحة المفاتيح له
+     */
+    private void showKeyboard(View view) {
+        InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
+        imm.showSoftInput(view, InputMethodManager.SHOW_IMPLICIT);
+    }
+
+    /**
+     * معالجة أحداث اللمس لإخفاء لوحة المفاتيح
+     */
     @Override
     public boolean dispatchTouchEvent(MotionEvent event) {
         if (event.getAction() == MotionEvent.ACTION_DOWN) {
@@ -181,58 +303,23 @@ public class ParticipantsActivity extends BaseActivity {
         return super.dispatchTouchEvent(event);
     }
 
-    private void setupUI(String courseTitle, int courseColorValue, String buttonLabel) {
-        courseCodeTextView.setText(courseCode);
-        if (courseTitle != null) {
-            courseTitleTextView.setText(courseTitle);
-        }
-        if (courseColorValue != -1) {
-            courseColor = courseColorValue;
-            courseHeaderLayout.setBackgroundColor(courseColor);
-        } else {
-            courseColor = 0xFF005A82; // اللون الافتراضي
-            courseHeaderLayout.setBackgroundColor(courseColor);
-        }
-        if (buttonLabel != null) {
-            sectionTitle.setText(buttonLabel);
-        }
-
-        // تعيين لون شريط النظام
-        Utils.setSystemBarColorWithColorInt(this, courseColor, getResources().getColor(R.color.Custom_BackgroundColor), 0);
+    /**
+     * تحديث حالة المفضلة عند استئناف النشاط
+     */
+    @Override
+    protected void onResume() {
+        super.onResume();
+        isFavorite = courseRepository.isCourseFavorite(userId, courseCode);
+        updateFavoriteButton();
+        // إعداد المشاركين
+        setupParticipants();
     }
 
-    private void setupParticipants() {
-        int courseId = courseRepository.getCourseIdByCode(courseCode);
-        if (courseId == -1) {
-            Log.e("ParticipantsActivity", "لم يتم العثور على المقرر: " + courseCode);
-            Snackbar.make(findViewById(android.R.id.content), R.string.course_not_found, Snackbar.LENGTH_LONG).show();
-            finish();
-            return;
-        }
-        List<ParticipantData> participants = enrollmentRepository.getParticipantsByCourseId(courseId, null, isArabic);
-        adapter = new ParticipantsAdapter(this, participants, courseCode);
-        recyclerView.setAdapter(adapter);
-    }
-
-    private void performSearch(String query) {
-        int courseId = courseRepository.getCourseIdByCode(courseCode);
-        List<ParticipantData> filteredParticipants = enrollmentRepository.getParticipantsByCourseId(courseId, query, isArabic);
-        adapter.updateParticipants(filteredParticipants);
-        Log.d("ParticipantsActivity", "تم البحث باستعلام: " + query + ", عدد النتائج: " + filteredParticipants.size());
-    }
-
-    private void updateFavoriteButton() {
-        favoriteButton.setIconResource(isFavorite ? R.drawable.star_selected : R.drawable.star);
-        favoriteButton.setIconTint(ColorStateList.valueOf(Color.WHITE));
-    }
-
-    private void hideKeyboard() {
-        InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
-        imm.hideSoftInputFromWindow(searchBar.getWindowToken(), 0);
-    }
-
-    private void showKeyboard(View view) {
-        InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
-        imm.showSoftInput(view, InputMethodManager.SHOW_IMPLICIT);
+    /**
+     * عرض رسالة Snackbar
+     * @param messageRes معرف الرسالة
+     */
+    private void showSnackbar(int messageRes) {
+        Snackbar.make(findViewById(android.R.id.content), messageRes, Snackbar.LENGTH_LONG).show();
     }
 }

@@ -1,4 +1,3 @@
-// ProfileActivity.java
 package org.svuonline.lms.ui.activities;
 
 import android.animation.ObjectAnimator;
@@ -24,6 +23,7 @@ import com.google.android.material.button.MaterialButton;
 import com.google.android.material.card.MaterialCardView;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.imageview.ShapeableImageView;
+import com.google.android.material.snackbar.Snackbar;
 
 import org.svuonline.lms.R;
 import org.svuonline.lms.data.model.User;
@@ -37,153 +37,234 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+/**
+ * نشاط لعرض ملف المستخدم الشخصي مع بيانات التواصل والمقررات المسجلة.
+ */
 public class ProfileActivity extends BaseActivity {
 
-    private ConstraintLayout courseHeaderLayout;
-    private MaterialButton backButton, editButton;
+    // عناصر واجهة المستخدم
+    private ConstraintLayout courseHeaderContainer;
+    private MaterialButton backButton;
+    private MaterialButton editButton;
     private NestedScrollView nestedScrollView;
     private RecyclerView coursesRecyclerView;
     private FloatingActionButton fabBackToTop;
     private ShapeableImageView imgProfile;
-    private TextView profileName, profileBio;
+    private TextView profileName;
+    private TextView profileBio;
 
-    private UserRepository userRepo;
+    // المستودعات
+    private UserRepository userRepository;
+
+    // بيانات النشاط
     private long profileUserId;
+    private long currentUserId;
     private boolean isCurrentUser;
     private boolean isArabic;
+    private int headerColor;
+    private int textColor;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_profile);
 
-        // bind views
-        courseHeaderLayout  = findViewById(R.id.courseHeaderLayout);
-        backButton          = findViewById(R.id.backButton);
-        editButton          = findViewById(R.id.editButton);
-        nestedScrollView    = findViewById(R.id.nestedScrollView);
-        coursesRecyclerView = findViewById(R.id.coursesRecyclerView);
-        fabBackToTop        = findViewById(R.id.fabBackToTop);
-        imgProfile          = findViewById(R.id.img_profile);
-        profileName         = findViewById(R.id.profileName);
-        profileBio          = findViewById(R.id.descriptionBio);
+        // تهيئة المكونات
+        initComponents();
 
-        // 1) اللغة
+        // تهيئة الواجهة
+        initViews();
+
+        // التحقق من بيانات Intent
+        if (!validateIntentData()) {
+            finish();
+            return;
+        }
+
+        // تهيئة البيانات
+        initData();
+
+        // إعداد مستمعات الأحداث
+        setupListeners();
+    }
+
+    /**
+     * تهيئة المستودعات
+     */
+    private void initComponents() {
+        userRepository = new UserRepository(this);
+    }
+
+    /**
+     * تهيئة عناصر الواجهة
+     */
+    private void initViews() {
+        courseHeaderContainer = findViewById(R.id.courseHeaderLayout);
+        backButton = findViewById(R.id.backButton);
+        editButton = findViewById(R.id.editButton);
+        nestedScrollView = findViewById(R.id.nestedScrollView);
+        coursesRecyclerView = findViewById(R.id.coursesRecyclerView);
+        fabBackToTop = findViewById(R.id.fabBackToTop);
+        imgProfile = findViewById(R.id.img_profile);
+        profileName = findViewById(R.id.profileName);
+        profileBio = findViewById(R.id.descriptionBio);
+    }
+
+    /**
+     * التحقق من صحة بيانات Intent
+     * @return صحيح إذا كانت البيانات صالحة، خطأ إذا لزم إنهاء النشاط
+     */
+    private boolean validateIntentData() {
+        // جلب اللغة
         SharedPreferences prefsLang = getSharedPreferences("AppPreferences", MODE_PRIVATE);
         isArabic = "ar".equals(prefsLang.getString("selected_language", "en"));
 
-        // 2) userId
+        // جلب userId
         SharedPreferences prefsUser = getSharedPreferences("user_prefs", MODE_PRIVATE);
-        long currentUserId = prefsUser.getLong("user_id", -1);
-        if (getIntent().hasExtra("profile_user_id")) {
-            profileUserId = getIntent().getLongExtra("profile_user_id", -1);
-        } else {
-            profileUserId = currentUserId;
+        currentUserId = prefsUser.getLong("user_id", -1);
+        if (currentUserId == -1) {
+            showSnackbar(R.string.user_id_not_found);
+            return false;
         }
+
+        // جلب profileUserId
+        profileUserId = getIntent().getLongExtra("profile_user_id", currentUserId);
         isCurrentUser = currentUserId == profileUserId;
 
-        // 3) بيانات المستخدم
-        userRepo = new UserRepository(this);
-        User user = userRepo.getUserById(profileUserId);
-        if (user == null) { finish(); return; }
+        // التحقق من وجود المستخدم
+        User user = userRepository.getUserById(profileUserId);
+        if (user == null) {
+            showSnackbar(R.string.user_id_not_found);
+            return false;
+        }
 
-        // 4) ألوان الهيدر/نص
-        int headerColor = getIntent().getIntExtra("header_color",
-                ContextCompat.getColor(this, R.color.Custom_MainColorBlue));
-        // بعد جلب headerColor
-        boolean darkMode = (getResources().getConfiguration().uiMode
-                & Configuration.UI_MODE_NIGHT_MASK) == Configuration.UI_MODE_NIGHT_YES;
+        return true;
+    }
 
-    // في الوضع الداكن نخفف اللون بنسبة 30% نحو الأبيض لرفع التباين، وفي الوضع الفاتح نستخدم headerColor كما هو
-        int textColor = darkMode
-                ? ColorUtils.blendARGB(headerColor, Color.WHITE, 0.5f)
-                : headerColor;
-        courseHeaderLayout.setBackgroundColor(headerColor);
+    /**
+     * تهيئة البيانات (إعداد الواجهة، المستخدم، المقررات)
+     */
+    private void initData() {
+        User user = userRepository.getUserById(profileUserId);
+        if (user == null) {
+            showSnackbar(R.string.user_id_not_found);
+            finish();
+            return;
+        }
+
+        // إعداد لون الهيدر والنص
+        setupHeaderAndTextColor();
+
+        // إعداد الواجهة
+        setupUI(user);
+
+        // إعداد روابط التواصل
+        setupContacts(user);
+
+        // تحميل المقررات
+        loadUserCourses();
+    }
+
+    /**
+     * إعداد مستمعات الأحداث (الأزرار، زر العودة للأعلى)
+     */
+    private void setupListeners() {
+        // زر الرجوع
+        backButton.setOnClickListener(v -> finish());
+
+        // زر التعديل
+        if (isCurrentUser) {
+            editButton.setVisibility(View.VISIBLE);
+            editButton.setOnClickListener(v -> startActivity(new Intent(this, EditProfileActivity.class)));
+        } else {
+            editButton.setVisibility(View.GONE);
+        }
+
+        // زر العودة للأعلى
+        setupBackToTopButton();
+    }
+
+    /**
+     * إعداد لون الهيدر والنص
+     */
+    private void setupHeaderAndTextColor() {
+        headerColor = getIntent().getIntExtra("header_color", ContextCompat.getColor(this, R.color.Custom_MainColorBlue));
+        boolean darkMode = (getResources().getConfiguration().uiMode & Configuration.UI_MODE_NIGHT_MASK) == Configuration.UI_MODE_NIGHT_YES;
+        textColor = darkMode ? ColorUtils.blendARGB(headerColor, Color.WHITE, 0.5f) : headerColor;
+        courseHeaderContainer.setBackgroundColor(headerColor);
         Utils.setSystemBarColorWithColorInt(this, headerColor, getResources().getColor(R.color.Custom_BackgroundColor), 0);
+    }
 
-        // 5) الصورة
-        String pic = user.getProfilePicture();
-        if (pic != null && pic.startsWith("@drawable/")) {
-            String name = pic.substring("@drawable/".length());
+    /**
+     * إعداد الواجهة
+     * @param user بيانات المستخدم
+     */
+    private void setupUI(User user) {
+        // إعداد الصورة
+        setupProfilePicture(user.getProfilePicture());
+
+        // إعداد الاسم والبايو
+        profileName.setText(isArabic ? user.getNameAr() : user.getNameEn());
+        profileBio.setText(isArabic ? user.getBioAr() : user.getBioEn());
+
+        // إعداد عناوين الأقسام
+        TextView sectionContact = findViewById(R.id.sectionContact);
+        TextView sectionBio = findViewById(R.id.sectionBio);
+        TextView sectionCourses = findViewById(R.id.sectionCourses);
+        sectionContact.setTextColor(textColor);
+        sectionBio.setTextColor(textColor);
+        sectionCourses.setTextColor(textColor);
+
+        // إعداد بطاقات التواصل
+        int[] cardIds = {R.id.cardPhone, R.id.cardWhatsapp, R.id.cardFacebook, R.id.cardEmail, R.id.cardTelegram};
+        for (int id : cardIds) {
+            MaterialCardView card = findViewById(id);
+            card.setBackgroundTintList(ColorStateList.valueOf(headerColor));
+        }
+
+        // إعداد زر العودة للأعلى
+        fabBackToTop.setBackgroundTintList(ColorStateList.valueOf(headerColor));
+    }
+
+    /**
+     * إعداد صورة الملف الشخصي
+     * @param picture رابط أو معرف الصورة
+     */
+    private void setupProfilePicture(String picture) {
+        if (picture != null && picture.startsWith("@drawable/")) {
+            String name = picture.substring("@drawable/".length());
             int resId = getResources().getIdentifier(name, "drawable", getPackageName());
             imgProfile.setImageResource(resId != 0 ? resId : R.drawable.avatar);
-        } else if (pic != null && !pic.isEmpty()) {
+        } else if (picture != null && !picture.isEmpty()) {
             try {
-                imgProfile.setImageURI(Uri.parse(pic));
+                imgProfile.setImageURI(Uri.parse(picture));
             } catch (Exception e) {
                 imgProfile.setImageResource(R.drawable.avatar);
             }
         } else {
             imgProfile.setImageResource(R.drawable.avatar);
         }
-
-        // 6) الاسم والبايو
-        profileName.setText(isArabic ? user.getNameAr() : user.getNameEn());
-        profileBio.setText(isArabic ? user.getBioAr() : user.getBioEn());
-
-        // 7) عناوين الأقسام
-        TextView sectionContact = findViewById(R.id.sectionContact);
-        TextView sectionBio     = findViewById(R.id.sectionBio);
-        TextView sectionCourses = findViewById(R.id.sectionCourses);
-        sectionContact.setTextColor(textColor);
-        sectionBio.setTextColor(textColor);
-        sectionCourses.setTextColor(textColor);
-
-        // 8) بطاقات التواصل
-        int[] cardIds = {R.id.cardPhone, R.id.cardWhatsapp, R.id.cardFacebook, R.id.cardEmail, R.id.cardTelegram};
-        for (int id : cardIds) {
-            MaterialCardView card = findViewById(id);
-            card.setBackgroundTintList(ColorStateList.valueOf(headerColor));
-        }
-        fabBackToTop.setBackgroundTintList(ColorStateList.valueOf(headerColor));
-
-        // 9) روابط التواصل
-        setupContact(R.id.parentPhone,    user.getPhone(),          Intent.ACTION_DIAL,   "tel:");
-        setupContact(R.id.parentWhatsapp, user.getWhatsappNumber(), Intent.ACTION_VIEW,   "https://wa.me/");
-        setupContact(R.id.parentFacebook, user.getFacebookUrl(),    Intent.ACTION_VIEW,   "https://");
-        setupContact(R.id.parentEmail,    user.getEmail(),          Intent.ACTION_SENDTO, "mailto:");
-        setupContact(R.id.parentTelegram, user.getTelegramHandle(), Intent.ACTION_VIEW,   "https://");
-
-        // 10) زر التعديل
-        if (isCurrentUser) {
-            editButton.setVisibility(View.VISIBLE);
-            editButton.setOnClickListener(v ->
-                    startActivity(new Intent(this, EditProfileActivity.class))
-            );
-        } else {
-            editButton.setVisibility(View.GONE);
-        }
-
-        // 11) زر الرجوع
-        backButton.setOnClickListener(v -> finish());
-
-        // 12) تحميل وعرض الكورسات
-        loadUserCourses(profileUserId);
-
-        // 13) زر العودة للأعلى
-        nestedScrollView.setOnScrollChangeListener((NestedScrollView.OnScrollChangeListener) (v, x, y, ox, oy) -> {
-            if (y > 600 && fabBackToTop.getVisibility() != View.VISIBLE) {
-                fabBackToTop.setAlpha(0f);
-                fabBackToTop.setVisibility(View.VISIBLE);
-                fabBackToTop.animate()
-                        .alpha(1f).setDuration(300)
-                        .setInterpolator(new AccelerateDecelerateInterpolator())
-                        .start();
-            } else if (y <= 600 && fabBackToTop.getVisibility() == View.VISIBLE) {
-                fabBackToTop.animate()
-                        .alpha(0f).setDuration(300)
-                        .withEndAction(() -> fabBackToTop.setVisibility(View.GONE))
-                        .start();
-            }
-        });
-        fabBackToTop.setOnClickListener(v ->
-                ObjectAnimator.ofInt(nestedScrollView, "scrollY",
-                                nestedScrollView.getScrollY(), 0)
-                        .setDuration(300)
-                        .start()
-        );
     }
 
+    /**
+     * إعداد روابط التواصل
+     * @param user بيانات المستخدم
+     */
+    private void setupContacts(User user) {
+        setupContact(R.id.parentPhone, user.getPhone(), Intent.ACTION_DIAL, "tel:");
+        setupContact(R.id.parentWhatsapp, user.getWhatsappNumber(), Intent.ACTION_VIEW, "https://wa.me/");
+        setupContact(R.id.parentFacebook, user.getFacebookUrl(), Intent.ACTION_VIEW, "https://");
+        setupContact(R.id.parentEmail, user.getEmail(), Intent.ACTION_SENDTO, "mailto:");
+        setupContact(R.id.parentTelegram, user.getTelegramHandle(), Intent.ACTION_VIEW, "https://");
+    }
+
+    /**
+     * إعداد رابط تواصل واحد
+     * @param viewId معرف العنصر
+     * @param data بيانات التواصل
+     * @param action نوع الإجراء
+     * @param prefix بادئة الرابط
+     */
     private void setupContact(int viewId, String data, String action, String prefix) {
         View parent = findViewById(viewId);
         if (data == null || data.isEmpty()) {
@@ -204,23 +285,20 @@ public class ProfileActivity extends BaseActivity {
         } else {
             uri = data;
         }
-        parent.setOnClickListener(v ->
-                startActivity(new Intent(action, Uri.parse(uri)))
-        );
+        parent.setOnClickListener(v -> startActivity(new Intent(action, Uri.parse(uri))));
     }
 
-    private void loadUserCourses(long userId) {
-        // 1) جلب القائمة (backgroundColor فيها res-id)
-        List<CourseCardData> raw = userRepo.getUserCourses(userId, isArabic);
-
-        // 2) تحويل res-id إلى لون فعلي وفرز
+    /**
+     * تحميل وعرض المقررات
+     */
+    private void loadUserCourses() {
+        List<CourseCardData> raw = userRepository.getUserCourses(profileUserId, isArabic);
         List<CourseCardData> list = new ArrayList<>();
-        for (CourseCardData c : raw) {
-            int colorInt = ContextCompat.getColor(this, c.getBackgroundColor());
-            c.setBackgroundColor(colorInt);
-            list.add(c);
+        for (CourseCardData course : raw) {
+            int colorInt = ContextCompat.getColor(this, course.getBackgroundColor());
+            course.setBackgroundColor(colorInt);
+            list.add(course);
         }
-        // فرز: مسجّلة أولاً ثم ناجحة
         Collections.sort(list, (a, b) -> {
             if (a.isRegistered() != b.isRegistered()) {
                 return a.isRegistered() ? -1 : 1;
@@ -230,56 +308,73 @@ public class ProfileActivity extends BaseActivity {
             }
             return 0;
         });
-
-        // 3) تمريرها إلى الـ adapter
         CourseCardAdapter adapter = new CourseCardAdapter(list, false);
         int cols = calculateNoOfColumns(400);
         coursesRecyclerView.setLayoutManager(new GridLayoutManager(this, cols));
         coursesRecyclerView.setAdapter(adapter);
     }
 
+    /**
+     * حساب عدد الأعمدة لشبكة المقررات
+     * @param columnWidthDp عرض العمود بالـ dp
+     * @return عدد الأعمدة
+     */
     private int calculateNoOfColumns(int columnWidthDp) {
-        float wDp = getResources().getDisplayMetrics().widthPixels /
-                getResources().getDisplayMetrics().density;
-        return (int)(wDp / columnWidthDp + 0.5);
+        float wDp = getResources().getDisplayMetrics().widthPixels / getResources().getDisplayMetrics().density;
+        return (int) (wDp / columnWidthDp + 0.5);
     }
 
+    /**
+     * إعداد زر العودة للأعلى
+     */
+    private void setupBackToTopButton() {
+        nestedScrollView.setOnScrollChangeListener((NestedScrollView.OnScrollChangeListener) (v, x, y, ox, oy) -> {
+            if (y > 600 && fabBackToTop.getVisibility() != View.VISIBLE) {
+                fabBackToTop.setAlpha(0f);
+                fabBackToTop.setVisibility(View.VISIBLE);
+                fabBackToTop.animate()
+                        .alpha(1f)
+                        .setDuration(300)
+                        .setInterpolator(new AccelerateDecelerateInterpolator())
+                        .start();
+            } else if (y <= 600 && fabBackToTop.getVisibility() == View.VISIBLE) {
+                fabBackToTop.animate()
+                        .alpha(0f)
+                        .setDuration(300)
+                        .withEndAction(() -> fabBackToTop.setVisibility(View.GONE))
+                        .start();
+            }
+        });
+        fabBackToTop.setOnClickListener(v ->
+                ObjectAnimator.ofInt(nestedScrollView, "scrollY", nestedScrollView.getScrollY(), 0)
+                        .setDuration(300)
+                        .start());
+    }
+
+    /**
+     * تحديث بيانات المستخدم عند استئناف النشاط
+     */
     @Override
     protected void onResume() {
         super.onResume();
-
-        // إعادة تحميل بيانات المستخدم
-        User user = userRepo.getUserById(profileUserId);
-        if (user == null) { finish(); return; }
-
+        User user = userRepository.getUserById(profileUserId);
+        if (user == null) {
+            showSnackbar(R.string.user_id_not_found);
+            finish();
+            return;
+        }
         profileName.setText(isArabic ? user.getNameAr() : user.getNameEn());
         profileBio.setText(isArabic ? user.getBioAr() : user.getBioEn());
-
-        // إعادة تحميل الصورة
-        String pic = user.getProfilePicture();
-        if (pic != null && pic.startsWith("@drawable/")) {
-            String name = pic.substring("@drawable/".length());
-            int resId = getResources().getIdentifier(name, "drawable", getPackageName());
-            imgProfile.setImageResource(resId != 0 ? resId : R.drawable.avatar);
-        } else if (pic != null && !pic.isEmpty()) {
-            try {
-                imgProfile.setImageURI(Uri.parse(pic));
-            } catch (Exception e) {
-                imgProfile.setImageResource(R.drawable.avatar);
-            }
-        } else {
-            imgProfile.setImageResource(R.drawable.avatar);
-        }
-
-        // إعادة تحميل روابط التواصل
-        setupContact(R.id.parentPhone,    user.getPhone(),          Intent.ACTION_DIAL,   "tel:");
-        setupContact(R.id.parentWhatsapp, user.getWhatsappNumber(), Intent.ACTION_VIEW,   "https://wa.me/");
-        setupContact(R.id.parentFacebook, user.getFacebookUrl(),    Intent.ACTION_VIEW,   "https://");
-        setupContact(R.id.parentEmail,    user.getEmail(),          Intent.ACTION_SENDTO, "mailto:");
-        setupContact(R.id.parentTelegram, user.getTelegramHandle(), Intent.ACTION_VIEW,   "https://");
-
-        // إعادة تحميل الكورسات
-        loadUserCourses(profileUserId);
+        setupProfilePicture(user.getProfilePicture());
+        setupContacts(user);
+        loadUserCourses();
     }
 
+    /**
+     * عرض رسالة Snackbar
+     * @param messageRes معرف الرسالة
+     */
+    private void showSnackbar(int messageRes) {
+        Snackbar.make(findViewById(android.R.id.content), messageRes, Snackbar.LENGTH_LONG).show();
+    }
 }

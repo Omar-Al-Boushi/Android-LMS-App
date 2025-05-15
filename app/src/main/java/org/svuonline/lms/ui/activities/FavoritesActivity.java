@@ -1,6 +1,7 @@
 package org.svuonline.lms.ui.activities;
 
 import android.app.Dialog;
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
@@ -34,113 +35,146 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+/**
+ * نشاط لعرض المقررات المفضلة مع خيارات تبديل العرض وإعادة التعيين.
+ */
 public class FavoritesActivity extends BaseActivity {
 
+    // مفاتيح SharedPreferences
+    private static final String PREFS_NAME = "FavoritesViewPrefs";
+    private static final String PREF_VIEW_MODE = "view_mode";
+
+    // عناصر واجهة المستخدم
+    private MaterialToolbar toolbar;
     private RecyclerView recyclerView;
-    private CourseCardAdapter adapter;
-    private List<CourseCardData> favoritesList;
     private TextView emptyMessage;
     private ShapeableImageView ivProfile;
-    private MaterialButton resetButton, cardsBtn, listBtn;
-    private boolean isListView; // سيتم تحميله من SharedPreferences
+    private MaterialButton resetButton;
+    private MaterialButton cardsBtn;
+    private MaterialButton listBtn;
+
+    // المستودعات
+    private UserRepository userRepository;
+
+    // بيانات النشاط
     private long userId;
     private boolean isArabic;
-    private UserRepository userRepository;
+    private boolean isListView;
+    private List<CourseCardData> favoritesList;
+    private CourseCardAdapter adapter;
     private SharedPreferences viewPrefs;
-    private static final String PREF_VIEW_MODE = "view_mode";
-    private static final String PREFS_NAME = "FavoritesViewPrefs";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_favorites);
 
-        // 1) اللغة
-        SharedPreferences prefsLang = getSharedPreferences("AppPreferences", MODE_PRIVATE);
-        isArabic = "ar".equals(prefsLang.getString("selected_language", "en"));
+        // تهيئة المكونات
+        initComponents();
 
-        // 2) userId
-        SharedPreferences userPrefs = getSharedPreferences("user_prefs", MODE_PRIVATE);
-        userId = userPrefs.getLong("user_id", -1);
-        if (userId == -1) {
-            finish(); // إنهاء النشاط إذا لم يتم العثور على userId
+        // تهيئة الواجهة
+        initViews();
+
+        // التحقق من بيانات المستخدم
+        if (!validateUserData()) {
             return;
         }
 
-        // 3) تهيئة SharedPreferences لتخزين حالة العرض
-        viewPrefs = getSharedPreferences(PREFS_NAME, MODE_PRIVATE);
-        isListView = viewPrefs.getBoolean(PREF_VIEW_MODE, false); // الافتراضي: بطاقات
+        // تهيئة البيانات
+        initData();
 
-        // 4) تهيئة UserRepository
+        // إعداد مستمعات الأحداث
+        setupListeners();
+    }
+
+    /**
+     * تهيئة المستودعات
+     */
+    private void initComponents() {
         userRepository = new UserRepository(this);
+        viewPrefs = getSharedPreferences(PREFS_NAME, MODE_PRIVATE);
+    }
 
-        // 5) ربط العناصر
+    /**
+     * تهيئة عناصر الواجهة
+     */
+    private void initViews() {
+        toolbar = findViewById(R.id.toolbar_top);
         recyclerView = findViewById(R.id.recycler_view);
         emptyMessage = findViewById(R.id.empty_message);
         ivProfile = findViewById(R.id.iv_profile);
         resetButton = findViewById(R.id.materialButton);
         cardsBtn = findViewById(R.id.cardsBtn);
         listBtn = findViewById(R.id.listBtn);
-        MaterialToolbar toolbarTop = findViewById(R.id.toolbar_top);
+    }
 
-        // 6) إعداد لون شريط النظام
-        Utils.setSystemBarColorWithColorInt(this, getResources().getColor(R.color.Custom_BackgroundColor), getResources().getColor(R.color.Custom_BackgroundColor), 0);
+    /**
+     * التحقق من صحة بيانات المستخدم
+     * @return صحيح إذا كانت البيانات صالحة، خطأ إذا لزم إنهاء النشاط
+     */
+    private boolean validateUserData() {
+        SharedPreferences userPrefs = getSharedPreferences("user_prefs", MODE_PRIVATE);
+        userId = userPrefs.getLong("user_id", -1);
+        if (userId == -1) {
+            showToast(R.string.user_id_not_found);
+            Intent intent = new Intent(this, LoginActivity.class);
+            intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+            startActivity(intent);
+            finish();
+            return false;
+        }
+        return true;
+    }
 
-        // 7) إعداد الصورة الشخصية
-        setupProfilePicture();
+    /**
+     * تهيئة البيانات (اللغة، العرض، المفضلة، الصورة)
+     */
+    private void initData() {
+        // إعداد لون شريط النظام
+        Utils.setSystemBarColorWithColorInt(this,
+                getResources().getColor(R.color.Custom_BackgroundColor),
+                getResources().getColor(R.color.Custom_BackgroundColor), 0);
 
-        // 8) إعداد زر الرجوع في Toolbar
-        toolbarTop.setNavigationOnClickListener(v -> finish());
+        // جلب اللغة
+        SharedPreferences prefsLang = getSharedPreferences("AppPreferences", MODE_PRIVATE);
+        isArabic = "ar".equals(prefsLang.getString("selected_language", "en"));
 
-        // 9) تهيئة قائمة المفضلة وتحميل البيانات
+        // جلب حالة العرض
+        isListView = viewPrefs.getBoolean(PREF_VIEW_MODE, false);
+
+        // تهيئة قائمة المفضلة
         favoritesList = new ArrayList<>();
         loadFavoriteCourses();
 
-        // 10) إعداد RecyclerView
+        // إعداد RecyclerView
         adapter = new CourseCardAdapter(favoritesList, isListView);
         updateRecyclerViewLayout();
         recyclerView.setAdapter(adapter);
 
-        // 11) إعداد زر إعادة التعيين
+        // إعداد الصورة الشخصية
+        setupProfilePicture();
+
+        // تحديث حالة الأزرار
+        updateButtonStates();
+    }
+
+    /**
+     * إعداد مستمعات الأحداث (الشريط العلوي، الأزرار)
+     */
+    private void setupListeners() {
+        // إعداد الشريط العلوي
+        toolbar.setNavigationOnClickListener(v -> navigateBack());
+
+        // إعداد زر إعادة التعيين
         resetButton.setOnClickListener(v -> showResetDialog());
 
-        // 12) إعداد أزرار تبديل العرض (بطاقات/قوائم)
-        updateButtonStates(); // تحديث حالة الأزرار بناءً على isListView
-
-        cardsBtn.setOnClickListener(v -> {
-            if (isListView) {
-                isListView = false;
-                adapter.setListView(isListView);
-                updateRecyclerViewLayout();
-                adapter.notifyDataSetChanged();
-                updateButtonStates();
-                saveViewMode(); // حفظ الحالة
-            }
-        });
-
-        listBtn.setOnClickListener(v -> {
-            if (!isListView) {
-                isListView = true;
-                adapter.setListView(isListView);
-                updateRecyclerViewLayout();
-                adapter.notifyDataSetChanged();
-                updateButtonStates();
-                saveViewMode(); // حفظ الحالة
-            }
-        });
+        // إعداد أزرار تبديل العرض
+        cardsBtn.setOnClickListener(v -> switchToCardsView());
+        listBtn.setOnClickListener(v -> switchToListView());
     }
 
     /**
-     * حفظ حالة العرض في SharedPreferences
-     */
-    private void saveViewMode() {
-        SharedPreferences.Editor editor = viewPrefs.edit();
-        editor.putBoolean(PREF_VIEW_MODE, isListView);
-        editor.apply();
-    }
-
-    /**
-     * إعداد الصورة الشخصية بناءً على userId
+     * إعداد الصورة الشخصية
      */
     private void setupProfilePicture() {
         User user = userRepository.getUserById(userId);
@@ -165,22 +199,17 @@ public class FavoritesActivity extends BaseActivity {
     }
 
     /**
-     * تحميل المقررات المفضلة من قاعدة البيانات
+     * تحميل المقررات المفضلة
      */
     private void loadFavoriteCourses() {
+        favoritesList.clear();
         if (userId != -1) {
-            // جلب القائمة الخام (تحتوي على معرفات موارد الألوان)
             List<CourseCardData> raw = userRepository.getFavoriteCourses(userId, isArabic);
-
-            // تحويل معرفات الألوان إلى ألوان فعلية وفرز
-            favoritesList.clear();
             for (CourseCardData c : raw) {
                 int colorInt = ContextCompat.getColor(this, c.getBackgroundColor());
                 c.setBackgroundColor(colorInt);
                 favoritesList.add(c);
             }
-
-            // فرز: المسجلة أولاً، ثم الناجحة
             Collections.sort(favoritesList, (a, b) -> {
                 if (a.isRegistered() != b.isRegistered()) {
                     return a.isRegistered() ? -1 : 1;
@@ -190,21 +219,23 @@ public class FavoritesActivity extends BaseActivity {
                 }
                 return 0;
             });
-
-            // تحديث UI
-            if (adapter != null) {
-                adapter.notifyDataSetChanged();
-            }
-            emptyMessage.setVisibility(favoritesList.isEmpty() ? View.VISIBLE : View.GONE);
-            recyclerView.setVisibility(favoritesList.isEmpty() ? View.GONE : View.VISIBLE);
-        } else {
-            emptyMessage.setVisibility(View.VISIBLE);
-            recyclerView.setVisibility(View.GONE);
         }
+        updateFavoritesUI();
     }
 
     /**
-     * إظهار حوار تأكيد إعادة تعيين المفضلة
+     * تحديث واجهة المفضلة
+     */
+    private void updateFavoritesUI() {
+        if (adapter != null) {
+            adapter.notifyDataSetChanged();
+        }
+        emptyMessage.setVisibility(favoritesList.isEmpty() ? View.VISIBLE : View.GONE);
+        recyclerView.setVisibility(favoritesList.isEmpty() ? View.GONE : View.VISIBLE);
+    }
+
+    /**
+     * إظهار حوار تأكيد إعادة التعيين
      */
     private void showResetDialog() {
         View customView = getLayoutInflater().inflate(R.layout.item_dialog_confirm, null);
@@ -216,10 +247,24 @@ public class FavoritesActivity extends BaseActivity {
 
         Dialog dialog = new Dialog(this);
         dialog.setContentView(customView);
+        configureDialogWindow(dialog);
 
+        dialog.show();
+
+        btnCancel.setOnClickListener(v -> dialog.dismiss());
+        btnConfirm.setOnClickListener(v -> {
+            resetFavorites();
+            dialog.dismiss();
+        });
+    }
+
+    /**
+     * تهيئة نافذة الحوار
+     * @param dialog الحوار المراد تهيئته
+     */
+    private void configureDialogWindow(Dialog dialog) {
         if (dialog.getWindow() != null) {
             dialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
-
             WindowManager.LayoutParams layoutParams = new WindowManager.LayoutParams();
             layoutParams.copyFrom(dialog.getWindow().getAttributes());
 
@@ -236,24 +281,24 @@ public class FavoritesActivity extends BaseActivity {
 
             dialog.getWindow().setAttributes(layoutParams);
         }
-
-        dialog.show();
-
-        btnCancel.setOnClickListener(v -> dialog.dismiss());
-        btnConfirm.setOnClickListener(v -> {
-            boolean success = userRepository.resetFavoriteCourses(userId);
-            if (success) {
-                favoritesList.clear();
-                adapter.notifyDataSetChanged();
-                emptyMessage.setVisibility(View.VISIBLE);
-                recyclerView.setVisibility(View.GONE);
-            }
-            dialog.dismiss();
-        });
     }
 
     /**
-     * تحديث تخطيط RecyclerView بناءً على وضع العرض
+     * إعادة تعيين المفضلة
+     */
+    private void resetFavorites() {
+        boolean success = userRepository.resetFavoriteCourses(userId);
+        if (success) {
+            favoritesList.clear();
+            updateFavoritesUI();
+            showToast(R.string.fav_reset_success);
+        } else {
+            showToast(R.string.fav_reset_failed);
+        }
+    }
+
+    /**
+     * تحديث تخطيط RecyclerView
      */
     private void updateRecyclerViewLayout() {
         if (isListView) {
@@ -266,6 +311,8 @@ public class FavoritesActivity extends BaseActivity {
 
     /**
      * حساب عدد الأعمدة لعرض البطاقات
+     * @param columnWidthDp عرض العمود بالـ dp
+     * @return عدد الأعمدة
      */
     private int calculateNoOfColumns(int columnWidthDp) {
         float screenWidthDp = getResources().getDisplayMetrics().widthPixels /
@@ -277,24 +324,69 @@ public class FavoritesActivity extends BaseActivity {
      * تحديث حالة أزرار تبديل العرض
      */
     private void updateButtonStates() {
+        cardsBtn.setSelected(!isListView);
+        listBtn.setSelected(isListView);
+        listBtn.setIconTintResource(isListView ? R.color.md_theme_primary : R.color.Custom_Black);
+        cardsBtn.setIconTintResource(isListView ? R.color.Custom_Black : R.color.md_theme_primary);
+    }
+
+    /**
+     * التبديل إلى عرض البطاقات
+     */
+    private void switchToCardsView() {
         if (isListView) {
-            cardsBtn.setSelected(false);
-            listBtn.setSelected(true);
-            listBtn.setIconTintResource(R.color.md_theme_primary);
-            cardsBtn.setIconTintResource(R.color.Custom_Black);
-        } else {
-            cardsBtn.setSelected(true);
-            listBtn.setSelected(false);
-            cardsBtn.setIconTintResource(R.color.md_theme_primary);
-            listBtn.setIconTintResource(R.color.Custom_Black);
+            isListView = false;
+            adapter.setListView(isListView);
+            updateRecyclerViewLayout();
+            adapter.notifyDataSetChanged();
+            updateButtonStates();
+            saveViewMode();
         }
     }
 
+    /**
+     * التبديل إلى عرض القوائم
+     */
+    private void switchToListView() {
+        if (!isListView) {
+            isListView = true;
+            adapter.setListView(isListView);
+            updateRecyclerViewLayout();
+            adapter.notifyDataSetChanged();
+            updateButtonStates();
+            saveViewMode();
+        }
+    }
+
+    /**
+     * حفظ حالة العرض
+     */
+    private void saveViewMode() {
+        viewPrefs.edit().putBoolean(PREF_VIEW_MODE, isListView).apply();
+    }
+
+    /**
+     * الانتقال للخلف
+     */
+    private void navigateBack() {
+        finish();
+    }
+
+    /**
+     * تحديث الصورة والمفضلة عند استئناف النشاط
+     */
     @Override
     protected void onResume() {
         super.onResume();
-        // إعادة تحميل الصورة الشخصية والمقررات المفضلة
         setupProfilePicture();
         loadFavoriteCourses();
+    }
+
+    /**
+     * عرض رسالة Toast
+     * @param messageRes معرف الرسالة
+     */
+    private void showToast(int messageRes) {
+        android.widget.Toast.makeText(this, messageRes, android.widget.Toast.LENGTH_SHORT).show();
     }
 }

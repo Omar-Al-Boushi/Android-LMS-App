@@ -13,6 +13,7 @@ constraintlayout = "2.2.1"
 annotation = "1.9.1"
 lifecycleLivedataKtx = "2.9.0"
 lifecycleViewmodelKtx = "2.9.0"
+materialCalendarView = "1.9.2"
 navigationFragment = "2.8.5"
 
 [libraries]
@@ -29,6 +30,7 @@ constraintlayout = { group = "androidx.constraintlayout", name = "constraintlayo
 annotation = { group = "androidx.annotation", name = "annotation", version.ref = "annotation" }
 lifecycle-livedata-ktx = { group = "androidx.lifecycle", name = "lifecycle-livedata-ktx", version.ref = "lifecycleLivedataKtx" }
 lifecycle-viewmodel-ktx = { group = "androidx.lifecycle", name = "lifecycle-viewmodel-ktx", version.ref = "lifecycleViewmodelKtx" }
+material-calendar-view = { module = "com.applandeo:material-calendar-view", version.ref = "materialCalendarView" }
 navigation-fragment = { group = "androidx.navigation", name = "navigation-fragment", version = "2.9.0" }
 navigation-fragment-ktx = { module = "androidx.navigation:navigation-fragment-ktx", version = "2.9.0" }
 navigation-ui-ktx = { module = "androidx.navigation:navigation-ui-ktx", version = "2.9.0" }

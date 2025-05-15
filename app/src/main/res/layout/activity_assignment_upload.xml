@@ -233,6 +233,7 @@
                                 android:foreground="@drawable/ripple_custom_contact">
 
                                 <com.google.android.material.imageview.ShapeableImageView
+                                    android:id="@+id/addImg"
                                     android:layout_width="wrap_content"
                                     android:layout_height="wrap_content"
                                     android:background="@android:color/transparent"
@@ -269,6 +270,7 @@
                                 android:foreground="@drawable/ripple_custom_contact">
 
                                 <com.google.android.material.imageview.ShapeableImageView
+                                    android:id="@+id/editImg"
                                     android:layout_width="wrap_content"
                                     android:layout_height="wrap_content"
                                     android:background="@android:color/transparent"
@@ -303,6 +305,7 @@
                                 android:foreground="@drawable/ripple_custom_contact">
 
                                 <com.google.android.material.imageview.ShapeableImageView
+                                    android:id="@+id/removeImg"
                                     android:layout_width="wrap_content"
                                     android:layout_height="wrap_content"
                                     android:background="@android:color/transparent"

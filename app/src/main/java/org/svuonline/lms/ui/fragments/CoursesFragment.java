@@ -6,7 +6,6 @@ import android.content.res.ColorStateList;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -36,27 +35,43 @@ import org.svuonline.lms.ui.data.CourseCardData;
 
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 
+/**
+ * فراغمنت لعرض المقررات مع خيارات التصفية، البحث، وتبديل العرض.
+ */
 public class CoursesFragment extends Fragment {
 
-    private static final String TAG = "CoursesFragment";
+    // مفاتيح SharedPreferences
+    private static final String PREFS_NAME = "AppPreferences";
+    private static final String PREF_ORDER_NAME = "CourseOrderPrefs";
+    private static final String PREF_ORDER_KEY = "full_course_order";
+
+    // عناصر واجهة المستخدم
     private RecyclerView recyclerView;
-    private CourseCardAdapter adapter;
-    private List<CourseCardData> courseCardList;
-    private boolean isListView = false;
-    private LinearLayout statusBtnLayout;
-    private MaterialButton cardsBtn, listBtn, filterBtn, passedBtn, registeredBtn, remainingBtn;
     private TextInputEditText searchBar;
     private TextInputLayout textInputLayout;
+    private MaterialButton cardsBtn;
+    private MaterialButton listBtn;
+    private MaterialButton filterBtn;
+    private MaterialButton passedBtn;
+    private MaterialButton registeredBtn;
+    private MaterialButton remainingBtn;
+    private LinearLayout statusBtnLayout;
+
+    // المستودعات
     private CourseRepository courseRepository;
     private AcademicProgramRepository programRepository;
+
+    // بيانات الفراغمنت
     private long userId;
+    private boolean isListView;
     private String currentStatusFilter = "";
     private String currentSearchQuery = "";
+    private List<CourseCardData> courseCardList;
+    private CourseCardAdapter adapter;
     private SharedPreferences preferences;
+    private SharedPreferences orderPrefs;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
@@ -68,9 +83,48 @@ public class CoursesFragment extends Fragment {
         super.onViewCreated(view, savedInstanceState);
 
         // تهيئة المكونات
+        initComponents();
+
+        // تهيئة الواجهة
+        initViews(view);
+
+        // التحقق من بيانات المستخدم
+        if (!validateUserData()) {
+            return;
+        }
+
+        // تهيئة البيانات
+        initData();
+
+        // إعداد مستمعات الأحداث
+        setupListeners();
+
+        // التعامل مع التصفية من Bundle
+        handleBundleFilter();
+
+        // تحميل المقررات
+        loadCourses(currentStatusFilter, currentSearchQuery);
+    }
+
+    /**
+     * تهيئة المستودعات
+     */
+    private void initComponents() {
+        DatabaseHelper databaseHelper = new DatabaseHelper(requireContext());
+        courseRepository = new CourseRepository(requireContext());
+        programRepository = new AcademicProgramRepository(databaseHelper);
+        preferences = requireActivity().getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
+        orderPrefs = requireActivity().getSharedPreferences(PREF_ORDER_NAME, Context.MODE_PRIVATE);
+    }
+
+    /**
+     * تهيئة عناصر الواجهة
+     * @param view الواجهة المراد تهيئتها
+     */
+    private void initViews(View view) {
+        recyclerView = view.findViewById(R.id.recycler_view);
         searchBar = view.findViewById(R.id.search_bar);
         textInputLayout = view.findViewById(R.id.outlinedTextField);
-        recyclerView = view.findViewById(R.id.recycler_view);
         cardsBtn = view.findViewById(R.id.cardsBtn);
         listBtn = view.findViewById(R.id.listBtn);
         filterBtn = view.findViewById(R.id.filterBtn);
@@ -78,76 +132,59 @@ public class CoursesFragment extends Fragment {
         passedBtn = view.findViewById(R.id.passedBtn);
         registeredBtn = view.findViewById(R.id.registeredBtn);
         remainingBtn = view.findViewById(R.id.remainingBtn);
+    }
 
-        // تهيئة المستودعات
-        DatabaseHelper dbHelper = new DatabaseHelper(requireContext());
-        courseRepository = new CourseRepository(requireContext());
-        programRepository = new AcademicProgramRepository(dbHelper);
-
-        // تهيئة SharedPreferences
-        preferences = requireActivity().getSharedPreferences("AppPreferences", Context.MODE_PRIVATE);
-
-        // جلب userId من SharedPreferences
+    /**
+     * التحقق من صحة بيانات المستخدم
+     * @return صحيح إذا كانت البيانات صالحة
+     */
+    private boolean validateUserData() {
         SharedPreferences userPrefs = requireActivity().getSharedPreferences("user_prefs", Context.MODE_PRIVATE);
         userId = userPrefs.getLong("user_id", -1);
+        if (userId == -1) {
+            showToast(R.string.user_id_not_found);
+            return false;
+        }
+        return true;
+    }
 
-        // استرجاع حالة العرض من SharedPreferences
+    /**
+     * تهيئة البيانات (العرض، RecyclerView)
+     */
+    private void initData() {
         isListView = preferences.getString("view_mode", "cards").equals("list");
+        courseCardList = new ArrayList<>();
+        adapter = new CourseCardAdapter(courseCardList, isListView);
+        updateRecyclerViewLayout();
+        recyclerView.setAdapter(adapter);
+        updateButtonStates();
+    }
 
-        // إعداد قائمة أزرار التصفية
+    /**
+     * إعداد مستمعات الأحداث (البحث، التصفية، تبديل العرض)
+     */
+    private void setupListeners() {
+        // إعداد أزرار تبديل العرض
+        cardsBtn.setOnClickListener(v -> switchToCardsView());
+        listBtn.setOnClickListener(v -> switchToListView());
+
+        // إعداد زر الفلتر
+        filterBtn.setOnClickListener(v -> toggleFilterButtons());
+
+        // إعداد أزرار التصفية
         MaterialButton[] statusButtons = {passedBtn, registeredBtn, remainingBtn};
-        int selectedColor = ContextCompat.getColor(requireContext(), R.color.md_theme_primary);
-        int defaultColor = ContextCompat.getColor(requireContext(), R.color.dark_grey);
-
-        cardsBtn.setSelected(!isListView);
-        listBtn.setSelected(isListView);
-        searchBar.setImeOptions(EditorInfo.IME_ACTION_SEARCH);
-
-        // زر الفلتر: إظهار / إخفاء أزرار التصفية وإعادة تحميل البيانات
-        filterBtn.setOnClickListener(v -> {
-            if (statusBtnLayout.getVisibility() == View.GONE) {
-                statusBtnLayout.setVisibility(View.VISIBLE);
-                filterBtn.setSelected(true);
-                filterBtn.setIconTint(AppCompatResources.getColorStateList(requireContext(), R.color.md_theme_primary));
-                for (MaterialButton btn : statusButtons) {
-                    btn.setBackgroundTintList(ColorStateList.valueOf(defaultColor));
-                }
-                currentStatusFilter = "";
-                loadCourses(currentStatusFilter, currentSearchQuery);
-            } else {
-                statusBtnLayout.setVisibility(View.GONE);
-                filterBtn.setIconTint(AppCompatResources.getColorStateList(requireContext(), R.color.Custom_Black));
-                filterBtn.setSelected(false);
-                for (MaterialButton btn : statusButtons) {
-                    btn.setBackgroundTintList(ColorStateList.valueOf(defaultColor));
-                }
-                currentStatusFilter = "";
-                loadCourses(currentStatusFilter, currentSearchQuery);
-            }
-        });
-
-        // إعداد أزرار التصفية الخاصة بالحالة (Passed, Registered, Remaining)
         for (MaterialButton button : statusButtons) {
-            button.setOnClickListener(v -> {
-                for (MaterialButton btn : statusButtons) {
-                    btn.setBackgroundTintList(ColorStateList.valueOf(btn == button ? selectedColor : defaultColor));
-                }
-                String status = button == passedBtn ? "Passed" :
-                        button == registeredBtn ? "Registered" : "Remaining";
-                currentStatusFilter = status;
-                loadCourses(currentStatusFilter, currentSearchQuery);
-            });
+            button.setOnClickListener(v -> applyStatusFilter(button));
         }
 
         // إعداد البحث
+        searchBar.setImeOptions(EditorInfo.IME_ACTION_SEARCH);
         searchBar.setOnFocusChangeListener((v, hasFocus) -> {
+            textInputLayout.setStartIconTintList(AppCompatResources.getColorStateList(
+                    requireContext(), hasFocus ? R.color.md_theme_primary : R.color.Med_Grey));
+            textInputLayout.setStartIconDrawable(hasFocus ? R.drawable.searchselect : R.drawable.search);
             if (hasFocus) {
-                textInputLayout.setStartIconTintList(AppCompatResources.getColorStateList(requireContext(), R.color.md_theme_primary));
-                textInputLayout.setStartIconDrawable(R.drawable.searchselect);
                 new Handler(Looper.getMainLooper()).postDelayed(() -> showKeyboard(searchBar), 100);
-            } else {
-                textInputLayout.setStartIconTintList(AppCompatResources.getColorStateList(requireContext(), R.color.Med_Grey));
-                textInputLayout.setStartIconDrawable(R.drawable.search);
             }
         });
 
@@ -155,14 +192,13 @@ public class CoursesFragment extends Fragment {
             if (actionId == EditorInfo.IME_ACTION_SEARCH) {
                 currentSearchQuery = v.getText().toString().trim();
                 loadCourses(currentStatusFilter, currentSearchQuery);
-                hideKeyboard(view);
+                hideKeyboard(v);
                 searchBar.clearFocus();
                 return true;
             }
             return false;
         });
 
-        // إعداد أيقونة مسح البحث
         textInputLayout.setEndIconOnClickListener(v -> {
             searchBar.setText("");
             currentSearchQuery = "";
@@ -170,19 +206,17 @@ public class CoursesFragment extends Fragment {
         });
 
         // إخفاء لوحة المفاتيح عند النقر خارج الحقل
-        view.setOnTouchListener((v, event) -> {
+        recyclerView.setOnTouchListener((v, event) -> {
             searchBar.clearFocus();
-            hideKeyboard(view);
-            v.performClick();
+            hideKeyboard(v);
             return false;
         });
+    }
 
-        // إعداد الـ RecyclerView والأزرار
-        setupRecyclerView();
-        setupButtons();
-        updateButtonStates();
-
-        // التحقق مما إذا كانت هناك حالة تصفية مرسلة عبر الـ Bundle
+    /**
+     * التعامل مع التصفية من Bundle
+     */
+    private void handleBundleFilter() {
         Bundle args = getArguments();
         if (args != null && args.containsKey("filter_status")) {
             String filterStatus = args.getString("filter_status");
@@ -190,14 +224,10 @@ public class CoursesFragment extends Fragment {
                 applyFilter(filterStatus);
             }
         }
-
-        // تحميل المقررات بناءً على الحالة الحالية
-        loadCourses(currentStatusFilter, currentSearchQuery);
     }
 
     /**
-     * تطبيق تصفية بناءً على الحالة المحددة.
-     *
+     * تطبيق تصفية بناءً على الحالة
      * @param status حالة التصفية (Passed, Registered, Remaining)
      */
     public void applyFilter(String status) {
@@ -208,6 +238,7 @@ public class CoursesFragment extends Fragment {
         statusBtnLayout.setVisibility(View.VISIBLE);
         filterBtn.setSelected(true);
         filterBtn.setIconTint(AppCompatResources.getColorStateList(requireContext(), R.color.md_theme_primary));
+
         MaterialButton selectedButton = status.equals("Passed") ? passedBtn :
                 status.equals("Registered") ? registeredBtn : remainingBtn;
         int selectedColor = ContextCompat.getColor(requireContext(), R.color.md_theme_primary);
@@ -218,35 +249,84 @@ public class CoursesFragment extends Fragment {
         loadCourses(currentStatusFilter, currentSearchQuery);
     }
 
-    private void setupRecyclerView() {
-        courseCardList = new ArrayList<>();
-        adapter = new CourseCardAdapter(courseCardList, isListView);
+    /**
+     * تبديل إلى عرض البطاقات
+     */
+    private void switchToCardsView() {
+        if (!isListView) {
+            return;
+        }
+        isListView = false;
+        adapter.setListView(false);
         updateRecyclerViewLayout();
-        recyclerView.setAdapter(adapter);
+        adapter.notifyDataSetChanged();
+        updateButtonStates();
+        preferences.edit().putString("view_mode", "cards").apply();
     }
 
-    private void setupButtons() {
-        cardsBtn.setOnClickListener(v -> {
-            if (!isListView) return;
-            isListView = false;
-            adapter.setListView(false);
-            updateRecyclerViewLayout();
-            adapter.notifyDataSetChanged();
-            updateButtonStates();
-            preferences.edit().putString("view_mode", "cards").apply();
-        });
-
-        listBtn.setOnClickListener(v -> {
-            if (isListView) return;
-            isListView = true;
-            adapter.setListView(true);
-            updateRecyclerViewLayout();
-            adapter.notifyDataSetChanged();
-            updateButtonStates();
-            preferences.edit().putString("view_mode", "list").apply();
-        });
+    /**
+     * تبديل إلى عرض القوائم
+     */
+    private void switchToListView() {
+        if (isListView) {
+            return;
+        }
+        isListView = true;
+        adapter.setListView(true);
+        updateRecyclerViewLayout();
+        adapter.notifyDataSetChanged();
+        updateButtonStates();
+        preferences.edit().putString("view_mode", "list").apply();
     }
 
+    /**
+     * إظهار/إخفاء أزرار التصفية
+     */
+    private void toggleFilterButtons() {
+        int selectedColor = ContextCompat.getColor(requireContext(), R.color.md_theme_primary);
+        int defaultColor = ContextCompat.getColor(requireContext(), R.color.dark_grey);
+        MaterialButton[] statusButtons = {passedBtn, registeredBtn, remainingBtn};
+
+        if (statusBtnLayout.getVisibility() == View.GONE) {
+            statusBtnLayout.setVisibility(View.VISIBLE);
+            filterBtn.setSelected(true);
+            filterBtn.setIconTint(AppCompatResources.getColorStateList(requireContext(), R.color.md_theme_primary));
+            for (MaterialButton btn : statusButtons) {
+                btn.setBackgroundTintList(ColorStateList.valueOf(defaultColor));
+            }
+            currentStatusFilter = "";
+        } else {
+            statusBtnLayout.setVisibility(View.GONE);
+            filterBtn.setSelected(false);
+            filterBtn.setIconTint(AppCompatResources.getColorStateList(requireContext(), R.color.Custom_Black));
+            for (MaterialButton btn : statusButtons) {
+                btn.setBackgroundTintList(ColorStateList.valueOf(defaultColor));
+            }
+            currentStatusFilter = "";
+        }
+        loadCourses(currentStatusFilter, currentSearchQuery);
+    }
+
+    /**
+     * تطبيق تصفية الحالة
+     * @param button الزر المضغوط
+     */
+    private void applyStatusFilter(MaterialButton button) {
+        int selectedColor = ContextCompat.getColor(requireContext(), R.color.md_theme_primary);
+        int defaultColor = ContextCompat.getColor(requireContext(), R.color.dark_grey);
+        MaterialButton[] statusButtons = {passedBtn, registeredBtn, remainingBtn};
+
+        for (MaterialButton btn : statusButtons) {
+            btn.setBackgroundTintList(ColorStateList.valueOf(btn == button ? selectedColor : defaultColor));
+        }
+        currentStatusFilter = button == passedBtn ? "Passed" :
+                button == registeredBtn ? "Registered" : "Remaining";
+        loadCourses(currentStatusFilter, currentSearchQuery);
+    }
+
+    /**
+     * تحديث تخطيط RecyclerView
+     */
     private void updateRecyclerViewLayout() {
         if (isListView) {
             recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
@@ -256,30 +336,42 @@ public class CoursesFragment extends Fragment {
         recyclerView.setAdapter(adapter);
     }
 
+    /**
+     * حساب عدد الأعمدة لعرض البطاقات
+     * @param columnWidthDp عرض العمود بالـ dp
+     * @return عدد الأعمدة
+     */
     private int calculateNoOfColumns(int columnWidthDp) {
         float screenWidthDp = getResources().getDisplayMetrics().widthPixels / getResources().getDisplayMetrics().density;
         return (int) (screenWidthDp / columnWidthDp + 0.5);
     }
 
+    /**
+     * تحديث حالة أزرار تبديل العرض
+     */
     private void updateButtonStates() {
-        if (isListView) {
-            cardsBtn.setSelected(false);
-            listBtn.setSelected(true);
-            listBtn.setIconTint(AppCompatResources.getColorStateList(requireContext(), R.color.md_theme_primary));
-            cardsBtn.setIconTint(AppCompatResources.getColorStateList(requireContext(), R.color.Custom_Black));
-        } else {
-            cardsBtn.setSelected(true);
-            listBtn.setSelected(false);
-            cardsBtn.setIconTint(AppCompatResources.getColorStateList(requireContext(), R.color.md_theme_primary));
-            listBtn.setIconTint(AppCompatResources.getColorStateList(requireContext(), R.color.Custom_Black));
-        }
+        cardsBtn.setSelected(!isListView);
+        listBtn.setSelected(isListView);
+        listBtn.setIconTint(AppCompatResources.getColorStateList(
+                requireContext(), isListView ? R.color.md_theme_primary : R.color.Custom_Black));
+        cardsBtn.setIconTint(AppCompatResources.getColorStateList(
+                requireContext(), isListView ? R.color.Custom_Black : R.color.md_theme_primary));
     }
 
+    /**
+     * التحقق من اللغة العربية
+     * @return صحيح إذا كانت اللغة عربية
+     */
     private boolean isArabicLocale() {
         String selectedLanguage = preferences.getString("selected_language", "en");
         return "ar".equals(selectedLanguage);
     }
 
+    /**
+     * تحميل المقررات بناءً على التصفية والبحث
+     * @param statusFilter حالة التصفية
+     * @param searchQuery استعلام البحث
+     */
     private void loadCourses(String statusFilter, String searchQuery) {
         courseCardList.clear();
         List<Course> courses = courseRepository.getCoursesByUserId(userId, statusFilter, searchQuery);
@@ -291,21 +383,7 @@ public class CoursesFragment extends Fragment {
                 programName = getString(R.string.unknown_program);
             }
             String courseName = isArabicLocale() ? course.getNameAr() : course.getNameEn();
-            int color;
-            String colorName = course.getColor();
-            Log.d(TAG, "Course ID: " + course.getCourseId() + ", Color Name: " + colorName);
-            if (colorName != null && !colorName.isEmpty()) {
-                int colorResId = getResources().getIdentifier(colorName, "color", requireContext().getPackageName());
-                if (colorResId != 0) {
-                    color = ContextCompat.getColor(requireContext(), colorResId);
-                } else {
-                    Log.w(TAG, "Color resource not found for name: " + colorName + ", Course ID: " + course.getCourseId());
-                    color = ContextCompat.getColor(requireContext(), R.color.Custom_MainColorBlue);
-                }
-            } else {
-                Log.w(TAG, "Color name is null or empty for Course ID: " + course.getCourseId());
-                color = ContextCompat.getColor(requireContext(), R.color.Custom_MainColorBlue);
-            }
+            int color = resolveCourseColor(course.getColor());
             CourseCardData cardData = new CourseCardData(
                     course.getCourseId(),
                     course.getCode(),
@@ -320,46 +398,46 @@ public class CoursesFragment extends Fragment {
             tempList.add(cardData);
         }
 
-        // إعادة ترتيب المقررات بناءً على الترتيب الدائم
-        // الدالة arrangeCoursesWithColorConstraints تقوم بإعادة ترتيب القائمة المُمررة استنادًا إلى ترتيب "full_course_order"
         courseCardList.addAll(arrangeCoursesWithColorConstraints(tempList));
         adapter.notifyDataSetChanged();
     }
 
     /**
-     * تقوم هذه الدالة بإرجاع القائمة المرتبة بناءً على ترتيب دائم للمقررات (يُخزن في SharedPreferences).
-     * إذا كانت قائمة المقررات المُمررة (tempList) نتيجة فلترة، فإن ترتيب العناصر الفرعية يتم وفق ترتيب الدائم للمقررات.
+     * تحديد لون المقرر
+     * @param colorName اسم اللون
+     * @return معرف اللون
+     */
+    private int resolveCourseColor(String colorName) {
+        if (colorName != null && !colorName.isEmpty()) {
+            int colorResId = getResources().getIdentifier(colorName, "color", requireContext().getPackageName());
+            if (colorResId != 0) {
+                return ContextCompat.getColor(requireContext(), colorResId);
+            }
+        }
+        return ContextCompat.getColor(requireContext(), R.color.Custom_MainColorBlue);
+    }
+
+    /**
+     * ترتيب المقررات مع مراعاة الألوان
+     * @param courses قائمة المقررات
+     * @return القائمة المرتبة
      */
     private List<CourseCardData> arrangeCoursesWithColorConstraints(List<CourseCardData> courses) {
         if (courses.size() <= 1) {
             return courses;
         }
 
-        SharedPreferences orderPrefs = requireActivity().getSharedPreferences("CourseOrderPrefs", Context.MODE_PRIVATE);
-        String fullOrderString = orderPrefs.getString("full_course_order", "");
-
-        // إذا لم يُحفظ ترتيب دائم بعد، نحصل على القائمة الكاملة من قاعدة البيانات ونولد ترتيبًا عشوائيًا مع مراعاة خلفيات العناصر
+        String fullOrderString = orderPrefs.getString(PREF_ORDER_KEY, "");
         if (fullOrderString.isEmpty()) {
-            List<Course> allCoursesDb = courseRepository.getCoursesByUserId(userId, "", "");
+            List<Course> allCourses = courseRepository.getCoursesByUserId(userId, "", "");
             List<CourseCardData> fullList = new ArrayList<>();
-            for (Course course : allCoursesDb) {
+            for (Course course : allCourses) {
                 String programName = programRepository.getProgramNameById(course.getProgramId(), isArabicLocale());
                 if (programName.isEmpty()) {
                     programName = getString(R.string.unknown_program);
                 }
                 String courseName = isArabicLocale() ? course.getNameAr() : course.getNameEn();
-                int color;
-                String colorName = course.getColor();
-                if (colorName != null && !colorName.isEmpty()) {
-                    int colorResId = getResources().getIdentifier(colorName, "color", requireContext().getPackageName());
-                    if (colorResId != 0) {
-                        color = ContextCompat.getColor(requireContext(), colorResId);
-                    } else {
-                        color = ContextCompat.getColor(requireContext(), R.color.Custom_MainColorBlue);
-                    }
-                } else {
-                    color = ContextCompat.getColor(requireContext(), R.color.Custom_MainColorBlue);
-                }
+                int color = resolveCourseColor(course.getColor());
                 CourseCardData cardData = new CourseCardData(
                         course.getCourseId(),
                         course.getCode(),
@@ -375,21 +453,19 @@ public class CoursesFragment extends Fragment {
             }
             List<CourseCardData> persistentOrder = generateRandomOrderWithColorConstraints(fullList);
             fullOrderString = createOrderString(persistentOrder);
-            orderPrefs.edit().putString("full_course_order", fullOrderString).apply();
+            orderPrefs.edit().putString(PREF_ORDER_KEY, fullOrderString).apply();
         }
 
-        // تحويل الترتيب الدائم (fullOrderString) إلى قائمة من المعرفات
         String[] orderArray = fullOrderString.split(",");
         List<Long> fullOrder = new ArrayList<>();
         for (String idStr : orderArray) {
             try {
                 fullOrder.add(Long.parseLong(idStr));
             } catch (NumberFormatException e) {
-                Log.w(TAG, "Invalid id in persistent order: " + idStr);
+                showToast(R.string.invalid_course_order);
             }
         }
 
-        // ترتيب القائمة المُمررة (سواء فلترة أو لا) بناءً على مواقع العناصر في الترتيب الدائم
         List<CourseCardData> sorted = new ArrayList<>(courses);
         Collections.sort(sorted, (c1, c2) -> {
             int idx1 = fullOrder.indexOf(c1.getCourseId());
@@ -401,7 +477,11 @@ public class CoursesFragment extends Fragment {
         return sorted;
     }
 
-    // دالة توليد ترتيب عشوائي مع مراعاة عدم تكرار لون الخلفية متجاوراً
+    /**
+     * توليد ترتيب عشوائي مع مراعاة الألوان
+     * @param courses قائمة المقررات
+     * @return القائمة المرتبة
+     */
     private List<CourseCardData> generateRandomOrderWithColorConstraints(List<CourseCardData> courses) {
         List<CourseCardData> remaining = new ArrayList<>(courses);
         List<CourseCardData> shuffledResult = new ArrayList<>();
@@ -426,7 +506,11 @@ public class CoursesFragment extends Fragment {
         return shuffledResult;
     }
 
-    // دالة لإنشاء سلسلة نصية تمثل ترتيب المقررات باستخدام courseId مفصول بفواصل
+    /**
+     * إنشاء سلسلة تمثل ترتيب المقررات
+     * @param orderList قائمة المقررات
+     * @return السلسلة النصية
+     */
     private String createOrderString(List<CourseCardData> orderList) {
         StringBuilder sb = new StringBuilder();
         for (int i = 0; i < orderList.size(); i++) {
@@ -438,6 +522,10 @@ public class CoursesFragment extends Fragment {
         return sb.toString();
     }
 
+    /**
+     * إخفاء لوحة المفاتيح
+     * @param view العنصر المراد إخفاء لوحة المفاتيح له
+     */
     private void hideKeyboard(View view) {
         if (getActivity() != null) {
             android.view.inputmethod.InputMethodManager imm =
@@ -448,6 +536,10 @@ public class CoursesFragment extends Fragment {
         }
     }
 
+    /**
+     * إظهار لوحة المفاتيح
+     * @param view العنصر المراد إظهار لوحة المفاتيح له
+     */
     private void showKeyboard(View view) {
         if (getActivity() != null) {
             android.view.inputmethod.InputMethodManager imm =
@@ -458,10 +550,24 @@ public class CoursesFragment extends Fragment {
         }
     }
 
+    /**
+     * تحديث المقررات عند استئناف الفراغمنت
+     */
     @Override
     public void onResume() {
         super.onResume();
-        // عند كل عودة للـ Fragment نعيد تحميل الإحصائيات
-        loadCourses(currentStatusFilter, currentSearchQuery);
+        if (userId != -1) {
+            loadCourses(currentStatusFilter, currentSearchQuery);
+        }
+    }
+
+    /**
+     * عرض رسالة Toast
+     * @param messageRes معرف الرسالة
+     */
+    private void showToast(int messageRes) {
+        if (getContext() != null) {
+            android.widget.Toast.makeText(getContext(), messageRes, android.widget.Toast.LENGTH_SHORT).show();
+        }
     }
 }

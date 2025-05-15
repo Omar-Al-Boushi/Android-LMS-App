@@ -6,7 +6,6 @@ import android.os.Bundle;
 import android.view.View;
 import android.widget.TextView;
 
-import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatDelegate;
 import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.core.content.ContextCompat;
@@ -23,84 +22,74 @@ import org.svuonline.lms.utils.Utils;
 
 import android.net.Uri;
 
+/**
+ * نشاط لإدارة إعدادات التطبيق (اللغة، النمط، الإشعارات، تسجيل الخروج).
+ */
 public class SettingsActivity extends BaseActivity {
 
-    // --- مفاتيح SharedPreferences لتخزين تفضيلات التطبيق ---
+    // مفاتيح SharedPreferences
     private static final String APP_PREFS = "AppPreferences";
     private static final String KEY_LANGUAGE = "selected_language";
     private static final String KEY_MODE = "selected_mode";
     private static final String KEY_NOTIFICATIONS = "notifications_enabled";
 
-    // متغير لتتبع ما إذا تمت تغييرات تستدعي إعادة بناء النشاط
-    private boolean changesMade = false;
+    // عناصر واجهة المستخدم
+    private MaterialToolbar toolbar;
+    private MaterialCardView cvEnglish;
+    private MaterialCardView cvArabic;
+    private MaterialCardView cvLightMode;
+    private MaterialCardView cvDarkMode;
+    private MaterialCardView cvEnableNotifications;
+    private MaterialCardView cvDisableNotifications;
+    private MaterialCardView cvLogout;
+    private ShapeableImageView ivProfile;
 
-    // --- تعريف عناصر الواجهة ---
-    private MaterialCardView cvEnglish, cvArabic, cvLightMode, cvDarkMode,
-            cvEnableNotifications, cvDisableNotifications, cvLogout;
-    private ShapeableImageView ivProfile; // لعرض الصورة الشخصية
-
-    // --- تعريف متغيرات الألوان المستخدمة ---
-    private int colorSelectedCardTint, colorUnselectedCardTint;
-    private int colorSelectedIconBg, colorUnselectedIconBg;
-
-    // --- متغيرات إضافية لجلب الصورة ---
-    private long userId;
+    // المستودعات
     private UserRepository userRepository;
 
+    // بيانات النشاط
+    private long userId;
+    private boolean changesMade;
+    private int colorSelectedCardTint;
+    private int colorUnselectedCardTint;
+    private int colorSelectedIconBg;
+    private int colorUnselectedIconBg;
+
     @Override
-    protected void onCreate(@Nullable Bundle savedInstanceState) {
+    protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_settings);
-        // إعداد لون شريط النظام
-        Utils.setSystemBarColor(this, R.color.Custom_BackgroundColor, R.color.Custom_Med_Black, 0);
 
-        // --- جلب userId من SharedPreferences ---
-        SharedPreferences userPrefs = getSharedPreferences("user_prefs", MODE_PRIVATE);
-        userId = userPrefs.getLong("user_id", -1);
-        if (userId == -1) {
-            // إذا لم يتم العثور على userId، انتقل إلى شاشة تسجيل الدخول
-            Intent intent = new Intent(this, LoginActivity.class);
-            intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-            startActivity(intent);
-            finish();
+        // تهيئة المكونات
+        initComponents();
+
+        // تهيئة الواجهة
+        initViews();
+
+        // التحقق من بيانات المستخدم
+        if (!validateUserData()) {
             return;
         }
 
-        // --- تهيئة UserRepository ---
-        userRepository = new UserRepository(this);
+        // تهيئة البيانات
+        initData();
 
-        // --- إعداد الألوان ---
-        colorSelectedCardTint = ContextCompat.getColor(this, R.color.Custom_MainColorGolden);
-        colorUnselectedCardTint = ContextCompat.getColor(this, R.color.Custom_BackgroundColor);
-        colorSelectedIconBg = ContextCompat.getColor(this, R.color.Custom_MainColorBlue);
-        colorUnselectedIconBg = 0xFF2C3330;
-
-        // --- ربط عناصر الواجهة ---
-        initViews();
-
-        // --- إعداد الصورة الشخصية ---
-        setupProfilePicture();
-
-        // --- إعداد زر العودة في Toolbar ---
-        MaterialToolbar toolbar = findViewById(R.id.toolbar_top);
-        toolbar.setNavigationOnClickListener(v -> {
-            Intent homeIntent = new Intent(SettingsActivity.this, DashboardActivity.class);
-            homeIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-            startActivity(homeIntent);
-            finish();
-        });
-
-        // --- تحميل تفضيلات المستخدم وتحديث الواجهة ---
-        loadAppSettings();
-
-        // --- إعداد مستمعي النقر ---
-        setupClickListeners();
+        // إعداد مستمعات الأحداث
+        setupListeners();
     }
 
     /**
-     * ربط عناصر الواجهة حسب المعرفات الموجودة في XML.
+     * تهيئة المستودعات
+     */
+    private void initComponents() {
+        userRepository = new UserRepository(this);
+    }
+
+    /**
+     * تهيئة عناصر الواجهة
      */
     private void initViews() {
+        toolbar = findViewById(R.id.toolbar_top);
         cvEnglish = findViewById(R.id.cv_english);
         cvArabic = findViewById(R.id.cv_arabic);
         cvLightMode = findViewById(R.id.cv_light_mode);
@@ -108,11 +97,60 @@ public class SettingsActivity extends BaseActivity {
         cvEnableNotifications = findViewById(R.id.cv_enable_notifications);
         cvDisableNotifications = findViewById(R.id.cv_disable_notifications);
         cvLogout = findViewById(R.id.cv_logout);
-        ivProfile = findViewById(R.id.iv_profile); // ربط الصورة الشخصية
+        ivProfile = findViewById(R.id.iv_profile);
     }
 
     /**
-     * إعداد الصورة الشخصية بناءً على userId
+     * التحقق من صحة بيانات المستخدم
+     * @return صحيح إذا كانت البيانات صالحة، خطأ إذا لزم إنهاء النشاط
+     */
+    private boolean validateUserData() {
+        SharedPreferences userPrefs = getSharedPreferences("user_prefs", MODE_PRIVATE);
+        userId = userPrefs.getLong("user_id", -1);
+        if (userId == -1) {
+            showToast(R.string.user_id_not_found);
+            Intent intent = new Intent(this, LoginActivity.class);
+            intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+            startActivity(intent);
+            finish();
+            return false;
+        }
+        return true;
+    }
+
+    /**
+     * تهيئة البيانات (إعداد الألوان، الصورة، التفضيلات)
+     */
+    private void initData() {
+        // إعداد لون شريط النظام
+        Utils.setSystemBarColor(this, R.color.Custom_BackgroundColor, R.color.Custom_Med_Black, 0);
+
+        // إعداد الألوان
+        colorSelectedCardTint = ContextCompat.getColor(this, R.color.Custom_MainColorGolden);
+        colorUnselectedCardTint = ContextCompat.getColor(this, R.color.Custom_BackgroundColor);
+        colorSelectedIconBg = ContextCompat.getColor(this, R.color.Custom_MainColorBlue);
+        colorUnselectedIconBg = 0xFF687570;
+
+        // إعداد الصورة الشخصية
+        setupProfilePicture();
+
+        // تحميل التفضيلات
+        loadAppSettings();
+    }
+
+    /**
+     * إعداد مستمعات الأحداث (الشريط العلوي، خيارات الإعدادات)
+     */
+    private void setupListeners() {
+        // إعداد الشريط العلوي
+        toolbar.setNavigationOnClickListener(v -> navigateToDashboard());
+
+        // إعداد خيارات الإعدادات
+        setupClickListeners();
+    }
+
+    /**
+     * إعداد الصورة الشخصية
      */
     private void setupProfilePicture() {
         User user = userRepository.getUserById(userId);
@@ -137,7 +175,7 @@ public class SettingsActivity extends BaseActivity {
     }
 
     /**
-     * قراءة التفضيلات المحفوظة وتحديث واجهة الخيارات.
+     * تحميل تفضيلات التطبيق
      */
     private void loadAppSettings() {
         SharedPreferences prefs = getSharedPreferences(APP_PREFS, MODE_PRIVATE);
@@ -151,46 +189,76 @@ public class SettingsActivity extends BaseActivity {
     }
 
     /**
-     * تحديث واجهة خيارات اللغة.
+     * إعداد مستمعي النقر على خيارات الإعدادات
+     */
+    private void setupClickListeners() {
+        cvEnglish.setOnClickListener(v -> {
+            if (!"en".equals(getCurrentLanguage())) {
+                updateLanguage("en");
+            }
+        });
+        cvArabic.setOnClickListener(v -> {
+            if (!"ar".equals(getCurrentLanguage())) {
+                updateLanguage("ar");
+            }
+        });
+        cvLightMode.setOnClickListener(v -> {
+            if (!"light".equals(getCurrentMode())) {
+                updateTheme("light");
+            }
+        });
+        cvDarkMode.setOnClickListener(v -> {
+            if (!"dark".equals(getCurrentMode())) {
+                updateTheme("dark");
+            }
+        });
+        cvEnableNotifications.setOnClickListener(v -> {
+            if (!getCurrentNotificationsStatus()) {
+                updateNotifications(true);
+            }
+        });
+        cvDisableNotifications.setOnClickListener(v -> {
+            if (getCurrentNotificationsStatus()) {
+                updateNotifications(false);
+            }
+        });
+        cvLogout.setOnClickListener(v -> performLogout());
+    }
+
+    /**
+     * تحديث واجهة خيارات اللغة
+     * @param language اللغة المختارة (en أو ar)
      */
     private void updateLanguageUI(String language) {
-        if ("en".equals(language)) {
-            updateOptionUI(cvEnglish, R.id.layout_btn_english, R.id.iv_english_icon, R.id.tv_english, true);
-            updateOptionUI(cvArabic, R.id.layout_btn_arabic, R.id.iv_arabic_icon, R.id.tv_arabic, false);
-        } else {
-            updateOptionUI(cvEnglish, R.id.layout_btn_english, R.id.iv_english_icon, R.id.tv_english, false);
-            updateOptionUI(cvArabic, R.id.layout_btn_arabic, R.id.iv_arabic_icon, R.id.tv_arabic, true);
-        }
+        updateOptionUI(cvEnglish, R.id.layout_btn_english, R.id.iv_english_icon, R.id.tv_english, "en".equals(language));
+        updateOptionUI(cvArabic, R.id.layout_btn_arabic, R.id.iv_arabic_icon, R.id.tv_arabic, "ar".equals(language));
     }
 
     /**
-     * تحديث واجهة خيارات النمط.
+     * تحديث واجهة خيارات النمط
+     * @param mode النمط المختار (light أو dark)
      */
     private void updateThemeUI(String mode) {
-        if ("light".equals(mode)) {
-            updateOptionUI(cvLightMode, R.id.layout_btn_light_mode, R.id.iv_light_mode_icon, R.id.tv_light_mode, true);
-            updateOptionUI(cvDarkMode, R.id.layout_btn_dark_mode, R.id.iv_dark_mode_icon, R.id.tv_dark_mode, false);
-        } else {
-            updateOptionUI(cvLightMode, R.id.layout_btn_light_mode, R.id.iv_light_mode_icon, R.id.tv_light_mode, false);
-            updateOptionUI(cvDarkMode, R.id.layout_btn_dark_mode, R.id.iv_dark_mode_icon, R.id.tv_dark_mode, true);
-        }
+        updateOptionUI(cvLightMode, R.id.layout_btn_light_mode, R.id.iv_light_mode_icon, R.id.tv_light_mode, "light".equals(mode));
+        updateOptionUI(cvDarkMode, R.id.layout_btn_dark_mode, R.id.iv_dark_mode_icon, R.id.tv_dark_mode, "dark".equals(mode));
     }
 
     /**
-     * تحديث واجهة خيارات الإشعارات.
+     * تحديث واجهة خيارات الإشعارات
+     * @param enabled حالة الإشعارات (مفعلة أو معطلة)
      */
     private void updateNotificationsUI(boolean enabled) {
-        if (enabled) {
-            updateOptionUI(cvEnableNotifications, R.id.layout_btn_enable_notifications, R.id.iv_enable_icon, R.id.tv_enable, true);
-            updateOptionUI(cvDisableNotifications, R.id.layout_btn_disable_notifications, R.id.iv_disable_icon, R.id.tv_disable, false);
-        } else {
-            updateOptionUI(cvEnableNotifications, R.id.layout_btn_enable_notifications, R.id.iv_enable_icon, R.id.tv_enable, false);
-            updateOptionUI(cvDisableNotifications, R.id.layout_btn_disable_notifications, R.id.iv_disable_icon, R.id.tv_disable, true);
-        }
+        updateOptionUI(cvEnableNotifications, R.id.layout_btn_enable_notifications, R.id.iv_enable_icon, R.id.tv_enable, enabled);
+        updateOptionUI(cvDisableNotifications, R.id.layout_btn_disable_notifications, R.id.iv_disable_icon, R.id.tv_disable, !enabled);
     }
 
     /**
-     * دالة مساعدة لتحديث واجهة خيار معين.
+     * تحديث واجهة خيار معين
+     * @param optionCard البطاقة الخاصة بالخيار
+     * @param layoutBtnId معرف التخطيط
+     * @param iconId معرف الأيقونة
+     * @param textId معرف النص
+     * @param selected حالة الخيار (مختار أو غير مختار)
      */
     private void updateOptionUI(MaterialCardView optionCard, int layoutBtnId, int iconId, int textId, boolean selected) {
         ConstraintLayout layout = optionCard.findViewById(layoutBtnId);
@@ -226,47 +294,8 @@ public class SettingsActivity extends BaseActivity {
     }
 
     /**
-     * إعداد مستمعي النقر على كافة الخيارات.
-     */
-    private void setupClickListeners() {
-        cvEnglish.setOnClickListener(v -> {
-            if (!"en".equals(getCurrentLanguage())) {
-                updateLanguage("en");
-            }
-        });
-        cvArabic.setOnClickListener(v -> {
-            if (!"ar".equals(getCurrentLanguage())) {
-                updateLanguage("ar");
-            }
-        });
-
-        cvLightMode.setOnClickListener(v -> {
-            if (!"light".equals(getCurrentMode())) {
-                updateTheme("light");
-            }
-        });
-        cvDarkMode.setOnClickListener(v -> {
-            if (!"dark".equals(getCurrentMode())) {
-                updateTheme("dark");
-            }
-        });
-
-        cvEnableNotifications.setOnClickListener(v -> {
-            if (!getCurrentNotificationsStatus()) {
-                updateNotifications(true);
-            }
-        });
-        cvDisableNotifications.setOnClickListener(v -> {
-            if (getCurrentNotificationsStatus()) {
-                updateNotifications(false);
-            }
-        });
-
-        cvLogout.setOnClickListener(v -> performLogout());
-    }
-
-    /**
-     * الحصول على اللغة المختارة من التفضيلات.
+     * الحصول على اللغة الحالية
+     * @return اللغة المختارة (en أو ar)
      */
     private String getCurrentLanguage() {
         SharedPreferences prefs = getSharedPreferences(APP_PREFS, MODE_PRIVATE);
@@ -274,7 +303,8 @@ public class SettingsActivity extends BaseActivity {
     }
 
     /**
-     * الحصول على النمط الحالي من التفضيلات.
+     * الحصول على النمط الحالي
+     * @return النمط المختار (light أو dark)
      */
     private String getCurrentMode() {
         SharedPreferences prefs = getSharedPreferences(APP_PREFS, MODE_PRIVATE);
@@ -282,7 +312,8 @@ public class SettingsActivity extends BaseActivity {
     }
 
     /**
-     * الحصول على حالة الإشعارات من التفضيلات.
+     * الحصول على حالة الإشعارات
+     * @return صحيح إذا كانت الإشعارات مفعلة، خطأ إذا كانت معطلة
      */
     private boolean getCurrentNotificationsStatus() {
         SharedPreferences prefs = getSharedPreferences(APP_PREFS, MODE_PRIVATE);
@@ -290,7 +321,8 @@ public class SettingsActivity extends BaseActivity {
     }
 
     /**
-     * تحديث اللغة في التفضيلات وإعادة بناء النشاط.
+     * تحديث اللغة
+     * @param newLanguage اللغة الجديدة (en أو ar)
      */
     private void updateLanguage(String newLanguage) {
         SharedPreferences prefs = getSharedPreferences(APP_PREFS, MODE_PRIVATE);
@@ -301,7 +333,8 @@ public class SettingsActivity extends BaseActivity {
     }
 
     /**
-     * تحديث النمط في التفضيلات وإعادة بناء النشاط.
+     * تحديث النمط
+     * @param newMode النمط الجديد (light أو dark)
      */
     private void updateTheme(String newMode) {
         SharedPreferences prefs = getSharedPreferences(APP_PREFS, MODE_PRIVATE);
@@ -309,7 +342,7 @@ public class SettingsActivity extends BaseActivity {
         changesMade = true;
         if ("light".equals(newMode)) {
             AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO);
-        } else if ("dark".equals(newMode)) {
+        } else {
             AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES);
         }
         updateThemeUI(newMode);
@@ -317,7 +350,8 @@ public class SettingsActivity extends BaseActivity {
     }
 
     /**
-     * تحديث حالة الإشعارات في التفضيلات وإعادة بناء النشاط.
+     * تحديث حالة الإشعارات
+     * @param enabled حالة الإشعارات الجديدة
      */
     private void updateNotifications(boolean enabled) {
         SharedPreferences prefs = getSharedPreferences(APP_PREFS, MODE_PRIVATE);
@@ -328,48 +362,64 @@ public class SettingsActivity extends BaseActivity {
     }
 
     /**
-     * تنفيذ عملية تسجيل الخروج.
+     * تنفيذ تسجيل الخروج
      */
     private void performLogout() {
         SharedPreferences userPrefs = getSharedPreferences("user_prefs", MODE_PRIVATE);
         userPrefs.edit().clear().apply();
-
         SharedPreferences appPrefs = getSharedPreferences(APP_PREFS, MODE_PRIVATE);
         appPrefs.edit().clear().apply();
-
-        Intent intent = new Intent(SettingsActivity.this, LoginActivity.class);
+        Intent intent = new Intent(this, LoginActivity.class);
         intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
         startActivity(intent);
         finish();
     }
 
     /**
-     * إعادة بناء النشاط الحالي أو الانتقال للصفحة الرئيسية.
+     * إعادة بناء النشاط بعد التغييرات
      */
     private void rebuildActivity() {
         if (changesMade) {
-            Intent intent = new Intent(SettingsActivity.this, SettingsActivity.class);
+            Intent intent = new Intent(this, SettingsActivity.class);
             intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
             startActivity(intent);
-        } else {
-            finish();
         }
         finish();
     }
 
     /**
-     * العودة إلى الصفحة الرئيسية عند الضغط على زر العودة.
+     * الانتقال إلى لوحة التحكم
      */
-    @SuppressWarnings("MissingSuperCall")
-    @Override
-    public void onBackPressed() {
+    private void navigateToDashboard() {
+        Intent intent = new Intent(this, DashboardActivity.class);
+        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+        startActivity(intent);
         finish();
     }
 
+    /**
+     * التعامل مع زر العودة
+     */
+    @Override
+    public void onBackPressed() {
+        super.onBackPressed();
+        navigateToDashboard();
+    }
+
+    /**
+     * تحديث الصورة الشخصية عند استئناف النشاط
+     */
     @Override
     protected void onResume() {
         super.onResume();
-        // إعادة تحميل الصورة الشخصية للتأكد من تحديثها
         setupProfilePicture();
+    }
+
+    /**
+     * عرض رسالة Toast
+     * @param messageRes معرف الرسالة
+     */
+    private void showToast(int messageRes) {
+        android.widget.Toast.makeText(this, messageRes, android.widget.Toast.LENGTH_SHORT).show();
     }
 }

@@ -52,5 +52,5 @@ dependencies {
     implementation (libs.navigation.ui.ktx)
     implementation (libs.fragment.ktx)
     implementation (libs.flexbox)
-    implementation ("com.applandeo:material-calendar-view:1.9.2")
+    implementation (libs.material.calendar.view)
 }

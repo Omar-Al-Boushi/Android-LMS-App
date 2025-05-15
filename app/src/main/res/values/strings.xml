@@ -258,6 +258,23 @@
         <item>PB</item>
         <item>EB</item>
     </string-array>
+    <string name="invalid_tool_data">The tool data is incorrect.</string>
+    <string name="user_id_not_found">User id not found</string>
+    <string name="invalid_tool_id">Invalid tool id</string>
+    <string name="invalid_course_data">Invalid Course Data</string>
+    <string name="cancel_edit">Cancel edit</string>
+    <string name="image_permission_error">image Permission Error</string>
+    <string name="image_load_failed">Image Load Failed</string>
+    <string name="profile_updated">Profile Update</string>
+    <string name="update_failed">Update Failed</string>
+    <string name="date_parse_error">Date Parse Error</string>
+    <string name="fav_reset_success">Favourites Reset success</string>
+    <string name="fav_reset_failed">Favourites Reset failed</string>
+    <string name="invalid_course_order">Invalid Course Order</string>
+    <string name="invalid_assignment_order">Invalid Assignment Order</string>
+    <string name="all_notifications_marked_read">All notifications marked as read</string>
+    <string name="no_notifications_found">No unread notifications</string>
+    <string name="unknown_error">Unknown Error</string>
 
 
 </resources>

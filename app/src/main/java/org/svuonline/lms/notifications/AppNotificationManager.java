@@ -41,19 +41,15 @@ public class AppNotificationManager {
 
     private void createChannel() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            // Delete existing channel to apply changes
-            systemManager.deleteNotificationChannel(CHANNEL_ID);
+            // احذف هذا السطر:
+            // systemManager.deleteNotificationChannel(CHANNEL_ID);
 
-            // Sound URI from raw folder
             Uri soundUri = Uri.parse("android.resource://" + ctx.getPackageName() + "/" + R.raw.custom_notification);
-
-            // Audio attributes
             AudioAttributes audioAttributes = new AudioAttributes.Builder()
                     .setUsage(AudioAttributes.USAGE_NOTIFICATION)
                     .setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION)
                     .build();
 
-            // Create channel
             NotificationChannel channel = new NotificationChannel(
                     CHANNEL_ID,
                     "LMS Alerts",
@@ -70,21 +66,31 @@ public class AppNotificationManager {
     }
 
     public void notifyOnce(int id, String title, String content) {
+        // التحقق من إعداد الإشعارات
+        SharedPreferences appPrefs = ctx.getSharedPreferences("AppPreferences", Context.MODE_PRIVATE);
+        boolean notificationsEnabled = appPrefs.getBoolean("notifications_enabled", true);
+        if (!notificationsEnabled) {
+            return; // إذا كانت الإشعارات معطلة، لا ترسل الإشعار
+        }
+
+        // التحقق من إذن الإشعارات (للإصدارات Android 13 وما فوق)
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU &&
                 ActivityCompat.checkSelfPermission(ctx, Manifest.permission.POST_NOTIFICATIONS)
                         != PackageManager.PERMISSION_GRANTED) {
             return;
         }
 
+        // التحقق مما إذا تم إرسال الإشعار مسبقًا
         Set<String> sent = prefs.getStringSet(KEY_SENT_SET, new HashSet<>());
         String key = String.valueOf(id);
         if (sent.contains(key)) return;
 
+        // إعداد الإشعار
         Bitmap largeIcon = BitmapFactory.decodeResource(ctx.getResources(), R.drawable.logo_main);
         int accentColor = ContextCompat.getColor(ctx, R.color.md_theme_primary);
         Uri soundUri = Uri.parse("android.resource://" + ctx.getPackageName() + "/" + R.raw.custom_notification);
 
-        // 👉 "نية وهمية" فقط لجعل الإشعار قابل للنقر بدون فتح شيء
+        // "نية وهمية" فقط لجعل الإشعار قابل للنقر بدون فتح شيء
         Intent dummyIntent = new Intent();  // لا يفعل شيء
         PendingIntent pendingIntent = PendingIntent.getActivity(
                 ctx,
@@ -101,15 +107,19 @@ public class AppNotificationManager {
                 .setContentText(content)
                 .setStyle(new NotificationCompat.BigTextStyle().bigText(content))
                 .setSound(soundUri)
-                .setVibrate(new long[]{0, 300, 250, 300})
-                .setPriority(NotificationCompat.PRIORITY_HIGH)               // 👈 لظهور heads-up
-                .setCategory(NotificationCompat.CATEGORY_MESSAGE)            // 👈 نوع إشعار قابل للانخفاض
-                .setContentIntent(pendingIntent)                             // 👈 يجعل الإشعار قابل للنقر
-                .setAutoCancel(true);                                        // 👈 يختفي عند الضغط
+                .setVibrate(new long[]{0,300,250,300})
+                .setPriority(NotificationCompat.PRIORITY_HIGH)
+                .setDefaults(NotificationCompat.DEFAULT_ALL)
+                .setCategory(NotificationCompat.CATEGORY_MESSAGE)
+                .setContentIntent(pendingIntent)
+                .setAutoCancel(true)
+                .setOngoing(true)
+                // لجعل الإشعار يبرز فوق القفل/الشاشة المطفأة:
+                .setFullScreenIntent(pendingIntent, true);
 
         systemManager.notify(id, builder.build());
 
+        // حفظ معرف الإشعار كمرسل
         sent.add(key);
         prefs.edit().putStringSet(KEY_SENT_SET, sent).apply();
-    }
-}
+    }}

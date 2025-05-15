@@ -230,6 +230,24 @@
     <string name="file_save_failed">فشل الحفظ الرجاء المحاولة مرة أخرى</string>
     <string name="upload_failed">فشل الرفع الرجاء المحاولة مرة أخرى</string>
     <string name="favorites_empty">المفضلة الخاصة بك فارغة \n🌚</string>
+    <string name="invalid_tool_data">بيانات الأداة غير صحيحة</string>
+    <string name="SubmitTitle">تم ارسال الوظيفة</string>
+    <string name="user_id_not_found">لم يتم التعرف على المستخدم</string>
+    <string name="invalid_tool_id">"معرف أداة غير صالح "</string>
+    <string name="invalid_course_data">"بيانات المقرر غير صالحة "</string>
+    <string name="cancel_edit">"إلغاء التعديل "</string>
+    <string name="image_permission_error">"خطأ في إذن الصورة "</string>
+    <string name="image_load_failed">"فشل تحميل الصورة "</string>
+    <string name="profile_updated">"تم تحديث الملف الشخصي "</string>
+    <string name="update_failed">فشل التحديث</string>
+    <string name="GradedTitle">تم تقييم الواجب</string>
+    <string name="date_parse_error">بيانات التاريخ خاطئة</string>
+    <string name="fav_reset_success">تم إعادة تعيين المفضلة بنجاح</string>
+    <string name="fav_reset_failed">فشل اعادة تعيين المفضلة</string>
+    <string name="invalid_course_order">ترتيب المقررات غير صحيح</string>
+    <string name="invalid_assignment_order">ترتيب الوظائف غير صحيح</string>
+    <string name="all_notifications_marked_read">كل الإشعارات تم تعيينها كمقروء</string>
+    <string name="no_notifications_found">لا يوجد اشعارات غير مقروءة</string>
 
 
 </resources>
