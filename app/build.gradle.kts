@@ -6,6 +6,7 @@ android {
     namespace = "org.svuonline.lms"
     compileSdk = 35
 
+
     defaultConfig {
         applicationId = "org.svuonline.lms"
         minSdk = 21

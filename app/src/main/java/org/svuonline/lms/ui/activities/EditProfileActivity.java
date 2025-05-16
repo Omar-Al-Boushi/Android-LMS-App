@@ -193,8 +193,8 @@ public class EditProfileActivity extends BaseActivity {
         etFacebook.setText(stripPrefix(tilFacebook, currentUser.getFacebookUrl()));
         etTelegram.setText(stripPrefix(tilTelegram, currentUser.getTelegramHandle()));
         etEmail.setText(stripPrefix(tilEmail, currentUser.getEmail()));
-        etBioEn.setText(isArabic ? currentUser.getBioAr() : currentUser.getBioEn());
-        etBioAr.setText(isArabic ? currentUser.getBioEn() : currentUser.getBioAr());
+        etBioEn.setText(currentUser.getBioEn());
+        etBioAr.setText(currentUser.getBioAr());
     }
 
     /**

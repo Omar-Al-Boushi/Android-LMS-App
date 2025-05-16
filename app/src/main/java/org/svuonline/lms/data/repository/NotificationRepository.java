@@ -72,8 +72,9 @@ public class NotificationRepository {
                 DBContract.Notification.COL_RELATED_ID,
                 DBContract.Notification.COL_CREATED_AT
         };
-        String limit = pageSize + " OFFSET " + ((page - 1) * pageSize);
-
+        // احسب الإزاحة (offset) ثمكون الصيغة "offset,count"
+        int offset = (page - 1) * pageSize;
+        String limit = offset + "," + pageSize;
         String where = DBContract.Notification.COL_USER_ID + " = ?";
         List<String> args = new ArrayList<>();
         args.add(String.valueOf(userId));

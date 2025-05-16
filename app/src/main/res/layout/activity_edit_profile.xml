@@ -312,7 +312,7 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:gravity="top"
-                        android:hint="@string/your_bio_en"
+                        android:hint="@string/your_bio_ar"
                         android:inputType="textMultiLine"
                         android:minLines="4"
                         android:textSize="14dp" />
@@ -337,7 +337,7 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:gravity="top"
-                        android:hint="@string/your_bio_ar"
+                        android:hint="@string/your_bio_en"
                         android:inputType="textMultiLine"
                         android:minLines="4"
                         android:textSize="14dp" />
