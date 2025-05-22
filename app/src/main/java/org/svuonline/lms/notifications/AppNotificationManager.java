@@ -41,8 +41,6 @@ public class AppNotificationManager {
 
     private void createChannel() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            // احذف هذا السطر:
-            // systemManager.deleteNotificationChannel(CHANNEL_ID);
 
             Uri soundUri = Uri.parse("android.resource://" + ctx.getPackageName() + "/" + R.raw.custom_notification);
             AudioAttributes audioAttributes = new AudioAttributes.Builder()

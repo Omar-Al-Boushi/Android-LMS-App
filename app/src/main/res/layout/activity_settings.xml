@@ -517,7 +517,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:background="@color/Custom_MainColorBlue"
-                    android:drawableStart="@drawable/notifications2"
+                    android:drawableStart="@drawable/profile1"
                     android:drawablePadding="14dp"
                     android:fontFamily="@font/cairo_bold"
                     android:paddingStart="24dp"

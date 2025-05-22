@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <com.google.android.material.card.MaterialCardView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="84dp"
     app:cardBackgroundColor="@color/Custom_BackgroundColor"
@@ -32,6 +31,7 @@
                 android:layout_width="60dp"
                 android:layout_height="60dp"
                 android:src="@drawable/omar_photo"
+                android:scaleType="centerCrop"
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toTopOf="parent"
@@ -55,7 +55,7 @@
                     android:fontFamily="@font/cairo_regular"
                     android:text="Omar Al Boushi"
                     android:textColor="@color/Custom_Black"
-                    android:textSize="16dp"
+                    android:textSize="16sp"
                     app:layout_constraintBottom_toTopOf="@+id/profileDescription"
                     app:layout_constraintStart_toStartOf="parent"
                     app:layout_constraintTop_toTopOf="parent" />
@@ -67,7 +67,7 @@
                     android:fontFamily="@font/cairo_bold"
                     android:text="Omar Al Boushi"
                     android:textColor="@color/Custom_MainColorBlue"
-                    android:textSize="10dp"
+                    android:textSize="10sp"
                     app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintTop_toTopOf="@+id/profileName" />
 
@@ -81,7 +81,7 @@
                     app:barrierDirection="start"
                     android:text="Mazen_195450, Hi i am a graphic designer and content wirter "
                     android:textColor="@color/Custom_Black"
-                    android:textSize="12dp"
+                    android:textSize="12sp"
                     app:layout_constraintBottom_toBottomOf="parent"
                     app:layout_constraintStart_toStartOf="parent"
                     app:layout_constraintTop_toBottomOf="@+id/profileName" />
