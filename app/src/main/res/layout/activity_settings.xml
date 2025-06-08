@@ -70,6 +70,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:textDirection="locale"
+            android:paddingBottom="64dp"
             android:background="@color/Custom_BackgroundColor"
             android:orientation="vertical">
 

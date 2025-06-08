@@ -23,6 +23,8 @@ import android.widget.TextView;
 import androidx.appcompat.app.AlertDialog;
 import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.core.content.ContextCompat;
+import androidx.core.view.ViewCompat;
+import androidx.core.view.WindowInsetsCompat;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -118,9 +120,27 @@ public class AssignmentUploadActivity extends BaseActivity {
 
         // تهيئة الواجهة والبيانات
         initViews();
+        applyInsets();
+
         initData();
         setupListeners();
     }
+
+    private void applyInsets() {
+        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {
+            // الحصول على أبعاد شريط الحالة (من الأعلى) وشريط التنقل (من الأسفل)
+            int systemBarsTop = insets.getInsets(WindowInsetsCompat.Type.systemBars()).top;
+            int systemBarsBottom = insets.getInsets(WindowInsetsCompat.Type.systemBars()).bottom;
+
+            // تطبيق padding على ترويسة المقرر (courseHeaderLayout)
+            // لتجنب اختفاء الأزرار خلف شريط الحالة.
+            courseHeaderContainer.setPadding(0, systemBarsTop, 0, 0);
+
+            // نرجع الـ insets الأصلية للسماح للنظام بمواصلة معالجتها
+            return WindowInsetsCompat.CONSUMED;
+        });
+    }
+
 
     /**
      * تهيئة المستودعات

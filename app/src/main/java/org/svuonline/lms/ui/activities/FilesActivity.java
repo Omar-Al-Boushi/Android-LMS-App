@@ -26,6 +26,9 @@ import androidx.annotation.NonNull;
 import androidx.core.content.ContextCompat;
 import androidx.core.content.FileProvider;
 import androidx.constraintlayout.widget.ConstraintLayout;
+import androidx.core.view.ViewCompat;
+import androidx.core.view.WindowCompat;
+import androidx.core.view.WindowInsetsCompat;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -93,6 +96,7 @@ public class FilesActivity extends BaseActivity implements FilesAdapter.FileDown
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        WindowCompat.setDecorFitsSystemWindows(getWindow(), false);
         setContentView(R.layout.activity_files);
 
         // تهيئة المكونات
@@ -106,12 +110,32 @@ public class FilesActivity extends BaseActivity implements FilesAdapter.FileDown
 
         // تهيئة الواجهة والبيانات
         initViews();
+
+        applyInsets();
         initData();
         setupListeners();
 
         // تسجيل BroadcastReceiver
         IntentFilter filter = new IntentFilter(DownloadManager.ACTION_DOWNLOAD_COMPLETE);
         ContextCompat.registerReceiver(this, downloadReceiver, filter, ContextCompat.RECEIVER_EXPORTED);
+    }
+
+    /**
+     * دالة لتطبيق المساحات الداخلية (Insets) بشكل برمجي.
+     * هذا يضمن أن محتوى الواجهة لا يتداخل مع أشرطة النظام.
+     */
+    private void applyInsets() {
+        ViewCompat.setOnApplyWindowInsetsListener(findViewById(android.R.id.content), (v, insets) -> {
+            // الحصول على أبعاد شريط الحالة (من الأعلى) وشريط التنقل (من الأسفل)
+            int systemBarsTop = insets.getInsets(WindowInsetsCompat.Type.systemBars()).top;
+            int systemBarsBottom = insets.getInsets(WindowInsetsCompat.Type.systemBars()).bottom;
+
+            // تطبيق padding على ترويسة المقرر (courseHeaderContainer)
+            // لتجنب اختفاء الأزرار خلف شريط الحالة.
+            courseHeaderContainer.setPadding(0, systemBarsTop, 0, 0);
+
+            return WindowInsetsCompat.CONSUMED;
+        });
     }
 
     /**

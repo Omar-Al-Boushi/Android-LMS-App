@@ -17,6 +17,9 @@ import android.widget.TextView;
 
 import androidx.appcompat.content.res.AppCompatResources;
 import androidx.constraintlayout.widget.ConstraintLayout;
+import androidx.core.view.ViewCompat;
+import androidx.core.view.WindowCompat;
+import androidx.core.view.WindowInsetsCompat;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -70,6 +73,8 @@ public class ParticipantsActivity extends BaseActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        WindowCompat.setDecorFitsSystemWindows(getWindow(), false);
+
         setContentView(R.layout.activity_participants);
 
         // تهيئة المكونات
@@ -83,9 +88,30 @@ public class ParticipantsActivity extends BaseActivity {
 
         // تهيئة الواجهة والبيانات
         initViews();
+        applyInsets();
         initData();
         setupListeners();
     }
+
+    /**
+     * دالة لتطبيق المساحات الداخلية (Insets) بشكل برمجي.
+     * هذا يضمن أن محتوى الواجهة لا يتداخل مع أشرطة النظام.
+     */
+    private void applyInsets() {
+        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {
+            // الحصول على أبعاد شريط الحالة (من الأعلى) وشريط التنقل (من الأسفل)
+            int systemBarsTop = insets.getInsets(WindowInsetsCompat.Type.systemBars()).top;
+            int systemBarsBottom = insets.getInsets(WindowInsetsCompat.Type.systemBars()).bottom;
+
+            // تطبيق padding على ترويسة المقرر (courseHeaderLayout)
+            // لتجنب اختفاء الأزرار خلف شريط الحالة.
+            courseHeaderContainer.setPadding(0, systemBarsTop, 0, 0);
+
+            // نرجع الـ insets الأصلية للسماح للنظام بمواصلة معالجتها
+            return WindowInsetsCompat.CONSUMED;
+        });
+    }
+
 
     /**
      * تهيئة المستودعات

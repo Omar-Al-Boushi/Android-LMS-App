@@ -6,14 +6,13 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@color/Custom_BackgroundColor"
-    android:fitsSystemWindows="true"
     tools:context=".ui.activities.EditProfileActivity">
 
     <!-- قسم الرأس -->
     <androidx.constraintlayout.widget.ConstraintLayout
         android:id="@+id/clHeader"
         android:layout_width="match_parent"
-        android:layout_height="240dp"
+        android:layout_height="260dp"
         android:background="@color/Custom_MainColorBlue"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
@@ -96,7 +95,7 @@
         android:id="@+id/cardProfileContent"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_marginTop="200dp"
+        android:layout_marginTop="220dp"
         android:backgroundTint="@color/Custom_BackgroundColor"
         app:cardCornerRadius="30dp"
         app:cardElevation="0dp"

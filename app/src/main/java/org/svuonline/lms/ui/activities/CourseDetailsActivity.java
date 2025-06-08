@@ -5,7 +5,12 @@ import android.content.SharedPreferences;
 import android.content.res.ColorStateList;
 import android.graphics.Color;
 import android.os.Bundle;
+import android.view.View;
+import android.view.ViewGroup;
 
+import androidx.core.view.ViewCompat;
+import androidx.core.view.WindowCompat;
+import androidx.core.view.WindowInsetsCompat;
 import androidx.recyclerview.widget.LinearLayoutManager;
 
 import com.google.android.material.snackbar.Snackbar;
@@ -18,18 +23,10 @@ import org.svuonline.lms.ui.data.CourseData;
 import org.svuonline.lms.utils.BaseActivity;
 import org.svuonline.lms.utils.Utils;
 
-/**
- * نشاط لعرض تفاصيل المقرر والأقسام المرتبطة به.
- */
 public class CourseDetailsActivity extends BaseActivity {
 
-    // عناصر الواجهة
     private ActivityCourseDetailsBinding binding;
-
-    // المستودعات
     private CourseRepository courseRepository;
-
-    // بيانات النشاط
     private long userId;
     private String courseCode;
     private boolean isFavorite;
@@ -37,21 +34,44 @@ public class CourseDetailsActivity extends BaseActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        // --- تفعيل وضع Edge-to-Edge ---
+        WindowCompat.setDecorFitsSystemWindows(getWindow(), false);
+
         binding = ActivityCourseDetailsBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
 
-        // تهيئة المكونات
+        // --- تطبيق المساحات الداخلية (Insets) ---
+        applyInsets();
+
         initComponents();
 
-        // التحقق من بيانات Intent
         if (!validateIntentData()) {
             finish();
             return;
         }
 
-        // تهيئة البيانات والواجهة
         initData();
         setupListeners();
+    }
+
+    /**
+     * دالة جديدة لتطبيق الـ Insets بشكل برمجي.
+     * هذا يضمن أن محتوى الواجهة لا يتداخل مع أشرطة النظام.
+     */
+    private void applyInsets() {
+        ViewCompat.setOnApplyWindowInsetsListener(binding.getRoot(), (v, insets) -> {
+            // الحصول على أبعاد شريط الحالة (من الأعلى) وشريط التنقل (من الأسفل)
+            int systemBarsTop = insets.getInsets(WindowInsetsCompat.Type.systemBars()).top;
+            int systemBarsBottom = insets.getInsets(WindowInsetsCompat.Type.systemBars()).bottom;
+
+            // تطبيق padding على الجزء العلوي من ترويسة المقرر (courseHeaderLayout)
+            // حتى لا تختفي الأزرار والنصوص خلف شريط الحالة.
+            binding.courseHeaderLayout.setPadding(0, systemBarsTop, 0, 0);
+
+            // نرجع الـ insets الأصلية لنسمح للنظام بمواصلة معالجتها
+            return WindowInsetsCompat.CONSUMED;
+        });
     }
 
     /**
@@ -66,7 +86,6 @@ public class CourseDetailsActivity extends BaseActivity {
      * @return صحيح إذا كانت البيانات صالحة، خطأ إذا لزم إنهاء النشاط
      */
     private boolean validateIntentData() {
-        // جلب userId
         SharedPreferences userPrefs = getSharedPreferences("user_prefs", MODE_PRIVATE);
         userId = userPrefs.getLong("user_id", -1);
         if (userId == -1) {
@@ -74,7 +93,6 @@ public class CourseDetailsActivity extends BaseActivity {
             return false;
         }
 
-        // جلب courseCode
         Intent intent = getIntent();
         courseCode = intent.getStringExtra("course_code");
         if (courseCode == null) {
@@ -90,8 +108,6 @@ public class CourseDetailsActivity extends BaseActivity {
      */
     private void initData() {
         boolean isArabic = isArabicLocale();
-
-        // جلب بيانات المقرر
         CourseData courseData = courseRepository.getCourseData(courseCode, isArabic);
         if (courseData == null) {
             showSnackbar(R.string.course_not_found);
@@ -99,15 +115,13 @@ public class CourseDetailsActivity extends BaseActivity {
             return;
         }
 
-        // تحديث حالة المفضلة
         isFavorite = courseRepository.isCourseFavorite(userId, courseCode);
         updateFavoriteButton();
 
-        // إعداد شريط النظام
+        // الآن، هذه الدالة ستعمل بشكل صحيح وموثوق لأننا نتحكم بالنافذة بالكامل
         Utils.setSystemBarColorWithColorInt(this, courseData.getHeaderColor(),
                 getResources().getColor(R.color.Custom_BackgroundColor), 0);
 
-        // إعداد الواجهة
         setupUI(courseData);
     }
 
@@ -128,7 +142,6 @@ public class CourseDetailsActivity extends BaseActivity {
         binding.courseTitleTextView.setText(courseData.getCourseTitle());
         binding.courseHeaderLayout.setBackgroundColor(courseData.getHeaderColor());
 
-        // إعداد RecyclerView للأقسام
         SectionsAdapter sectionsAdapter = new SectionsAdapter(
                 this,
                 courseData.getSections(),
@@ -177,13 +190,12 @@ public class CourseDetailsActivity extends BaseActivity {
         Snackbar.make(binding.getRoot(), messageRes, Snackbar.LENGTH_LONG).show();
     }
 
-    /**
-     * تحديث حالة المفضلة عند استئناف النشاط
-     */
     @Override
     protected void onResume() {
         super.onResume();
-        isFavorite = courseRepository.isCourseFavorite(userId, courseCode);
-        updateFavoriteButton();
+        if (courseCode != null) { // التأكد من أن courseCode ليس null
+            isFavorite = courseRepository.isCourseFavorite(userId, courseCode);
+            updateFavoriteButton();
+        }
     }
 }

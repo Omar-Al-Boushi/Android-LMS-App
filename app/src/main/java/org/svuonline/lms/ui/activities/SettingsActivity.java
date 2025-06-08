@@ -9,6 +9,9 @@ import android.widget.TextView;
 import androidx.appcompat.app.AppCompatDelegate;
 import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.core.content.ContextCompat;
+import androidx.core.view.ViewCompat;
+import androidx.core.view.WindowCompat;
+import androidx.core.view.WindowInsetsCompat;
 
 import com.google.android.material.appbar.MaterialToolbar;
 import com.google.android.material.card.MaterialCardView;
@@ -58,6 +61,7 @@ public class SettingsActivity extends BaseActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        WindowCompat.setDecorFitsSystemWindows(getWindow(), false);
         setContentView(R.layout.activity_settings);
 
         // تهيئة المكونات
@@ -76,6 +80,27 @@ public class SettingsActivity extends BaseActivity {
 
         // إعداد مستمعات الأحداث
         setupListeners();
+    }
+
+    /**
+     * دالة لتطبيق المساحات الداخلية (Insets) بشكل برمجي.
+     */
+    private void applyInsets() {
+        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.coordinator_layout_main), (v, insets) -> {
+            // الحصول على أبعاد شريط الحالة (من الأعلى) وشريط التنقل (من الأسفل)
+            int systemBarsTop = insets.getInsets(WindowInsetsCompat.Type.systemBars()).top;
+            int systemBarsBottom = insets.getInsets(WindowInsetsCompat.Type.systemBars()).bottom;
+
+            // 1. تطبيق padding علوي على AppBarLayout ليدفع شريط الأدوات للأسفل
+            View appBar = findViewById(R.id.app_bar_top);
+            appBar.setPadding(appBar.getPaddingLeft(), systemBarsTop, appBar.getPaddingRight(), appBar.getPaddingBottom());
+
+            // 2. تطبيق padding سفلي على NestedScrollView لتجنب تداخل المحتوى مع شريط التنقل
+            View scrollView = findViewById(R.id.nested_scroll_view);
+            scrollView.setPadding(scrollView.getPaddingLeft(), scrollView.getPaddingTop(), scrollView.getPaddingRight(), systemBarsBottom);
+
+            return WindowInsetsCompat.CONSUMED;
+        });
     }
 
     /**
@@ -123,7 +148,7 @@ public class SettingsActivity extends BaseActivity {
      */
     private void initData() {
         // إعداد لون شريط النظام
-        Utils.setSystemBarColor(this, R.color.Custom_BackgroundColor, R.color.Custom_Med_Black, 0);
+        Utils.setSystemBarColor(this, R.color.Custom_BackgroundColor, R.color.Custom_BackgroundColor, 0);
 
         // إعداد الألوان
         colorSelectedCardTint = ContextCompat.getColor(this, R.color.Custom_MainColorGolden);

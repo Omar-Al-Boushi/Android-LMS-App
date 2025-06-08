@@ -14,6 +14,9 @@ import android.widget.Toast;
 
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
+import androidx.core.view.ViewCompat;
+import androidx.core.view.WindowCompat;
+import androidx.core.view.WindowInsetsCompat;
 
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.imageview.ShapeableImageView;
@@ -68,6 +71,8 @@ public class EditProfileActivity extends BaseActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        WindowCompat.setDecorFitsSystemWindows(getWindow(), false);
+
         setContentView(R.layout.activity_edit_profile);
 
         // تهيئة المكونات
@@ -81,7 +86,7 @@ public class EditProfileActivity extends BaseActivity {
             finish();
             return;
         }
-
+        applyInsets();
         // تهيئة البيانات
         initData();
 
@@ -89,6 +94,30 @@ public class EditProfileActivity extends BaseActivity {
         setupListeners();
     }
 
+    /**
+     * دالة لتطبيق المساحات الداخلية (Insets) بشكل برمجي على الواجهة الجذرية.
+     */
+    /**
+     * دالة لتطبيق المساحات الداخلية (Insets) بشكل برمجي.
+     * هذا هو الإصدار الصحيح الذي يستهدف الترويسة والمحتوى القابل للتمرير.
+     */
+    private void applyInsets() {
+        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.clMain), (v, insets) -> {
+            // الحصول على أبعاد شريط الحالة (من الأعلى) وشريط التنقل (من الأسفل)
+            int systemBarsTop = insets.getInsets(WindowInsetsCompat.Type.systemBars()).top;
+            int systemBarsBottom = insets.getInsets(WindowInsetsCompat.Type.systemBars()).bottom;
+
+            // 1. تطبيق الـ padding العلوي على ترويسة الصفحة (clHeader)
+            // هذا يضمن عدم تداخل زر الرجوع مع أيقونات شريط الحالة.
+            findViewById(R.id.clHeader).setPadding(0, systemBarsTop, 0, 0);
+
+            // 2. تطبيق الـ padding السفلي على المحتوى القابل للتمرير (nsvMain)
+            // هذا يضمن عدم تداخل أزرار الحفظ والإلغاء مع شريط التنقل.
+            findViewById(R.id.nsvMain).setPadding(0, 0, 0, systemBarsBottom);
+
+            return WindowInsetsCompat.CONSUMED;
+        });
+    }
     /**
      * تهيئة المستودعات
      */

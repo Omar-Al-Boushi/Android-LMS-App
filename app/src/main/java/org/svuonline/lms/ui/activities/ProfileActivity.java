@@ -9,12 +9,16 @@ import android.graphics.Color;
 import android.net.Uri;
 import android.os.Bundle;
 import android.view.View;
+import android.view.ViewGroup;
 import android.view.animation.AccelerateDecelerateInterpolator;
 import android.widget.TextView;
 
 import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.core.content.ContextCompat;
 import androidx.core.graphics.ColorUtils;
+import androidx.core.view.ViewCompat;
+import androidx.core.view.WindowCompat;
+import androidx.core.view.WindowInsetsCompat;
 import androidx.core.widget.NestedScrollView;
 import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -67,6 +71,8 @@ public class ProfileActivity extends BaseActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        WindowCompat.setDecorFitsSystemWindows(getWindow(), false);
+
         setContentView(R.layout.activity_profile);
 
         // تهيئة المكونات
@@ -80,7 +86,7 @@ public class ProfileActivity extends BaseActivity {
             finish();
             return;
         }
-
+        applyInsets();
         // تهيئة البيانات
         initData();
 
@@ -93,6 +99,37 @@ public class ProfileActivity extends BaseActivity {
      */
     private void initComponents() {
         userRepository = new UserRepository(this);
+    }
+
+    /**
+     * دالة لتطبيق المساحات الداخلية (Insets) بشكل برمجي.
+     * هذا يضمن أن محتوى الواجهة لا يتداخل مع أشرطة النظام.
+     */
+    private void applyInsets() {
+        // نحصل على الهامش السفلي الأصلي للزر مرة واحدة فقط لتجنب حسابه بشكل متكرر
+        final int originalFabMarginBottom = ((ViewGroup.MarginLayoutParams) fabBackToTop.getLayoutParams()).bottomMargin;
+
+        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {
+            // الحصول على أبعاد شريط الحالة (من الأعلى) وشريط التنقل (من الأسفل)
+            int systemBarsTop = insets.getInsets(WindowInsetsCompat.Type.systemBars()).top;
+            int systemBarsBottom = insets.getInsets(WindowInsetsCompat.Type.systemBars()).bottom;
+
+            // 1. التعامل مع الترويسة العلوية (هذا الجزء صحيح وموجود لديك)
+            courseHeaderContainer.setPadding(0, systemBarsTop, 0, 0);
+
+            // 2. التعامل مع المحتوى القابل للتمرير (جزء جديد)
+            // نضيف padding أسفل NestedScrollView حتى لا يختفي آخر عنصر خلف شريط التنقل.
+            nestedScrollView.setPadding(0, 0, 0, systemBarsBottom);
+
+            // 3. التعامل مع زر العودة للأعلى (جزء جديد)
+            // نزيد الهامش السفلي للزر لرفعه فوق شريط التنقل.
+            ViewGroup.MarginLayoutParams fabLayoutParams = (ViewGroup.MarginLayoutParams) fabBackToTop.getLayoutParams();
+            fabLayoutParams.bottomMargin = originalFabMarginBottom + systemBarsBottom;
+            fabBackToTop.setLayoutParams(fabLayoutParams);
+
+            // نرجع الـ insets لنخبر النظام بأننا تعاملنا معها
+            return WindowInsetsCompat.CONSUMED;
+        });
     }
 
     /**
