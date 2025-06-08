@@ -6,6 +6,7 @@ import android.content.res.ColorStateList;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -150,11 +151,7 @@ public class AssignmentsFragment extends Fragment {
     private boolean validateUserData() {
         SharedPreferences userPrefs = requireActivity().getSharedPreferences("user_prefs", Context.MODE_PRIVATE);
         userId = (int) userPrefs.getLong("user_id", -1);
-        if (userId == -1) {
-            showToast(R.string.user_id_not_found);
-            return false;
-        }
-        return true;
+        return userId != -1;
     }
 
     /**
@@ -527,7 +524,7 @@ public class AssignmentsFragment extends Fragment {
      */
     private List<AssignmentCardData> sortAssignments(List<AssignmentCardData> assignments, String sortOrder) {
         List<AssignmentCardData> sortedList = new ArrayList<>(assignments);
-        SimpleDateFormat dateFormat = new SimpleDateFormat("dd-MM-yyyy", Locale.US);
+        SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd", Locale.US);
 
         Comparator<AssignmentCardData> comparator;
         if ("StartFirst".equals(sortOrder)) {
@@ -537,7 +534,6 @@ public class AssignmentsFragment extends Fragment {
                     Date date2 = dateFormat.parse(a2.getTimeStart());
                     return date1.compareTo(date2);
                 } catch (Exception e) {
-                    showToast(R.string.date_parse_error);
                     return 0;
                 }
             };
@@ -548,7 +544,6 @@ public class AssignmentsFragment extends Fragment {
                     Date date2 = dateFormat.parse(a2.getTimeEnd());
                     return date1.compareTo(date2);
                 } catch (Exception e) {
-                    showToast(R.string.date_parse_error);
                     return 0;
                 }
             };

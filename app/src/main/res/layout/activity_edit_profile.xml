@@ -160,7 +160,7 @@
                         android:layout_height="wrap_content"
                         android:hint="Phone Number"
                         android:inputType="phone"
-                        android:textSize="14dp" />
+                        android:textSize="14sp" />
                 </com.google.android.material.textfield.TextInputLayout>
 
                 <!-- حقل WhatsApp -->
@@ -190,7 +190,7 @@
                         android:layout_height="wrap_content"
                         android:hint="WhatsApp Link"
                         android:inputType="textUri"
-                        android:textSize="14dp" />
+                        android:textSize="14sp" />
                 </com.google.android.material.textfield.TextInputLayout>
 
                 <!-- حقل Facebook -->
@@ -220,7 +220,7 @@
                         android:layout_height="wrap_content"
                         android:hint="Facebook Link"
                         android:inputType="textUri"
-                        android:textSize="14dp" />
+                        android:textSize="14sp" />
                 </com.google.android.material.textfield.TextInputLayout>
 
                 <!-- حقل Telegram -->
@@ -250,7 +250,7 @@
                         android:layout_height="wrap_content"
                         android:hint="Telegram Link"
                         android:inputType="textUri"
-                        android:textSize="14dp" />
+                        android:textSize="14sp" />
                 </com.google.android.material.textfield.TextInputLayout>
 
                 <!-- حقل Email (بدون prefix) -->
@@ -278,7 +278,7 @@
                         android:layout_height="wrap_content"
                         android:hint="example@example.com"
                         android:inputType="textEmailAddress"
-                        android:textSize="14dp" />
+                        android:textSize="14sp" />
                 </com.google.android.material.textfield.TextInputLayout>
 
                 <!-- قسم Bio -->
@@ -315,7 +315,7 @@
                         android:hint="@string/your_bio_ar"
                         android:inputType="textMultiLine"
                         android:minLines="4"
-                        android:textSize="14dp" />
+                        android:textSize="14sp" />
                 </com.google.android.material.textfield.TextInputLayout>
 
                 <com.google.android.material.textfield.TextInputLayout
@@ -340,7 +340,7 @@
                         android:hint="@string/your_bio_en"
                         android:inputType="textMultiLine"
                         android:minLines="4"
-                        android:textSize="14dp" />
+                        android:textSize="14sp" />
                 </com.google.android.material.textfield.TextInputLayout>
 
                 <!-- أزرار الحفظ والإلغاء -->

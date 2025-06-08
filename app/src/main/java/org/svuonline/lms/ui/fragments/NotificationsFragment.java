@@ -118,7 +118,6 @@ public class NotificationsFragment extends Fragment {
         SharedPreferences userPrefs = requireActivity().getSharedPreferences(USER_PREFS_NAME, Context.MODE_PRIVATE);
         userId = (int) userPrefs.getLong("user_id", -1);
         if (userId == -1) {
-            showToast(R.string.user_id_not_found);
             return false;
         }
 

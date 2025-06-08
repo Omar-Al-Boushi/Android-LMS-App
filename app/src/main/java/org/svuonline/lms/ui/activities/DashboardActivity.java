@@ -127,7 +127,6 @@ public class DashboardActivity extends BaseActivity implements
         SharedPreferences userPrefs = getSharedPreferences("user_prefs", MODE_PRIVATE);
         userId = userPrefs.getLong("user_id", -1);
         if (userId == -1) {
-            showToast(R.string.user_id_not_found);
             redirectToLogin();
             return false;
         }
@@ -177,7 +176,6 @@ public class DashboardActivity extends BaseActivity implements
     private void loadUserData() {
         User user = userRepository.getUserById(userId);
         if (user == null) {
-            showToast(R.string.user_id_not_found);
             redirectToLogin();
             return;
         }

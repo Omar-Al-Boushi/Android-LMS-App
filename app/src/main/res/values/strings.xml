@@ -108,11 +108,11 @@
     <string name="program_manager_role">Program Manager</string>
     <string name="system_manager_role">System Manager</string>
 
-    <string name="mazen_Al_boushi">Mazen Al Boushi</string>
-    <string name="radwan_kastantin">Radwan Kastantin</string>
-    <string name="raouf_hamdan">Raouf Hamdan</string>
-    <string name="abeer_kharfan">Abeer Kharfan</string>
-    <string name="lana_kaddourah">Lana Kaddourah</string>
+    <string name="mazen_Al_boushi" translatable="false">Mazen Al Boushi</string>
+    <string name="radwan_kastantin" translatable="false">Radwan Kastantin</string>
+    <string name="raouf_hamdan" translatable="false">Raouf Hamdan</string>
+    <string name="abeer_kharfan" translatable="false">Abeer Kharfan</string>
+    <string name="lana_kaddourah" translatable="false">Lana Kaddourah</string>
 
 
     <string name="john_description">I am a third-year student in the Computer Science Department.</string>
@@ -274,7 +274,7 @@
     <string name="invalid_assignment_order">Invalid Assignment Order</string>
     <string name="all_notifications_marked_read">All notifications marked as read</string>
     <string name="no_notifications_found">No unread notifications</string>
-    <string name="unknown_error">Unknown Error</string>
+    <string name="unknown_error" translatable="false">Unknown Error</string>
 
 
 </resources>

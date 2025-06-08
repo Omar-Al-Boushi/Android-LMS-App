@@ -106,6 +106,7 @@ public class ModeSelectionActivity extends BaseActivity {
         selectedMode = mode;
         setButtonSelected(selectedButton, true);
         setButtonSelected(otherButton, false);
+        saveSelectedMode(mode);
         applySelectedMode();
     }
 

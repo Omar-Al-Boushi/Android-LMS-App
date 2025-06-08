@@ -305,7 +305,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                 "Abdo Al-khoury",
                 "عبده الخوري",
                 "t_aalkhoury@svuonline.org",
-                "f793245bec01547be7b1c0af8456f459aa73bc3ccf3b3ac760ff6681160099e9",
+                "9720d3dfc5567059cd856795f340347cffed3bce2c3696c9681b7deca22ffc52",
                 "Coordinator",
                 "1",
                 1,
@@ -326,7 +326,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                 "Eman Trabelsee",
                 "إيمان طرابلسي",
                 "t_etrabulsi@svuonline.org",
-                "0659f36951dedbd6c4479bdb24d761b6314d1a1b4a15b68154ce7403343a9322",
+                "f1e7f5ca4b66bbd36fedb7fca4a8d572493cd93581084d98f35d4f1009cb1da2",
                 "Doctor",
                 "1",
                 1,
@@ -347,7 +347,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                 "Ahmad Sadek",
                 "أحمد صادق",
                 "ahmad_146726@svuonline.org",
-                "14d882fca82b952c840d8e290b9f6c9587035163a3986a53bec43894a0f9f83f",
+                "4d05581ff2b5ade381adca661dd95d4ab617ece3114ff8297da8a9e61661d355",
                 "Student",
                 "2",
                 1,
@@ -368,7 +368,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                 "LMS",
                 "",
                 "admim@svuonline.org",
-                "cf24e3bb03185f5dad62a5e2b35d2a08d4731c74e6bf128e8826bf030d23c55f",
+                "5b40171489659251097e7790fc2f1892e2183a72546fe1df283d07865db9149c",
                 "ADMIN",
                 "",
                 0,
@@ -404,10 +404,12 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         insertCourse(db, "1", "1", "CEE205", "Digital Signal Processing", "معالجة الإشارة الرقمية", "7", "2005-01-01", 5, "Custom_MainColorBlue", "active");
         insertCourse(db, "1", "1", "GMA204", "Discrete Mathematic", "الرياضيات المتقطعة", "7", "2005-01-01", 5, "Custom_MainColorGreen", "active");
         insertCourse(db, "1", "1", "GMA205", "Probability & Statistics", "الاحتمالات والإحصاء", "7", "2005-01-01", 5, "Custom_MainColorGreen", "active");
-        insertCourse(db, "1", "1", "INT101", "Introduction to Networks", "مقدمة في الشبكات", "7", "2005-01-01", 5, "Custom_MainColorGolden", "active");
-        insertCourse(db, "1", "1", "INT305", "Network & IT Infrastructure Security", "أمن الشبكات والبنية التحتية المعلوماتية", "7", "2005-01-01", 5, "Custom_MainColorGolden", "active");
+        insertCourse(db, "1", "1", "INT101", "Introduction to Networks", "مقدمة في الشبكات", "7", "2005-01-01", 5, "Custom_MainColorTeal", "active");
+        insertCourse(db, "1", "1", "INT305", "Network & IT Infrastructure Security", "أمن الشبكات والبنية التحتية المعلوماتية", "7", "2005-01-01", 5, "Custom_MainColorTeal", "active");
         insertCourse(db, "1", "1", "IPG101", "Introduction to Programming", "مقدمة في البرمجة", "7", "2005-01-01", 4, "Custom_MainColorOrange", "active");
         insertCourse(db, "1", "1", "IPG204", "Object Oriented Programming", "التصميم والبرمجة غرضية التوجه", "7", "2005-01-01", 5, "Custom_MainColorOrange", "active");
+        insertCourse(db, "1", "1", "IOS101", "Introduction to Operating Systems", "مقدمة في نظم التشغيل", "7", "2005-01-01", 5, "Custom_MainColorGolden", "active");
+        insertCourse(db, "1", "1", "IOS202", "Windows Platform 1", "منصة ويندوز 1", "7", "2005-01-01", 5, "Custom_MainColorGolden", "active");
 
         // إدخال بيانات جدول أقسام المقررات (CourseSection)
         insertCourseSection(db, "1", "Course Materials", "موارد المقرر", 1);
@@ -446,6 +448,10 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         insertCourseSection(db, "11", "F21 Semester", "الفصل F21", 3);
         insertCourseSection(db, "12", "Course Materials", "موارد المقرر", 1);
         insertCourseSection(db, "12", "S24 Semester", "الفصل S24", 2);
+        insertCourseSection(db, "13", "Course Materials", "موارد المقرر", 1);
+        insertCourseSection(db, "13", "S24 Semester", "الفصل S24", 2);
+        insertCourseSection(db, "14", "Course Materials", "موارد المقرر", 1);
+        insertCourseSection(db, "14", "S24 Semester", "الفصل S24", 2);
 
 
         // إدخال بيانات جدول أدوات الأقسام (SectionTool)
@@ -608,6 +614,28 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         insertSectionTool(db, "36", "Assignment", "الواجب", "Assignment action");
         insertSectionTool(db, "36", "Slides / PowerPoint", "الشرائح / باوربوينت", "file action");
         insertSectionTool(db, "36", "Tools", "أدوات", "file action");
+
+        insertSectionTool(db, "37", "Course Identification", "تعريف المقرر", "file action");
+        insertSectionTool(db, "37", "Book / PDF", "كتاب / PDF", "file action");
+        insertSectionTool(db, "37", "Participants", "المشاركون", "Participants action");
+        insertSectionTool(db, "37", "Recorded Sessions", "الجلسات المسجلة", "file action");
+        insertSectionTool(db, "37", "References", "المراجع", "file action");
+        insertSectionTool(db, "37", "Training Exam", "اختبار تدريبي", "file action");
+        insertSectionTool(db, "38", "Semester Plan", "الخطة الدراسية للفصل", "file action");
+        insertSectionTool(db, "38", "Assignment", "الواجب", "Assignment action");
+        insertSectionTool(db, "38", "Slides / PowerPoint", "الشرائح / باوربوينت", "file action");
+        insertSectionTool(db, "38", "Tools", "أدوات", "file action");
+
+        insertSectionTool(db, "39", "Course Identification", "تعريف المقرر", "file action");
+        insertSectionTool(db, "39", "Book / PDF", "كتاب / PDF", "file action");
+        insertSectionTool(db, "39", "Participants", "المشاركون", "Participants action");
+        insertSectionTool(db, "39", "Recorded Sessions", "الجلسات المسجلة", "file action");
+        insertSectionTool(db, "39", "References", "المراجع", "file action");
+        insertSectionTool(db, "39", "Training Exam", "اختبار تدريبي", "file action");
+        insertSectionTool(db, "40", "Semester Plan", "الخطة الدراسية للفصل", "file action");
+        insertSectionTool(db, "40", "Assignment", "الواجب", "Assignment action");
+        insertSectionTool(db, "40", "Slides / PowerPoint", "الشرائح / باوربوينت", "file action");
+        insertSectionTool(db, "40", "Tools", "أدوات", "file action");
 
         // إدخال بيانات جدول الموارد (Resource)
         String filePath = "https://drive.google.com/uc?export=download&id=1Vk1auP04e77JdHsdivdnEpjd7aU3M8YO";
@@ -833,21 +861,21 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         insertEnrollment(db, "1", "3", "Passed", 0, "2024-11-01");
         insertEnrollment(db, "1", "4", "Passed", 0, "2024-06-01");
         insertEnrollment(db, "1", "5", "Passed", 1, "2024-11-01");
-        insertEnrollment(db, "1", "6", "Passed", 0, "2023-01-01");
-        insertEnrollment(db, "1", "7", "Passed", 1, "2023-01-01");
+        insertEnrollment(db, "1", "6", "Registered", 0, "2023-01-01");
+        insertEnrollment(db, "1", "7", "Registered", 1, "2023-01-01");
         insertEnrollment(db, "1", "8", "Passed", 1, "2024-06-01");
         insertEnrollment(db, "1", "9", "Remaining", 0, "2023-01-01");
         insertEnrollment(db, "1", "10", "Registered", 1, "2024-11-01");
         insertEnrollment(db, "1", "11", "Registered", 0, "2023-01-01");
-        ;
-        insertEnrollment(db, "1", "12", "Registered", 0, "2024-06-01");
-        ;
+        insertEnrollment(db, "1", "12", "Passed", 0, "2024-06-01");
+        insertEnrollment(db, "1", "13", "Passed", 0, "2024-06-01");
+        insertEnrollment(db, "1", "14", "Passed", 0, "2024-06-01");
 
         insertEnrollment(db, "2", "1", "Registered", 0, "2024-11-01");
         insertEnrollment(db, "2", "2", "Registered", 1, "2024-11-01");
         insertEnrollment(db, "2", "3", "Registered", 0, "2024-11-01");
-        insertEnrollment(db, "2", "4", "Passed", 1, "2024-06-01");
-        insertEnrollment(db, "2", "5", "Passed", 1, "2024-06-01");
+        insertEnrollment(db, "2", "4", "Registered", 1, "2024-06-01");
+        insertEnrollment(db, "2", "5", "Remaining", 1, "2024-06-01");
         insertEnrollment(db, "2", "6", "Passed", 0, "2023-01-01");
         insertEnrollment(db, "2", "7", "Remaining", 1, "2023-01-01");
         insertEnrollment(db, "2", "8", "Passed", 1, "2024-06-01");
@@ -855,9 +883,11 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         insertEnrollment(db, "2", "10", "Registered", 1, "2024-11-01");
         insertEnrollment(db, "2", "11", "Remaining", 0, "2023-01-01");
         insertEnrollment(db, "2", "12", "Passed", 0, "2024-06-01");
+        insertEnrollment(db, "2", "13", "Passed", 0, "2024-06-01");
+        insertEnrollment(db, "2", "14", "Passed", 0, "2024-06-01");
 
-        insertEnrollment(db, "3", "1", "Passed", 0, "2024-06-01");
-        insertEnrollment(db, "3", "2", "Passed", 1, "2024-06-01");
+        insertEnrollment(db, "3", "1", "Remaining", 0, "2024-06-01");
+        insertEnrollment(db, "3", "2", "Remaining", 1, "2024-06-01");
         insertEnrollment(db, "3", "3", "Passed", 0, "2024-06-01");
         insertEnrollment(db, "3", "4", "Passed", 1, "2024-06-01");
         insertEnrollment(db, "3", "5", "Passed", 1, "2024-06-01");
@@ -867,7 +897,9 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         insertEnrollment(db, "3", "9", "Remaining", 0, "2023-01-01");
         insertEnrollment(db, "3", "10", "Registered", 1, "2024-11-01");
         insertEnrollment(db, "3", "11", "Remaining", 0, "2023-01-01");
-        insertEnrollment(db, "3", "12", "Passed", 0, "2024-06-01");
+        insertEnrollment(db, "3", "12", "Registered", 0, "2024-06-01");
+        insertEnrollment(db, "3", "13", "Passed", 0, "2024-06-01");
+        insertEnrollment(db, "3", "14", "Passed", 0, "2024-06-01");
 
         insertEnrollment(db, "4", "1", "Registered", 0, "2024-06-01");
         insertEnrollment(db, "4", "2", "Registered", 1, "2024-06-01");
@@ -879,9 +911,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         insertEnrollment(db, "5", "5", "Registered", 1, "2024-06-01");
         insertEnrollment(db, "5", "6", "Registered", 0, "2023-01-01");
         insertEnrollment(db, "5", "7", "Registered", 1, "2023-01-01");
-        ;
         insertEnrollment(db, "5", "8", "Registered", 1, "2024-06-01");
-        ;
         insertEnrollment(db, "5", "9", "Registered", 0, "2023-01-01");
         insertEnrollment(db, "5", "10", "Registered", 1, "2024-11-01");
         insertEnrollment(db, "5", "11", "Registered", 0, "2023-01-01");
@@ -896,9 +926,9 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         insertEnrollment(db, "6", "7", "Passed", 1, "2023-01-01");
 
         // إدخال بيانات جدول الـ Assignment
-        insertAssignment(db, "8", "Human Resources Management HW", "وظيفة إدارة الموارد البشرية", "2024-11-10", "2025-10-15", "https://drive.google.com/uc?export=download&id=1Vk1auP04e77JdHsdivdnEpjd7aU3M8YO", "7");
-        insertAssignment(db, "25", "Wireless Communications Networks HW", "وظيفة شبكات الاتصالات اللاسلكية", "2024-11-11", "2025-08-16", "https://drive.google.com/uc?export=download&id=1Vk1auP04e77JdHsdivdnEpjd7aU3M8YO", "7");
-        insertAssignment(db, "42", "Mobile Applications for trading company", "تطبيق جوال لشركة بيع سلع", "2024-11-12", "2025-10-17", "https://drive.google.com/uc?export=download&id=1Vk1auP04e77JdHsdivdnEpjd7aU3M8YO", "7");
+        insertAssignment(db, "8", "Human Resources Management HW", "وظيفة إدارة الموارد البشرية", "2024-11-10", "2025-12-15", "https://drive.google.com/uc?export=download&id=1Vk1auP04e77JdHsdivdnEpjd7aU3M8YO", "7");
+        insertAssignment(db, "25", "Wireless Communications Networks HW", "وظيفة شبكات الاتصالات اللاسلكية", "2024-11-11", "2025-09-16", "https://drive.google.com/uc?export=download&id=1Vk1auP04e77JdHsdivdnEpjd7aU3M8YO", "7");
+        insertAssignment(db, "42", "Mobile Applications for trading company", "تطبيق جوال لشركة بيع سلع", "2024-11-12", "2025-11-17", "https://drive.google.com/uc?export=download&id=1Vk1auP04e77JdHsdivdnEpjd7aU3M8YO", "7");
         insertAssignment(db, "59", "Signals and Systems HW", "وظيفة الإشارات والنظم", "2024-11-13", "2025-11-18", "https://drive.google.com/uc?export=download&id=19S5SKxKXVcDLk9PYegxKT5OYn2wOB0Gg", "7");
         insertAssignment(db, "69", "Digital Signal Processing HW", "وظيفة معالجة الإشارات الرقمية", "2024-11-14", "2025-05-19", "https://drive.google.com/uc?export=download&id=1RACvMKYAhXaTqR41giWMr9y7gfdEG-Im", "7");
         insertAssignment(db, "85", "Discrete Mathematics HW", "وظيفة الرياضيات المتقطعة", "2024-11-15", "2025-10-17", "https://drive.google.com/uc?export=download&id=1iRRaosjTwvQBMGo1wXQ5pnXyfCR8O-rj", "7");
@@ -921,11 +951,11 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         );
         insertNotification(db,
                 "1",
-                "New content has been added to the resources section for IPG204. Explore it now!",
-                "تمت إضافة محتوى جديد إلى قسم الموارد لـ IPG204. استكشفه الآن!",
+                "New content has been added to the resources section for CEE203. Explore it now!",
+                "تمت إضافة محتوى جديد إلى قسم الموارد لـ CEE203. استكشفه الآن!",
                 0,
                 "course_tool",
-                "12",
+                "5",
                 "2025-05-02-17:10:09"
         );
         insertNotification(db,
@@ -979,20 +1009,20 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         );
         insertNotification(db,
                 "3",
-                "New content has been added to the resources section for CCN401. Explore it now!",
-                "تمت إضافة محتوى جديد إلى قسم الموارد لـ CCN401. استكشفه الآن!",
+                "New content has been added to the resources section for IPG204. Explore it now!",
+                "تمت إضافة محتوى جديد إلى قسم الموارد لـ IPG204. استكشفه الآن!",
                 0,
                 "course_tool",
-                "3",
+                "12",
                 "2025-05-02-15-25-00"
         );
         insertNotification(db,
                 "3",
-                "Some files for GMA205 have been modified. See the course page for changes.",
-                "تم تعديل بعض ملفات GMA205. راجع صفحة المقرر للاطلاع على التغييرات.",
+                "Some files for INT305 have been modified. See the course page for changes.",
+                "تم تعديل بعض ملفات INT305. راجع صفحة المقرر للاطلاع على التغييرات.",
                 0,
                 "course_files",
-                "8",
+                "10",
                 "2025-05-03-19:08:04"
         );
 

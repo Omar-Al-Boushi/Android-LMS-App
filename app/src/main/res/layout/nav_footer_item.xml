@@ -1,18 +1,16 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:id="@+id/developedParent"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:layout_gravity="bottom"
-    android:gravity="start"
-    android:orientation="vertical">
+    android:orientation="vertical"
+
+    android:gravity="start">
 
     <TextView
         android:id="@+id/nav_footer_text"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:fontFamily="@font/cairo_regular"
-        android:gravity="start"
         android:text="LMS Android Beta Version 1.0"
         android:textColor="@color/Custom_Black"
         android:textSize="14sp" />
@@ -20,10 +18,10 @@
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginBottom="16dp"
+        android:layout_marginTop="4dp"
         android:fontFamily="@font/cairo_regular"
-        android:gravity="start"
         android:text="Developed by Omar Al Boushi"
         android:textColor="@color/Custom_Dark_Grey"
         android:textSize="14sp" />
+
 </LinearLayout>

@@ -157,11 +157,7 @@ public class DashboardFragment extends Fragment {
     private boolean validateUserData() {
         SharedPreferences userPrefs = requireActivity().getSharedPreferences("user_prefs", Context.MODE_PRIVATE);
         userId = (int) userPrefs.getLong("user_id", -1);
-        if (userId == -1) {
-            showToast(R.string.user_id_not_found);
-            return false;
-        }
-        return true;
+        return userId != -1;
     }
 
     /**

@@ -1,29 +1,29 @@
 <?xml version="1.0" encoding="utf-8"?>
 <menu xmlns:android="http://schemas.android.com/apk/res/android"
->
-        <item
-            android:id="@+id/nav_profile"
-            android:checkable="false"
-            android:icon="@drawable/profile_icon"
-            android:title="@string/profile" />
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+    <item
+        android:id="@+id/nav_profile"
+        android:checkable="false"
+        android:icon="@drawable/profile_icon"
+        android:title="@string/profile" />
 
-        <item
-            android:id="@+id/nav_calendar"
-            android:checkable="false"
-            android:icon="@drawable/calendar_icon"
-            android:title="@string/calendar" />
+    <item
+        android:id="@+id/nav_calendar"
+        android:checkable="false"
+        android:icon="@drawable/calendar_icon"
+        android:title="@string/calendar" />
 
-        <item
-            android:id="@+id/nav_favourites"
-            android:checkable="false"
-            android:icon="@drawable/favourites_icon"
-            android:title="@string/favourites" />
+    <item
+        android:id="@+id/nav_favourites"
+        android:checkable="false"
+        android:icon="@drawable/favourites_icon"
+        android:title="@string/favourites" />
 
-        <item
-            android:id="@+id/nav_settings"
-            android:checkable="false"
-            android:icon="@drawable/settings_icon"
-            android:title="@string/settings" />
+    <item
+        android:id="@+id/nav_settings"
+        android:checkable="false"
+        android:icon="@drawable/settings_icon"
+        android:title="@string/settings" />
 
     <item
         android:id="@+id/footer_spacer_1"
@@ -43,5 +43,19 @@
         android:enabled="false"
         android:orderInCategory="200"
         android:title="" />
+    <item
+        android:id="@+id/footer_spacer_4"
+        android:checkable="false"
+        android:enabled="false"
+        android:orderInCategory="200"
+        android:title="" />
+
+    <item
+        android:id="@+id/nav_footer_item"
+        android:checkable="false"
+        android:enabled="false"
+        android:orderInCategory="201"
+        app:actionLayout="@layout/nav_footer_item" />
+
 
 </menu>

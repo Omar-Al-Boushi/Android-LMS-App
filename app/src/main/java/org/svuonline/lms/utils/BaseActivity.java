@@ -14,12 +14,12 @@ public class BaseActivity extends AppCompatActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
         // تطبيق محاذاة النصوص بناءً على اللغة
         setTextAlignment();
 
         // تطبيق تفضيلات اللغة والنمط
         applyAppPreferences();
+        super.onCreate(savedInstanceState);
     }
 
     // دالة لتطبيق محاذاة النص بناءً على اللغة
