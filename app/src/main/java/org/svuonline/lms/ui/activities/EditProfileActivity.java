@@ -95,9 +95,6 @@ public class EditProfileActivity extends BaseActivity {
     }
 
     /**
-     * دالة لتطبيق المساحات الداخلية (Insets) بشكل برمجي على الواجهة الجذرية.
-     */
-    /**
      * دالة لتطبيق المساحات الداخلية (Insets) بشكل برمجي.
      * هذا هو الإصدار الصحيح الذي يستهدف الترويسة والمحتوى القابل للتمرير.
      */
@@ -107,11 +104,8 @@ public class EditProfileActivity extends BaseActivity {
             int systemBarsTop = insets.getInsets(WindowInsetsCompat.Type.systemBars()).top;
             int systemBarsBottom = insets.getInsets(WindowInsetsCompat.Type.systemBars()).bottom;
 
-            // 1. تطبيق الـ padding العلوي على ترويسة الصفحة (clHeader)
             // هذا يضمن عدم تداخل زر الرجوع مع أيقونات شريط الحالة.
             findViewById(R.id.clHeader).setPadding(0, systemBarsTop, 0, 0);
-
-            // 2. تطبيق الـ padding السفلي على المحتوى القابل للتمرير (nsvMain)
             // هذا يضمن عدم تداخل أزرار الحفظ والإلغاء مع شريط التنقل.
             findViewById(R.id.nsvMain).setPadding(0, 0, 0, systemBarsBottom);
 
@@ -345,7 +339,7 @@ public class EditProfileActivity extends BaseActivity {
         boolean success = userRepository.updateUser(
                 currentUserId,
                 phoneToSave, whatsappToSave, facebookToSave, telegramToSave, email,
-                isArabic ? bioAr : bioEn, isArabic ? bioEn : bioAr, picUri
+                bioEn, bioAr, picUri
         );
 
         if (success) {
