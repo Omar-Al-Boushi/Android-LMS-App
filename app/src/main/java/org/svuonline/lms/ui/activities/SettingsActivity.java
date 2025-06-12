@@ -129,7 +129,7 @@ public class SettingsActivity extends BaseActivity {
             // 2. تطبيق padding سفلي على المحتوى القابل للتمرير (NestedScrollView)
             // ملاحظة: هذا يعتمد على وجود NestedScrollView في التخطيط بالمعرف nested_scroll_view
             View scrollView = findViewById(R.id.nested_scroll_view);
-            if(scrollView != null) {
+            if (scrollView != null) {
                 scrollView.setPadding(scrollView.getPaddingLeft(), scrollView.getPaddingTop(), scrollView.getPaddingRight(), systemBarsBottom);
             }
 
@@ -139,6 +139,7 @@ public class SettingsActivity extends BaseActivity {
 
     /**
      * التحقق من صحة بيانات المستخدم
+     *
      * @return صحيح إذا كانت البيانات صالحة، خطأ إذا لزم إنهاء النشاط
      */
     private boolean validateUserData() {
@@ -223,8 +224,6 @@ public class SettingsActivity extends BaseActivity {
         updateLanguageUI(selectedLanguage);
         updateThemeUI(selectedMode);
         updateNotificationsUI(notificationsEnabled);
-        // استدعاء الدالة لضبط الـ padding لزر الخروج
-        applyRtlPadding(findViewById(R.id.tv_logout));
     }
 
     /**
@@ -266,6 +265,7 @@ public class SettingsActivity extends BaseActivity {
 
     /**
      * تحديث واجهة خيارات اللغة
+     *
      * @param language اللغة المختارة (en أو ar)
      */
     private void updateLanguageUI(String language) {
@@ -275,6 +275,7 @@ public class SettingsActivity extends BaseActivity {
 
     /**
      * تحديث واجهة خيارات النمط
+     *
      * @param mode النمط المختار (light أو dark)
      */
     private void updateThemeUI(String mode) {
@@ -284,6 +285,7 @@ public class SettingsActivity extends BaseActivity {
 
     /**
      * تحديث واجهة خيارات الإشعارات
+     *
      * @param enabled حالة الإشعارات (مفعلة أو معطلة)
      */
     private void updateNotificationsUI(boolean enabled) {
@@ -293,11 +295,12 @@ public class SettingsActivity extends BaseActivity {
 
     /**
      * تحديث واجهة خيار معين
-     * @param optionCard البطاقة الخاصة بالخيار
+     *
+     * @param optionCard  البطاقة الخاصة بالخيار
      * @param layoutBtnId معرف التخطيط
-     * @param iconId معرف الأيقونة
-     * @param textId معرف النص
-     * @param selected حالة الخيار (مختار أو غير مختار)
+     * @param iconId      معرف الأيقونة
+     * @param textId      معرف النص
+     * @param selected    حالة الخيار (مختار أو غير مختار)
      */
     private void updateOptionUI(MaterialCardView optionCard, int layoutBtnId, int iconId, int textId, boolean selected) {
         ConstraintLayout layout = optionCard.findViewById(layoutBtnId);
@@ -330,8 +333,7 @@ public class SettingsActivity extends BaseActivity {
                 iconView.setBackgroundColor(bgColor);
             }
         }
-        // استدعاء الدالة لضبط الـ padding
-        applyRtlPadding(tvOption);
+
     }
 
     /**
@@ -352,6 +354,7 @@ public class SettingsActivity extends BaseActivity {
 
     /**
      * التحقق من اللغة المختارة
+     *
      * @return صحيح إذا كانت اللغة عربية
      */
     private boolean isArabicLocale() {
@@ -362,6 +365,7 @@ public class SettingsActivity extends BaseActivity {
 
     /**
      * الحصول على اللغة الحالية
+     *
      * @return اللغة المختارة (en أو ar)
      */
     private String getCurrentLanguage() {
@@ -371,6 +375,7 @@ public class SettingsActivity extends BaseActivity {
 
     /**
      * الحصول على النمط الحالي
+     *
      * @return النمط المختار (light أو dark)
      */
     private String getCurrentMode() {
@@ -380,6 +385,7 @@ public class SettingsActivity extends BaseActivity {
 
     /**
      * الحصول على حالة الإشعارات
+     *
      * @return صحيح إذا كانت الإشعارات مفعلة، خطأ إذا كانت معطلة
      */
     private boolean getCurrentNotificationsStatus() {
@@ -389,6 +395,7 @@ public class SettingsActivity extends BaseActivity {
 
     /**
      * تحديث اللغة
+     *
      * @param newLanguage اللغة الجديدة (en أو ar)
      */
     private void updateLanguage(String newLanguage) {
@@ -401,6 +408,7 @@ public class SettingsActivity extends BaseActivity {
 
     /**
      * تحديث النمط
+     *
      * @param newMode النمط الجديد (light أو dark)
      */
     private void updateTheme(String newMode) {
@@ -418,6 +426,7 @@ public class SettingsActivity extends BaseActivity {
 
     /**
      * تحديث حالة الإشعارات
+     *
      * @param enabled حالة الإشعارات الجديدة
      */
     private void updateNotifications(boolean enabled) {
@@ -484,6 +493,7 @@ public class SettingsActivity extends BaseActivity {
 
     /**
      * عرض رسالة Toast
+     *
      * @param messageRes معرف الرسالة
      */
     private void showToast(int messageRes) {
