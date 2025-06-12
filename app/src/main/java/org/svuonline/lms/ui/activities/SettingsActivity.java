@@ -3,7 +3,9 @@ package org.svuonline.lms.ui.activities;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.util.TypedValue;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.TextView;
 
 import androidx.appcompat.app.AppCompatDelegate;
@@ -74,7 +76,7 @@ public class SettingsActivity extends BaseActivity {
         if (!validateUserData()) {
             return;
         }
-
+        applyInsets();
         // تهيئة البيانات
         initData();
 
@@ -85,23 +87,6 @@ public class SettingsActivity extends BaseActivity {
     /**
      * دالة لتطبيق المساحات الداخلية (Insets) بشكل برمجي.
      */
-    private void applyInsets() {
-        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.coordinator_layout_main), (v, insets) -> {
-            // الحصول على أبعاد شريط الحالة (من الأعلى) وشريط التنقل (من الأسفل)
-            int systemBarsTop = insets.getInsets(WindowInsetsCompat.Type.systemBars()).top;
-            int systemBarsBottom = insets.getInsets(WindowInsetsCompat.Type.systemBars()).bottom;
-
-            // 1. تطبيق padding علوي على AppBarLayout ليدفع شريط الأدوات للأسفل
-            View appBar = findViewById(R.id.app_bar_top);
-            appBar.setPadding(appBar.getPaddingLeft(), systemBarsTop, appBar.getPaddingRight(), appBar.getPaddingBottom());
-
-            // 2. تطبيق padding سفلي على NestedScrollView لتجنب تداخل المحتوى مع شريط التنقل
-            View scrollView = findViewById(R.id.nested_scroll_view);
-            scrollView.setPadding(scrollView.getPaddingLeft(), scrollView.getPaddingTop(), scrollView.getPaddingRight(), systemBarsBottom);
-
-            return WindowInsetsCompat.CONSUMED;
-        });
-    }
 
     /**
      * تهيئة المستودعات
@@ -123,6 +108,33 @@ public class SettingsActivity extends BaseActivity {
         cvDisableNotifications = findViewById(R.id.cv_disable_notifications);
         cvLogout = findViewById(R.id.cv_logout);
         ivProfile = findViewById(R.id.iv_profile);
+    }
+
+    /**
+     * دالة لتطبيق المساحات الداخلية (Insets) بشكل برمجي.
+     */
+    private void applyInsets() {
+        // نفترض أن التخطيط الجذري لديك هو CoordinatorLayout كما في ملف XML الذي أرسلته سابقاً
+        // إذا كان له ID آخر، يمكنك استخدامه بدلاً من android.R.id.content
+        ViewCompat.setOnApplyWindowInsetsListener(findViewById(android.R.id.content), (v, insets) -> {
+            // الحصول على أبعاد شريط الحالة (من الأعلى) وشريط التنقل (من الأسفل)
+            int systemBarsTop = insets.getInsets(WindowInsetsCompat.Type.systemBars()).top;
+            int systemBarsBottom = insets.getInsets(WindowInsetsCompat.Type.systemBars()).bottom;
+
+            // 1. تطبيق هامش علوي (top margin) على شريط الأدوات لدفعه للأسفل
+            ViewGroup.MarginLayoutParams toolbarParams = (ViewGroup.MarginLayoutParams) toolbar.getLayoutParams();
+            toolbarParams.topMargin = systemBarsTop;
+            toolbar.setLayoutParams(toolbarParams);
+
+            // 2. تطبيق padding سفلي على المحتوى القابل للتمرير (NestedScrollView)
+            // ملاحظة: هذا يعتمد على وجود NestedScrollView في التخطيط بالمعرف nested_scroll_view
+            View scrollView = findViewById(R.id.nested_scroll_view);
+            if(scrollView != null) {
+                scrollView.setPadding(scrollView.getPaddingLeft(), scrollView.getPaddingTop(), scrollView.getPaddingRight(), systemBarsBottom);
+            }
+
+            return WindowInsetsCompat.CONSUMED;
+        });
     }
 
     /**
@@ -211,6 +223,8 @@ public class SettingsActivity extends BaseActivity {
         updateLanguageUI(selectedLanguage);
         updateThemeUI(selectedMode);
         updateNotificationsUI(notificationsEnabled);
+        // استدعاء الدالة لضبط الـ padding لزر الخروج
+        applyRtlPadding(findViewById(R.id.tv_logout));
     }
 
     /**
@@ -316,6 +330,34 @@ public class SettingsActivity extends BaseActivity {
                 iconView.setBackgroundColor(bgColor);
             }
         }
+        // استدعاء الدالة لضبط الـ padding
+        applyRtlPadding(tvOption);
+    }
+
+    /**
+     * يطبق الـ padding الصحيح على TextView بناءً على اتجاه اللغة.
+     */
+    private void applyRtlPadding(TextView textView) {
+        if (textView == null) return;
+
+        int paddingLarge = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 82, getResources().getDisplayMetrics());
+        int paddingSmall = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 16, getResources().getDisplayMetrics());
+
+        if (isArabicLocale()) {
+            textView.setPadding(paddingSmall, textView.getPaddingTop(), paddingLarge, textView.getPaddingBottom());
+        } else {
+            textView.setPadding(paddingLarge, textView.getPaddingTop(), paddingSmall, textView.getPaddingBottom());
+        }
+    }
+
+    /**
+     * التحقق من اللغة المختارة
+     * @return صحيح إذا كانت اللغة عربية
+     */
+    private boolean isArabicLocale() {
+        SharedPreferences preferences = getSharedPreferences(APP_PREFS, MODE_PRIVATE);
+        String selectedLanguage = preferences.getString(KEY_LANGUAGE, "en");
+        return "ar".equals(selectedLanguage);
     }
 
     /**

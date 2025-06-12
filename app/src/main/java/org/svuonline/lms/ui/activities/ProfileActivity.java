@@ -149,6 +149,7 @@ public class ProfileActivity extends BaseActivity {
 
     /**
      * التحقق من صحة بيانات Intent
+     *
      * @return صحيح إذا كانت البيانات صالحة، خطأ إذا لزم إنهاء النشاط
      */
     private boolean validateIntentData() {
@@ -202,6 +203,7 @@ public class ProfileActivity extends BaseActivity {
         loadUserCourses();
     }
 
+
     /**
      * إعداد مستمعات الأحداث (الأزرار، زر العودة للأعلى)
      */
@@ -234,6 +236,7 @@ public class ProfileActivity extends BaseActivity {
 
     /**
      * إعداد الواجهة
+     *
      * @param user بيانات المستخدم
      */
     private void setupUI(User user) {
@@ -265,6 +268,7 @@ public class ProfileActivity extends BaseActivity {
 
     /**
      * إعداد صورة الملف الشخصي
+     *
      * @param picture رابط أو معرف الصورة
      */
     private void setupProfilePicture(String picture) {
@@ -285,6 +289,7 @@ public class ProfileActivity extends BaseActivity {
 
     /**
      * إعداد روابط التواصل
+     *
      * @param user بيانات المستخدم
      */
     private void setupContacts(User user) {
@@ -297,8 +302,9 @@ public class ProfileActivity extends BaseActivity {
 
     /**
      * إعداد رابط تواصل واحد
+     *
      * @param viewId معرف العنصر
-     * @param data بيانات التواصل
+     * @param data   بيانات التواصل
      * @param action نوع الإجراء
      * @param prefix بادئة الرابط
      */
@@ -309,6 +315,7 @@ public class ProfileActivity extends BaseActivity {
             return;
         }
         String uri;
+
         if (viewId == R.id.parentWhatsapp) {
             if (!data.contains("wa.me/")) {
                 uri = prefix + data.replaceFirst("^\\+?", "");
@@ -317,6 +324,9 @@ public class ProfileActivity extends BaseActivity {
             } else {
                 uri = data;
             }
+        } else if (viewId == R.id.parentPhone) {
+            // نضيف حالة خاصة لرقم الهاتف لضمان عدم حذف علامة +
+            uri = prefix + data;
         } else if (!data.startsWith("http")) {
             uri = prefix + data.replaceFirst("^\\+?", "");
         } else {
@@ -353,6 +363,7 @@ public class ProfileActivity extends BaseActivity {
 
     /**
      * حساب عدد الأعمدة لشبكة المقررات
+     *
      * @param columnWidthDp عرض العمود بالـ dp
      * @return عدد الأعمدة
      */
@@ -408,10 +419,30 @@ public class ProfileActivity extends BaseActivity {
     }
 
     /**
+     * دالة مساعدة لإظهار Snackbar مع ضبط موضعه ليتجنب شريط التنقل السفلي.
+     */
+    private void showPositionedSnackbar(String message, int duration) {
+        View rootView = findViewById(android.R.id.content);
+        Snackbar snackbar = Snackbar.make(rootView, message, duration);
+
+        WindowInsetsCompat insets = ViewCompat.getRootWindowInsets(rootView);
+        if (insets != null) {
+            int bottomInset = insets.getInsets(WindowInsetsCompat.Type.systemBars()).bottom;
+            View snackbarView = snackbar.getView();
+            ViewGroup.MarginLayoutParams params = (ViewGroup.MarginLayoutParams) snackbarView.getLayoutParams();
+            params.bottomMargin = bottomInset;
+            snackbarView.setLayoutParams(params);
+        }
+
+        snackbar.show();
+    }
+
+    /**
      * عرض رسالة Snackbar
+     *
      * @param messageRes معرف الرسالة
      */
     private void showSnackbar(int messageRes) {
-        Snackbar.make(findViewById(android.R.id.content), messageRes, Snackbar.LENGTH_LONG).show();
+        showPositionedSnackbar(getString(messageRes), Snackbar.LENGTH_LONG);
     }
 }

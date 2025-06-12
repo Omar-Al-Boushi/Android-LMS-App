@@ -11,10 +11,14 @@ import android.util.DisplayMetrics;
 import android.util.TypedValue;
 import android.view.Gravity;
 import android.view.View;
+import android.view.ViewGroup;
 import android.view.WindowManager;
 import android.widget.TextView;
 
 import androidx.core.content.ContextCompat;
+import androidx.core.view.ViewCompat;
+import androidx.core.view.WindowCompat;
+import androidx.core.view.WindowInsetsCompat;
 import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -67,6 +71,7 @@ public class FavoritesActivity extends BaseActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        WindowCompat.setDecorFitsSystemWindows(getWindow(), false);
         setContentView(R.layout.activity_favorites);
 
         // تهيئة المكونات
@@ -74,6 +79,7 @@ public class FavoritesActivity extends BaseActivity {
 
         // تهيئة الواجهة
         initViews();
+        applyInsets();
 
         // التحقق من بيانات المستخدم
         if (!validateUserData()) {
@@ -126,6 +132,8 @@ public class FavoritesActivity extends BaseActivity {
         return true;
     }
 
+
+
     /**
      * تهيئة البيانات (اللغة، العرض، المفضلة، الصورة)
      */
@@ -156,6 +164,31 @@ public class FavoritesActivity extends BaseActivity {
 
         // تحديث حالة الأزرار
         updateButtonStates();
+    }
+
+    /**
+     * دالة لتطبيق المساحات الداخلية (Insets) بشكل برمجي.
+     * هذا يضمن أن محتوى الواجهة لا يتداخل مع أشرطة النظام.
+     */
+    private void applyInsets() {
+        ViewCompat.setOnApplyWindowInsetsListener(findViewById(android.R.id.content), (v, insets) -> {
+            // الحصول على أبعاد شريط الحالة (من الأعلى) وشريط التنقل (من الأسفل)
+            int systemBarsTop = insets.getInsets(WindowInsetsCompat.Type.systemBars()).top;
+            int systemBarsBottom = insets.getInsets(WindowInsetsCompat.Type.systemBars()).bottom;
+
+            // 1. تطبيق هامش علوي (top margin) على شريط الأدوات لدفعه للأسفل
+            ViewGroup.MarginLayoutParams toolbarParams = (ViewGroup.MarginLayoutParams) toolbar.getLayoutParams();
+            toolbarParams.topMargin = systemBarsTop;
+            toolbar.setLayoutParams(toolbarParams);
+
+            // 2. تطبيق padding سفلي على RecyclerView للسماح بالتمرير فوق شريط التنقل
+            recyclerView.setPadding(recyclerView.getPaddingLeft(), recyclerView.getPaddingTop(), recyclerView.getPaddingRight(), systemBarsBottom);
+
+            // 3. تطبيق padding سفلي على رسالة "القائمة فارغة" أيضاً
+            emptyMessage.setPadding(emptyMessage.getPaddingLeft(), emptyMessage.getPaddingTop(), emptyMessage.getPaddingRight(), systemBarsBottom);
+
+            return WindowInsetsCompat.CONSUMED;
+        });
     }
 
     /**

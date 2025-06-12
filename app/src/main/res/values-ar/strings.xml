@@ -183,7 +183,7 @@
     <string name="event_apr22_1">ظهور نتائج تقييم الاختبارات التدريبية CCN404</string>
     <string name="event_may01_1">تقديم استمارة التغذية الراجعة</string>
     <string name="event_may05_1">مراجعة نهائية لمقرر GMA205</string>
-    <string name="exit_confirmation_message">أنت على وشك اغلاق التطبيق. هل أنت متأكد؟</string>
+    <string name="exit_confirmation_message">أنت على وشك إغلاق التطبيق. هل أنت متأكد؟</string>
     <string name="confirm_submission_message">هل أنت متأكد من رغبتك في إرسال هذه الملفات؟</string>
     <string name="error_password_hash_failed">خطأ في معالجة كلمة المرور</string>
     <string name="error_invalid_credentials">بيانات تسجيل الدخول غير صحيحة</string>

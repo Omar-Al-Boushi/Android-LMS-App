@@ -12,6 +12,7 @@ import android.util.TypedValue;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
+import android.view.ViewGroup;
 import android.view.WindowManager;
 import android.view.animation.AlphaAnimation;
 import android.widget.TextView;
@@ -20,6 +21,9 @@ import androidx.activity.OnBackPressedCallback;
 import androidx.annotation.NonNull;
 import androidx.core.content.ContextCompat;
 import androidx.core.view.GravityCompat;
+import androidx.core.view.ViewCompat;
+import androidx.core.view.WindowCompat;
+import androidx.core.view.WindowInsetsCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
 import androidx.fragment.app.Fragment;
 import androidx.viewpager2.adapter.FragmentStateAdapter;
@@ -75,6 +79,8 @@ public class DashboardActivity extends BaseActivity implements
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        WindowCompat.setDecorFitsSystemWindows(getWindow(), false);
+
         setContentView(R.layout.activity_dashboard);
 
         // تهيئة المكونات
@@ -82,6 +88,7 @@ public class DashboardActivity extends BaseActivity implements
 
         // تهيئة الواجهة
         initViews();
+        applyInsets();
 
         // التحقق من بيانات المستخدم
         if (!validateUserData()) {
@@ -117,6 +124,32 @@ public class DashboardActivity extends BaseActivity implements
         profileImage = findViewById(R.id.profileImage);
         viewPager = findViewById(R.id.viewPager);
         bottomNavigationView = findViewById(R.id.bottom_navigation);
+    }
+
+    /**
+     * دالة لتطبيق المساحات الداخلية (Insets) بشكل برمجي على عناصر الواجهة الرئيسية.
+     */
+    private void applyInsets() {
+        ViewCompat.setOnApplyWindowInsetsListener(drawerLayout, (v, insets) -> {
+            // الحصول على أبعاد شريط الحالة (من الأعلى) وشريط التنقل (من الأسفل)
+            int systemBarsTop = insets.getInsets(WindowInsetsCompat.Type.systemBars()).top;
+            int systemBarsBottom = insets.getInsets(WindowInsetsCompat.Type.systemBars()).bottom;
+
+            // 1. تطبيق padding علوي على شريط الأدوات (Toolbar)
+            ViewGroup.MarginLayoutParams toolbarParams = (ViewGroup.MarginLayoutParams) toolbar.getLayoutParams();
+            toolbarParams.topMargin = systemBarsTop;
+            toolbar.setLayoutParams(toolbarParams);
+
+            // 2. تطبيق padding سفلي على شريط التنقل السفلي (BottomNavigationView)
+            bottomNavigationView.setPadding(0, 0, 0, systemBarsBottom);
+
+            // 3. تطبيق padding سفلي على ViewPager2 أيضاً
+            // هذا يضمن أن القوائم داخل الفراغمنت يمكن تمريرها فوق شريط التنقل
+            viewPager.setPadding(0, 0, 0, systemBarsBottom);
+
+            // مهم: لا نستهلك الـ insets، بل نرجعها ليستخدمها DrawerLayout بشكل صحيح
+            return insets;
+        });
     }
 
     /**
@@ -289,7 +322,14 @@ public class DashboardActivity extends BaseActivity implements
         getOnBackPressedDispatcher().addCallback(this, new OnBackPressedCallback(true) {
             @Override
             public void handleOnBackPressed() {
-                showExitConfirmDialog();
+                // التحقق مما إذا كان الفراغمنت المعروض حاليًا هو DashboardFragment (الموضع رقم 0)
+                if (viewPager.getCurrentItem() == 0) {
+                    // إذا كان كذلك، أظهر مربع حوار تأكيد الخروج من التطبيق
+                    showExitConfirmDialog();
+                } else {
+                    // إذا كان أي فراغمنت آخر، قم بالرجوع إلى DashboardFragment
+                    viewPager.setCurrentItem(0);
+                }
             }
         });
     }

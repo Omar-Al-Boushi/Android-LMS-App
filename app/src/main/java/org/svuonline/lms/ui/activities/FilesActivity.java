@@ -20,6 +20,8 @@ import android.os.Handler;
 import android.os.Looper;
 import android.os.Vibrator;
 import android.os.VibratorManager;
+import android.view.View;
+import android.view.ViewGroup;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
@@ -29,6 +31,7 @@ import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowCompat;
 import androidx.core.view.WindowInsetsCompat;
+import androidx.core.widget.NestedScrollView;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -68,6 +71,8 @@ public class FilesActivity extends BaseActivity implements FilesAdapter.FileDown
     private MaterialButton backButton;
     private MaterialButton favoriteButton;
     private RecyclerView recyclerView;
+    private NestedScrollView nestedScrollView;
+
 
     // بيانات النشاط
     private long userId;
@@ -84,6 +89,7 @@ public class FilesActivity extends BaseActivity implements FilesAdapter.FileDown
     private ExecutorService executorService;
     private Handler mainHandler;
     private Vibrator vibrator;
+    private FileData pendingFileDownload;
 
     // المستودعات
     private ResourceRepository resourceRepository;
@@ -133,9 +139,38 @@ public class FilesActivity extends BaseActivity implements FilesAdapter.FileDown
             // تطبيق padding على ترويسة المقرر (courseHeaderContainer)
             // لتجنب اختفاء الأزرار خلف شريط الحالة.
             courseHeaderContainer.setPadding(0, systemBarsTop, 0, 0);
+            nestedScrollView.setPadding(0, 0, 0, systemBarsBottom);
 
             return WindowInsetsCompat.CONSUMED;
         });
+    }
+
+    /**
+     * التحقق من وجود إذن الكتابة على وحدة التخزين وطلبه إذا لزم الأمر.
+     * مطلوب لأندرويد 6.0 (API 23) وما فوق.
+     */
+    private void checkAndRequestStoragePermission(FileData fileData) {
+        // سنطلب الإذن فقط للإصدارات بين 6.0 و 9.0 (API 23-28)
+        // لأنها تتطلب الإذن ولا تستخدم Scoped Storage بالطريقة الحديثة.
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) {
+            if (ContextCompat.checkSelfPermission(this, android.Manifest.permission.WRITE_EXTERNAL_STORAGE)
+                    != PackageManager.PERMISSION_GRANTED) {
+
+                // الإذن غير ممنوح، نطلبه من المستخدم.
+                pendingFileDownload = fileData;
+                requestPermissions(new String[]{android.Manifest.permission.WRITE_EXTERNAL_STORAGE}, STORAGE_PERMISSION_REQUEST_CODE);
+
+            } else {
+                // الإذن ممنوح بالفعل، نبدأ التحميل.
+                downloadFile(fileData);
+            }
+        } else {
+            // هذا الجزء سيتم تنفيذه في حالتين:
+            // 1. الأجهزة الأقدم من 6.0 (الإذن يُمنح عند التثبيت).
+            // 2. الأجهزة الأحدث من 10.0 (الإذن ليس ضرورياً لعملية التحميل هذه).
+            // في كلتا الحالتين، يمكننا بدء التحميل مباشرة.
+            downloadFile(fileData);
+        }
     }
 
     /**
@@ -205,6 +240,8 @@ public class FilesActivity extends BaseActivity implements FilesAdapter.FileDown
         backButton = findViewById(R.id.backButton);
         favoriteButton = findViewById(R.id.favoriteButton);
         recyclerView = findViewById(R.id.filesRecyclerView);
+        nestedScrollView = findViewById(R.id.nestedScrollView);
+
     }
 
     /**
@@ -305,7 +342,7 @@ public class FilesActivity extends BaseActivity implements FilesAdapter.FileDown
         if (fileData.isDownloaded()) {
             openFile(fileData);
         } else {
-            downloadFile(fileData);
+            checkAndRequestStoragePermission(fileData);
         }
     }
 
@@ -596,8 +633,16 @@ public class FilesActivity extends BaseActivity implements FilesAdapter.FileDown
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
         if (requestCode == STORAGE_PERMISSION_REQUEST_CODE) {
-            if (grantResults.length == 0 || grantResults[0] != PackageManager.PERMISSION_GRANTED) {
+            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                // تم منح الإذن بنجاح
+                if (pendingFileDownload != null) {
+                    downloadFile(pendingFileDownload);
+                    pendingFileDownload = null; // إعادة تعيين المتغير
+                }
+            } else {
+                // تم رفض الإذن من قبل المستخدم
                 showSnackbar(R.string.storage_permissions_required);
+                pendingFileDownload = null; // إعادة تعيين المتغير
             }
         }
     }
@@ -632,7 +677,7 @@ public class FilesActivity extends BaseActivity implements FilesAdapter.FileDown
      * @param messageRes معرف الرسالة
      */
     private void showSnackbar(int messageRes) {
-        Snackbar.make(findViewById(android.R.id.content), messageRes, Snackbar.LENGTH_LONG).show();
+        showPositionedSnackbar(getString(messageRes), Snackbar.LENGTH_LONG);
     }
 
     /**
@@ -640,7 +685,32 @@ public class FilesActivity extends BaseActivity implements FilesAdapter.FileDown
      * @param message النص المخصص
      */
     private void showSnackbar(String message) {
-        Snackbar.make(findViewById(android.R.id.content), message, Snackbar.LENGTH_SHORT).show();
+        showPositionedSnackbar(message, Snackbar.LENGTH_SHORT);
+    }
+
+    /**
+     * دالة مساعدة لإظهار Snackbar مع ضبط موضعه ليتجنب شريط التنقل السفلي.
+     * @param message الرسالة التي ستظهر.
+     * @param duration مدة ظهور الرسالة.
+     */
+    private void showPositionedSnackbar(String message, int duration) {
+        // نستخدم الواجهة الجذرية كـ view للـ Snackbar
+        View rootView = findViewById(android.R.id.content);
+        Snackbar snackbar = Snackbar.make(rootView, message, duration);
+
+        // نحصل على ارتفاع شريط التنقل السفلي (bottom inset)
+        WindowInsetsCompat insets = ViewCompat.getRootWindowInsets(rootView);
+        if (insets != null) {
+            int bottomInset = insets.getInsets(WindowInsetsCompat.Type.systemBars()).bottom;
+
+            // نطبق هذا الارتفاع كهامش سفلي للـ Snackbar
+            View snackbarView = snackbar.getView();
+            ViewGroup.MarginLayoutParams params = (ViewGroup.MarginLayoutParams) snackbarView.getLayoutParams();
+            params.bottomMargin = bottomInset;
+            snackbarView.setLayoutParams(params);
+        }
+
+        snackbar.show();
     }
 
     @Override

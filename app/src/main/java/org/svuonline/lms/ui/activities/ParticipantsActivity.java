@@ -11,6 +11,7 @@ import android.os.Handler;
 import android.os.Looper;
 import android.view.MotionEvent;
 import android.view.View;
+import android.view.ViewGroup;
 import android.view.inputmethod.EditorInfo;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.TextView;
@@ -20,6 +21,7 @@ import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowCompat;
 import androidx.core.view.WindowInsetsCompat;
+import androidx.core.widget.NestedScrollView;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -53,6 +55,8 @@ public class ParticipantsActivity extends BaseActivity {
     private RecyclerView recyclerView;
     private TextInputEditText searchBar;
     private TextInputLayout textInputLayout;
+    private NestedScrollView nestedScrollView;
+
 
     // بيانات النشاط
     private String courseCode;
@@ -106,6 +110,8 @@ public class ParticipantsActivity extends BaseActivity {
             // تطبيق padding على ترويسة المقرر (courseHeaderLayout)
             // لتجنب اختفاء الأزرار خلف شريط الحالة.
             courseHeaderContainer.setPadding(0, systemBarsTop, 0, 0);
+            nestedScrollView.setPadding(0, 0, 0, systemBarsBottom);
+
 
             // نرجع الـ insets الأصلية للسماح للنظام بمواصلة معالجتها
             return WindowInsetsCompat.CONSUMED;
@@ -166,6 +172,7 @@ public class ParticipantsActivity extends BaseActivity {
         recyclerView = findViewById(R.id.filesRecyclerView);
         searchBar = findViewById(R.id.search_bar);
         textInputLayout = findViewById(R.id.outlinedTextField);
+        nestedScrollView = findViewById(R.id.nestedScrollView);
     }
 
     /**
@@ -342,10 +349,29 @@ public class ParticipantsActivity extends BaseActivity {
     }
 
     /**
+     * دالة مساعدة لإظهار Snackbar مع ضبط موضعه ليتجنب شريط التنقل السفلي.
+     */
+    private void showPositionedSnackbar(String message, int duration) {
+        View rootView = findViewById(android.R.id.content);
+        Snackbar snackbar = Snackbar.make(rootView, message, duration);
+
+        WindowInsetsCompat insets = ViewCompat.getRootWindowInsets(rootView);
+        if (insets != null) {
+            int bottomInset = insets.getInsets(WindowInsetsCompat.Type.systemBars()).bottom;
+            View snackbarView = snackbar.getView();
+            ViewGroup.MarginLayoutParams params = (ViewGroup.MarginLayoutParams) snackbarView.getLayoutParams();
+            params.bottomMargin = bottomInset;
+            snackbarView.setLayoutParams(params);
+        }
+
+        snackbar.show();
+    }
+
+    /**
      * عرض رسالة Snackbar
      * @param messageRes معرف الرسالة
      */
     private void showSnackbar(int messageRes) {
-        Snackbar.make(findViewById(android.R.id.content), messageRes, Snackbar.LENGTH_LONG).show();
+        showPositionedSnackbar(getString(messageRes), Snackbar.LENGTH_LONG);
     }
 }

@@ -4,13 +4,17 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.res.ColorStateList;
 import android.os.Bundle;
+import android.util.TypedValue;
+import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 
 import androidx.appcompat.content.res.AppCompatResources;
 import androidx.core.content.ContextCompat;
+import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowCompat;
+import androidx.core.view.WindowInsetsCompat;
 import androidx.viewpager2.widget.ViewPager2;
 
 import com.google.android.material.tabs.TabLayout;
@@ -58,6 +62,8 @@ public class WelcomeActivity extends BaseActivity {
         // تهيئة الواجهة
         initViews();
 
+        applyInsets();
+
         // إعداد شريط الحالة
         setupSystemBar();
 
@@ -69,6 +75,37 @@ public class WelcomeActivity extends BaseActivity {
 
         // إعداد مستمعات الأحداث
         setupListeners();
+    }
+
+    /**
+     * دالة لتطبيق المساحات الداخلية (Insets) بشكل برمجي.
+     */
+    private void applyInsets() {
+        ViewCompat.setOnApplyWindowInsetsListener(findViewById(android.R.id.content), (v, insets) -> {
+            // الحصول على أبعاد شريط الحالة (من الأعلى) وشريط التنقل (من الأسفل)
+            int systemBarsTop = insets.getInsets(WindowInsetsCompat.Type.systemBars()).top;
+            int systemBarsBottom = insets.getInsets(WindowInsetsCompat.Type.systemBars()).bottom;
+
+            // 1. إضافة padding علوي للـ ViewPager2 لتجنب تداخل محتواه مع شريط الحالة
+            viewPager2.setPadding(viewPager2.getPaddingLeft(), systemBarsTop, viewPager2.getPaddingRight(), viewPager2.getPaddingBottom());
+
+            // 2. زيادة الهامش السفلي لزر "التالي" لرفعه فوق شريط التنقل
+            // ملاحظة: الرقم 24dp هو الهامش الأصلي المفترض من التصميم، قد تحتاج لتعديله
+            ViewGroup.MarginLayoutParams buttonParams = (ViewGroup.MarginLayoutParams) btnGetStarted.getLayoutParams();
+            int buttonOriginalMarginBottom = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 24, getResources().getDisplayMetrics());
+            buttonParams.bottomMargin = buttonOriginalMarginBottom + systemBarsBottom;
+            btnGetStarted.setLayoutParams(buttonParams);
+
+            // 3. زيادة الهامش السفلي لمؤشر الصفحات لرفعه أيضاً
+            // ملاحظة: الرقم 16dp هو الهامش الأصلي المفترض من التصميم
+            ViewGroup.MarginLayoutParams indicatorParams = (ViewGroup.MarginLayoutParams) tabIndicator.getLayoutParams();
+            int indicatorOriginalMarginBottom = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 16, getResources().getDisplayMetrics());
+            indicatorParams.bottomMargin = indicatorOriginalMarginBottom + systemBarsBottom;
+            tabIndicator.setLayoutParams(indicatorParams);
+
+
+            return WindowInsetsCompat.CONSUMED;
+        });
     }
 
     @Override

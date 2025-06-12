@@ -101,6 +101,7 @@
         app:strokeWidth="0dp">
 
         <androidx.core.widget.NestedScrollView
+            android:id="@+id/nestedScrollView"
             android:layout_width="match_parent"
             android:fillViewport="true"
             android:layout_height="wrap_content">

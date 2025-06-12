@@ -36,6 +36,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginStart="28dp"
+            android:layout_marginEnd="28dp"
             android:fontFamily="@font/cairo_bold"
             android:text="BQM304"
             android:textColor="@color/white"
@@ -44,15 +45,14 @@
             app:layout_constraintTop_toBottomOf="@+id/courseName" />
 
         <androidx.constraintlayout.widget.ConstraintLayout
-            android:id="@+id/constraintLayout2"
-            android:layout_width="wrap_content"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginStart="28dp"
-            android:layout_marginTop="3dp"
+            android:layout_marginEnd="28dp"
             android:layout_marginBottom="18dp"
             app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/courseCode">
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent">
 
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/goDetailsBtn"
@@ -66,71 +66,92 @@
                 android:textSize="12sp"
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent"
                 app:layout_constraintWidth_percent="0.35"
                 app:rippleColor="#d9d9d9"
                 app:shapeAppearance="@style/ShapeAppearance.Material3.Corner.Small"
                 app:strokeColor="@color/white"
                 app:strokeWidth="1dp" />
 
-        </androidx.constraintlayout.widget.ConstraintLayout>
-
-        <androidx.constraintlayout.widget.ConstraintLayout
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginEnd="28dp"
-            app:layout_constraintBottom_toBottomOf="@+id/constraintLayout2"
-            app:layout_constraintEnd_toEndOf="parent">
-
             <LinearLayout
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
+                android:layout_width="0dp"
                 android:gravity="end"
-                android:orientation="vertical"
+                android:layout_marginStart="16dp"
+                android:layout_height="wrap_content"
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toTopOf="parent">
+                app:layout_constraintHorizontal_bias="1.0"
+                app:layout_constraintStart_toEndOf="@+id/goDetailsBtn"
+                app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintVertical_bias="0.0">
 
                 <com.google.android.material.button.MaterialButton
                     android:id="@+id/timeStart"
                     style="@style/Widget.Material3.Button.TextButton"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginBottom="-16dp"
+                    android:layout_marginEnd="8dp"
+                    android:layout_gravity="center"
+
                     android:clickable="false"
                     android:focusable="false"
+                    android:focusableInTouchMode="false"
                     android:fontFamily="@font/cairo_bold"
+                    android:gravity="center"
                     android:insetTop="0dp"
                     android:insetBottom="0dp"
-                    android:padding="0dp"
+                    android:maxLines="1"
+                    android:paddingLeft="0dp"
+                    android:paddingTop="0dp"
+                    android:paddingRight="0dp"
+                    android:paddingBottom="0dp"
                     android:text="20-10-2024"
                     android:textColor="@color/white"
                     android:textSize="10sp"
                     app:icon="@drawable/time"
                     app:iconSize="24dp"
-                    app:iconTint="@color/white" />
+                    app:iconTint="@color/white"
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    app:layout_constraintEnd_toStartOf="@+id/timeEnd"
+                    app:layout_constraintTop_toTopOf="parent"
+                    app:layout_constraintVertical_bias="0.0"
+                    app:strokeColor="@color/white" />
 
                 <com.google.android.material.button.MaterialButton
                     android:id="@+id/timeEnd"
                     style="@style/Widget.Material3.Button.TextButton"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginBottom="-12dp"
+
+                    android:layout_gravity="center"
                     android:clickable="false"
                     android:focusable="false"
+                    android:focusableInTouchMode="false"
                     android:fontFamily="@font/cairo_bold"
+                    android:gravity="center"
                     android:insetTop="0dp"
                     android:insetBottom="0dp"
-                    android:padding="0dp"
+                    android:maxLines="1"
+                    android:paddingLeft="0dp"
+                    android:paddingTop="0dp"
+                    android:paddingRight="0dp"
+                    android:paddingBottom="0dp"
                     android:text=" 18-12-2024"
                     android:textColor="@color/white"
                     android:textSize="10sp"
                     app:icon="@drawable/time"
                     app:iconSize="24dp"
-                    app:iconTint="@color/white" />
+                    app:iconTint="@color/white"
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintTop_toTopOf="parent"
+                    app:layout_constraintVertical_bias="0.0"
+                    app:strokeColor="@color/white" />
 
             </LinearLayout>
+
         </androidx.constraintlayout.widget.ConstraintLayout>
+
 
         <androidx.constraintlayout.widget.ConstraintLayout
             android:id="@+id/parentStatus"

@@ -17,6 +17,7 @@ import android.util.TypedValue;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
+import android.view.ViewGroup;
 import android.view.WindowManager;
 import android.widget.TextView;
 
@@ -24,7 +25,9 @@ import androidx.appcompat.app.AlertDialog;
 import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.core.content.ContextCompat;
 import androidx.core.view.ViewCompat;
+import androidx.core.view.WindowCompat;
 import androidx.core.view.WindowInsetsCompat;
+import androidx.core.widget.NestedScrollView;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -78,6 +81,8 @@ public class AssignmentUploadActivity extends BaseActivity {
     private ConstraintLayout addButtonCard;
     private ConstraintLayout editButtonCard;
     private ConstraintLayout deleteButtonCard;
+    private NestedScrollView nestedScrollView;
+
 
     // بيانات النشاط
     private long userId;
@@ -107,6 +112,7 @@ public class AssignmentUploadActivity extends BaseActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        WindowCompat.setDecorFitsSystemWindows(getWindow(), false);
         setContentView(R.layout.activity_assignment_upload);
 
         // تهيئة المكونات
@@ -135,6 +141,7 @@ public class AssignmentUploadActivity extends BaseActivity {
             // تطبيق padding على ترويسة المقرر (courseHeaderLayout)
             // لتجنب اختفاء الأزرار خلف شريط الحالة.
             courseHeaderContainer.setPadding(0, systemBarsTop, 0, 0);
+            nestedScrollView.setPadding(0, 0, 0, systemBarsBottom);
 
             // نرجع الـ insets الأصلية للسماح للنظام بمواصلة معالجتها
             return WindowInsetsCompat.CONSUMED;
@@ -195,6 +202,7 @@ public class AssignmentUploadActivity extends BaseActivity {
         addImage = findViewById(R.id.addImg);
         editImage = findViewById(R.id.editImg);
         removeImage = findViewById(R.id.removeImg);
+        nestedScrollView = findViewById(R.id.nestedScrollView);
     }
 
     /**
@@ -654,11 +662,33 @@ public class AssignmentUploadActivity extends BaseActivity {
     }
 
     /**
+     * دالة مساعدة لإظهار Snackbar مع ضبط موضعه ليتجنب شريط التنقل السفلي.
+     * @param message الرسالة التي ستظهر.
+     * @param duration مدة ظهور الرسالة.
+     */
+    private void showPositionedSnackbar(String message, int duration) {
+        View rootView = findViewById(android.R.id.content);
+        Snackbar snackbar = Snackbar.make(rootView, message, duration);
+
+        WindowInsetsCompat insets = ViewCompat.getRootWindowInsets(rootView);
+        if (insets != null) {
+            int bottomInset = insets.getInsets(WindowInsetsCompat.Type.systemBars()).bottom;
+            View snackbarView = snackbar.getView();
+            ViewGroup.MarginLayoutParams params = (ViewGroup.MarginLayoutParams) snackbarView.getLayoutParams();
+            params.bottomMargin = bottomInset;
+            snackbarView.setLayoutParams(params);
+        }
+
+        snackbar.show();
+    }
+
+    // --- تم تعديل هذه الدوال ---
+    /**
      * عرض رسالة Snackbar
      * @param messageRes معرف الرسالة
      */
     private void showSnackbar(int messageRes) {
-        Snackbar.make(findViewById(android.R.id.content), messageRes, Snackbar.LENGTH_LONG).show();
+        showPositionedSnackbar(getString(messageRes), Snackbar.LENGTH_LONG);
     }
 
     /**
@@ -666,7 +696,7 @@ public class AssignmentUploadActivity extends BaseActivity {
      * @param message النص المخصص
      */
     private void showSnackbar(String message) {
-        Snackbar.make(findViewById(android.R.id.content), message, Snackbar.LENGTH_SHORT).show();
+        showPositionedSnackbar(message, Snackbar.LENGTH_SHORT);
     }
 
     /**
@@ -675,7 +705,7 @@ public class AssignmentUploadActivity extends BaseActivity {
      * @param duration مدة العرض
      */
     private void showSnackbar(int messageRes, int duration) {
-        Snackbar.make(findViewById(android.R.id.content), messageRes, duration).show();
+        showPositionedSnackbar(getString(messageRes), duration);
     }
 
     @Override

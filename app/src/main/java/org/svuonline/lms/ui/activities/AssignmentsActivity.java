@@ -21,8 +21,11 @@ import android.os.Handler;
 import android.os.Looper;
 import android.os.Vibrator;
 import android.os.VibratorManager;
+import android.view.View;
+import android.view.ViewGroup;
 import android.widget.TextView;
 
+import androidx.annotation.NonNull;
 import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.core.content.ContextCompat;
 import androidx.core.content.FileProvider;
@@ -30,6 +33,7 @@ import androidx.core.content.res.ResourcesCompat;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowCompat;
 import androidx.core.view.WindowInsetsCompat;
+import androidx.core.widget.NestedScrollView;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -83,6 +87,8 @@ public class AssignmentsActivity extends BaseActivity implements FilesAdapter.Fi
     private TextView timeRemainingTextView;
     private TextView lastModifiedTextView;
     private TextView assignmentNameTextView;
+    private NestedScrollView nestedScrollView;
+
 
     // بيانات النشاط
     private long userId;
@@ -107,10 +113,12 @@ public class AssignmentsActivity extends BaseActivity implements FilesAdapter.Fi
     private ExecutorService executorService;
     private Handler mainHandler;
     private Vibrator vibrator;
+    private FileData pendingFileDownload;
 
     // ثوابت
     private static final int STORAGE_PERMISSION_REQUEST_CODE = 100;
     private static final int NOTIFICATION_PERMISSION_REQUEST_CODE = 101;
+
 
     // استقبال إشعارات تحميل الملفات
     private final BroadcastReceiver downloadReceiver = new BroadcastReceiver() {
@@ -173,6 +181,7 @@ public class AssignmentsActivity extends BaseActivity implements FilesAdapter.Fi
             // تطبيق padding على ترويسة المقرر (courseHeaderLayout)
             // لتجنب اختفاء الأزرار خلف شريط الحالة.
             courseHeaderContainer.setPadding(0, systemBarsTop, 0, 0);
+            nestedScrollView.setPadding(0, 0, 0, systemBarsBottom);
 
 
             // نرجع الـ insets الأصلية للسماح للنظام بمواصلة معالجتها
@@ -236,6 +245,31 @@ public class AssignmentsActivity extends BaseActivity implements FilesAdapter.Fi
     }
 
     /**
+     * التحقق من وجود إذن الكتابة على وحدة التخزين وطلبه إذا لزم الأمر.
+     * هذا الإجراء مطلوب فقط للإصدارات بين أندرويد 6.0 و 9.0 (API 23-28).
+     */
+    private void checkAndRequestStoragePermission(FileData fileData) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) {
+            if (ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE)
+                    != PackageManager.PERMISSION_GRANTED) {
+
+                // الإذن غير ممنوح، نخزّن الملف ونطلب الإذن.
+                pendingFileDownload = fileData;
+                requestPermissions(new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE}, STORAGE_PERMISSION_REQUEST_CODE);
+
+            } else {
+                // الإذن ممنوح بالفعل، نبدأ التحميل.
+                downloadFile(fileData);
+            }
+        } else {
+            // للإصدارات الأقدم من 6.0 (يُمنح الإذن عند التثبيت)
+            // أو الأحدث من 10.0 (الإذن غير مطلوب لهذه العملية بفضل Scoped Storage)
+            // نبدأ التحميل مباشرة.
+            downloadFile(fileData);
+        }
+    }
+
+    /**
      * تهيئة عناصر الواجهة
      */
     private void initViews() {
@@ -253,6 +287,7 @@ public class AssignmentsActivity extends BaseActivity implements FilesAdapter.Fi
         timeRemainingTextView = findViewById(R.id.TimeRemainingDate);
         lastModifiedTextView = findViewById(R.id.LastModifiedDate);
         assignmentNameTextView = findViewById(R.id.assignmentName);
+        nestedScrollView = findViewById(R.id.nestedScrollView);
 
         // إعداد RecyclerView
         filesRecyclerView.setLayoutManager(new LinearLayoutManager(this));
@@ -497,19 +532,30 @@ public class AssignmentsActivity extends BaseActivity implements FilesAdapter.Fi
     }
 
     /**
-     * عرض رسالة Snackbar
-     * @param messageRes معرف الرسالة
+     * دالة مساعدة لإظهار Snackbar مع ضبط موضعه ليتجنب شريط التنقل السفلي.
      */
-    private void showSnackbar(int messageRes) {
-        Snackbar.make(findViewById(R.id.main), messageRes, Snackbar.LENGTH_LONG).show();
+    private void showPositionedSnackbar(String message, int duration) {
+        View rootView = findViewById(android.R.id.content);
+        Snackbar snackbar = Snackbar.make(rootView, message, duration);
+
+        WindowInsetsCompat insets = ViewCompat.getRootWindowInsets(rootView);
+        if (insets != null) {
+            int bottomInset = insets.getInsets(WindowInsetsCompat.Type.systemBars()).bottom;
+            View snackbarView = snackbar.getView();
+            ViewGroup.MarginLayoutParams params = (ViewGroup.MarginLayoutParams) snackbarView.getLayoutParams();
+            params.bottomMargin = bottomInset;
+            snackbarView.setLayoutParams(params);
+        }
+
+        snackbar.show();
     }
 
-    /**
-     * عرض رسالة Snackbar مع نص مخصص
-     * @param message النص المخصص
-     */
+    private void showSnackbar(int messageRes) {
+        showPositionedSnackbar(getString(messageRes), Snackbar.LENGTH_LONG);
+    }
+
     private void showSnackbar(String message) {
-        Snackbar.make(findViewById(R.id.main), message, Snackbar.LENGTH_SHORT).show();
+        showPositionedSnackbar(message, Snackbar.LENGTH_SHORT);
     }
 
     /**
@@ -531,9 +577,11 @@ public class AssignmentsActivity extends BaseActivity implements FilesAdapter.Fi
         if (fileData.isDownloaded()) {
             openFile(fileData);
         } else {
-            downloadFile(fileData);
+            checkAndRequestStoragePermission(fileData);
         }
     }
+
+
 
     /**
      * التحقق من وجود اتصال بالإنترنت
@@ -647,6 +695,24 @@ public class AssignmentsActivity extends BaseActivity implements FilesAdapter.Fi
                 return "application/vnd.openxmlformats-officedocument.wordprocessingml.document";
             default:
                 return "application/octet-stream";
+        }
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        if (requestCode == STORAGE_PERMISSION_REQUEST_CODE) {
+            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                // تم منح الإذن بنجاح من قبل المستخدم
+                if (pendingFileDownload != null) {
+                    downloadFile(pendingFileDownload);
+                    pendingFileDownload = null; // ننظف المتغير بعد الاستخدام
+                }
+            } else {
+                // تم رفض الإذن
+                showSnackbar(R.string.storage_permissions_required);
+                pendingFileDownload = null; // ننظف المتغير
+            }
         }
     }
 

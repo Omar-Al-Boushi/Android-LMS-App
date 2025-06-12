@@ -21,7 +21,6 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:background="@color/Custom_BackgroundColor"
-            android:fitsSystemWindows="true"
             android:paddingTop="8dp"
             android:paddingBottom="0dp"
             android:theme="@style/ThemeOverlay.MaterialComponents.ActionBar"
@@ -38,7 +37,7 @@
                 android:background="@color/Custom_BackgroundColor"
                 android:fadeScrollbars="true"
                 android:theme="@style/ThemeOverlay.MaterialComponents.Dark.ActionBar"
-                app:layout_scrollFlags="scroll|snap"
+                app:layout_scrollFlags="scroll|snapMargins"
                 app:navigationIcon="@drawable/menu"
                 app:navigationIconTint="@color/Custom_Black">
 
@@ -103,11 +102,11 @@
             app:itemTextAppearanceInactive="@style/BottomNavigationInactiveText"
             app:itemTextColor="@color/bottom_navigation_text_color"
             app:labelVisibilityMode="labeled"
-            app:layout_behavior="@string/hide_bottom_view_on_scroll_behavior"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:menu="@menu/bottom_navigation_menu">
+            <!--  app:layout_behavior="@string/hide_bottom_view_on_scroll_behavior" -->
 
             <!-- شريط الخط الأعلى -->
             <View

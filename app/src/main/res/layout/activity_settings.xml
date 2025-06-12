@@ -13,7 +13,6 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:background="@color/Custom_BackgroundColor"
-        android:fitsSystemWindows="true"
         android:paddingTop="8dp"
         android:paddingBottom="0dp"
         android:theme="@style/ThemeOverlay.MaterialComponents.ActionBar"
