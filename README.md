@@ -4,6 +4,18 @@ A feature-rich, native Android application designed to provide students of the S
 
 ---
 
+## 📱 App Preview
+
+A quick look at the app's splash screen and the main dashboard, available in both English and Arabic, with full dark mode support.
+
+<p align="center">
+  <img src="https://raw.githubusercontent.com/Omar-Al-Boushi/Android-LMS-App/master/demo/Animation.gif" width="260" alt="Splash Screen">&nbsp;&nbsp;&nbsp;&nbsp;
+  <img src="https://raw.githubusercontent.com/Omar-Al-Boushi/Android-LMS-App/master/demo/Animation2.gif" width="260" alt="English Dashboard">&nbsp;&nbsp;&nbsp;&nbsp;
+  <img src="https://raw.githubusercontent.com/Omar-Al-Boushi/Android-LMS-App/master/demo/Animation3.gif" width="260" alt="Arabic Dashboard & Dark Mode">
+</p>
+
+---
+
 ## 🎯 The Problem
 
 The official web-based LMS for the Syrian Virtual University, while functional on desktops, offers a suboptimal experience on mobile devices. Students face several challenges daily, including:
